@@ -1,29 +1,36 @@
-package entidades;
+package io.github.escuela_tecnica_n35.entidades;
 
 public class Posicion {
 
-    protected int x;
-    protected int y;
+    protected float x;
+    protected float y;
 
-    public Posicion(int x, int y) {
+    public Posicion(float x, float y) {
         this.x = x;
         this.y = y;
     }
 
-    public int getX() {
+    public float getX() {
         return x;
     }
 
-    public int getY() {
+    public float getY() {
         return y;
     }
 
-    public void moverX(int cantidad) {
+    public void moverX(float cantidad) {
         this.x += cantidad;
     }
 
-    public void moverY(int cantidad) {
+    public void moverY(float cantidad) {
         this.y += cantidad;
     }
-    
+
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    public void setY(float y) {
+        this.y = y;
+    }
 }

@@ -1,8 +1,8 @@
-package juego;
+package io.github.escuela_tecnica_n35.juego;
 
-import entidades.Jugador;
-import etapas.Etapa;
-import etapas.GeneracionEtapa;
+import io.github.escuela_tecnica_n35.entidades.Jugador;
+import io.github.escuela_tecnica_n35.etapas.Etapa;
+import io.github.escuela_tecnica_n35.etapas.GeneracionEtapa;
 
 public class Juego {
 

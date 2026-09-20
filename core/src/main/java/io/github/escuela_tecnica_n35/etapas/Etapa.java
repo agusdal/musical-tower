@@ -1,8 +1,9 @@
-package etapas;
+package io.github.escuela_tecnica_n35.etapas;
+
+import io.github.escuela_tecnica_n35.entidades.Enemigo;
+import io.github.escuela_tecnica_n35.entidades.Jefe;
 
 import java.util.ArrayList;
-import entidades.Enemigo;
-import entidades.Jefe;
 
 public class Etapa {
 

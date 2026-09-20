@@ -1,4 +1,4 @@
-package etapas;
+package io.github.escuela_tecnica_n35.etapas;
 
 import java.util.Random;
 

@@ -1,4 +1,4 @@
-package entidades;
+package io.github.escuela_tecnica_n35.entidades;
 
 import java.util.ArrayList;
 

@@ -1,18 +1,17 @@
-package entidades;
+package io.github.escuela_tecnica_n35.entidades;
 
 import java.util.Random;
 
 public class Jefe extends Enemigo {
 	
-	private double velocidad;
 	private boolean velocidadAumentada;
 	private int monedasMinimas;
     private int monedasMaximas;
 	
-	public Jefe(String nombre, Posicion posicion, int vidaMax, double velocidad, int daño, int monedasMinimas, int monedasMaximas) {
+	public Jefe(String nombre, Posicion posicion, int vidaMax
+			, float velocidad, int daño, int monedasMinimas, int monedasMaximas) {
 		
         super(nombre, posicion, vidaMax, velocidad, daño, monedasMinimas, monedasMaximas);
-        this.velocidad = velocidad;
         this.monedasMinimas = monedasMinimas;
         this.monedasMaximas = monedasMaximas;
         
@@ -56,7 +55,7 @@ public class Jefe extends Enemigo {
 	        velocidadAumentada = true; // Decimos que "ya se aumento la velocidad una vez"
 
 	        // Aumentamos la velocidad un 50%
-	        setVelocidad(getVelocidad() + (getVelocidad() / 2));
+	        setVelocidad(getVelocidad() + (getVelocidad() / 2f));
 	    }
 	}
 	

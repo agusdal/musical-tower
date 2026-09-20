@@ -1,4 +1,4 @@
-package entidades;
+package io.github.escuela_tecnica_n35.entidades;
 
 public class Entidad {
 
@@ -6,12 +6,12 @@ public class Entidad {
     protected Posicion posicion;
     private int vidaActual;
     private int vidaMax;
-    private double velocidad;
+    private float velocidad;
     private int daño;
     
     
     
-    public Entidad(String nombre, Posicion posicion, int vidaMax, double velocidad, int daño) {
+    public Entidad(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) {
         this.nombre = nombre;
         this.posicion = posicion;
         this.vidaMax = vidaMax;
@@ -35,7 +35,7 @@ public class Entidad {
         return vidaMax;
     }
     
-    public double getVelocidad() {
+    public float getVelocidad() {
         return velocidad;
     }
     
@@ -70,7 +70,7 @@ public class Entidad {
     	return vivo;
     }
     
-    public void setVelocidad(double velocidad) {
+    public void setVelocidad(float velocidad) {
         this.velocidad = velocidad;
     }
 }

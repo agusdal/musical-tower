@@ -1,4 +1,4 @@
-package entidades;
+package io.github.escuela_tecnica_n35.entidades;
 
 public class Jugador extends Entidad {
 	
@@ -6,7 +6,7 @@ public class Jugador extends Entidad {
 	private Inventario inventario;
 	private Item objetoActivo;
 	
-	public Jugador(String nombre, Posicion posicion, int vidaMax, double velocidad, int daño) {
+	public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) {
 		
         super(nombre, posicion, vidaMax, velocidad, daño);
         this.monedas = 0;

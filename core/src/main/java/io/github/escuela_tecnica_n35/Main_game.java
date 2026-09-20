@@ -7,20 +7,24 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+//Importamos las clases de otros paquetes
 import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
+import io.github.escuela_tecnica_n35.juego.Juego;
 
 public class Main_game extends ApplicationAdapter {
-
+	
     private SpriteBatch batch;
     private Texture image;
-
+    
     private Jugador jugador;
-
+    private Juego juego;
+    
     private float velocidadY;
+    private float aceleracionCaidaRapida;
     private float gravedad;
     private float pisoY;
-
+    
     @Override
     public void create() {
 
@@ -36,8 +40,12 @@ public class Main_game extends ApplicationAdapter {
             200,
             7
         );
+        
+        juego = new Juego(jugador);
+        juego.iniciarJuego();
 
         velocidadY = 0;
+        aceleracionCaidaRapida = 1400;
         gravedad = -800;
 
         pisoY = 50;
@@ -48,7 +56,7 @@ public class Main_game extends ApplicationAdapter {
 
         float delta = Gdx.graphics.getDeltaTime();
 
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f); // "Limpia la pantalla despues de cada frame"
 
         // MOVIMIENTO HORIZONTAL
 
@@ -65,13 +73,22 @@ public class Main_game extends ApplicationAdapter {
                 (float) (-jugador.getVelocidad() * delta)
             );
         }
+        
+        // CAÍDA RAPIDA
+        
+        if (Gdx.input.isKeyPressed(Input.Keys.S)
+                && jugador.getPosicion().getY() > pisoY) {
 
+            velocidadY -= aceleracionCaidaRapida * delta;
+        }
+        
         // SALTO
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
-                && jugador.getPosicion().getY() == pisoY) {
+        if ((Gdx.input.isKeyJustPressed(Input.Keys.SPACE) ||
+        	     Gdx.input.isKeyJustPressed(Input.Keys.W))
+        	        && jugador.getPosicion().getY() == pisoY) {
 
-            velocidadY = 400;
+        	velocidadY = 400;
         }
 
         // GRAVEDAD

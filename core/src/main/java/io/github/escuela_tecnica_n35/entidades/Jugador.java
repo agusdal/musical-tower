@@ -14,26 +14,6 @@ public class Jugador extends Entidad {
         
     }
 	
-	//----------------------------\/MOVIMIENTO\/-----------------------------
-	
-	public void moverseDerecha() {
-	    getPosicion().moverX(10);
-	}
-	
-	public void moverseIzquierda() {
-	    getPosicion().moverX(-10);
-	}
-	
-	public void moverseArriba() {
-	    getPosicion().moverY(13);
-	}
-	
-	/*public void moverseAbajo() {
-	    getPosicion().moverY(10);
-	}*/
-	
-	//----------------------------/\MOVIMIENTO/\-----------------------------
-	
 	//----------------------------\/EFECTOS A VIDA\/-----------------------------
 	
 	public void atacar(Entidad objetivo) {

@@ -5,7 +5,7 @@ import io.github.escuela_tecnica_n35.etapas.Etapa;
 import io.github.escuela_tecnica_n35.etapas.GeneracionEtapa;
 
 public class Juego {
-
+	
     private Jugador jugador;
     private Etapa etapaActual;
     private GeneracionEtapa generador;

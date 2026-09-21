@@ -12,6 +12,7 @@ public class Etapa {
     private int numeroPiso;
     private ArrayList<Enemigo> enemigos;
     private Jefe jefe;
+    private Sala[][] mapa;
 
     public Etapa(String nombre, int dificultad, int numeroPiso,
                  ArrayList<Enemigo> enemigos, Jefe jefe) {
@@ -41,5 +42,9 @@ public class Etapa {
 
     public Jefe getJefe() {
         return jefe;
+    }
+    
+    public Sala[][] getMapa() {
+        return mapa;
     }
 }

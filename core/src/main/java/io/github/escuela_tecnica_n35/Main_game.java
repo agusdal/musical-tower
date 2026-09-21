@@ -117,7 +117,7 @@ public class Main_game extends ApplicationAdapter {
             jugador.getPosicion().getX(),
             jugador.getPosicion().getY(),
             80,
-            80
+            140
         );
 
         batch.end();

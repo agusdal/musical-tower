@@ -12,13 +12,20 @@ public class Sala {
 
     private ArrayList<Enemigo> enemigos;
 
-    public Sala(int fila, int columna, TipoSala tipo) {
+    // NUEVO:
+    // Guarda cuántas salas hay que recorrer desde la sala inicial
+    // para llegar hasta esta sala.
+    private int distanciaInicial;
 
+    public Sala(int fila, int columna, TipoSala tipo) {
+    	
         this.fila = fila;
         this.columna = columna;
         this.tipo = tipo;
-
+        
         this.enemigos = new ArrayList<Enemigo>();
+        
+        this.distanciaInicial = 0;
     }
 
     public int getFila() {
@@ -33,11 +40,28 @@ public class Sala {
         return tipo;
     }
 
+    // NUEVO:
+    // Lo vamos a usar para convertir una sala ENEMIGOS
+    // en una sala JEFE.
+    public void setTipo(TipoSala tipo) {
+        this.tipo = tipo;
+    }
+
     public ArrayList<Enemigo> getEnemigos() {
         return enemigos;
     }
 
     public void agregarEnemigo(Enemigo enemigo) {
         enemigos.add(enemigo);
+    }
+
+    // -------------------- DISTANCIA DESDE INICIAL --------------------
+
+    public int getDistanciaInicial() {
+        return distanciaInicial;
+    }
+
+    public void setDistanciaInicial(int distanciaInicial) {
+        this.distanciaInicial = distanciaInicial;
     }
 }

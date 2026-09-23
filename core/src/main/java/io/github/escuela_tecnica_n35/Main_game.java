@@ -3,19 +3,16 @@ package io.github.escuela_tecnica_n35;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-//Importamos las clases de otros paquetes
 import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.juego.Juego;
 
 public class Main_game extends ApplicationAdapter {
-	
+    
     private SpriteBatch batch;
-    private Texture image;
     
     private Jugador jugador;
     private Juego juego;
@@ -25,11 +22,12 @@ public class Main_game extends ApplicationAdapter {
     private float gravedad;
     private float pisoY;
     
+    private boolean mirandoIzquierda = false;
+
     @Override
     public void create() {
 
         batch = new SpriteBatch();
-        image = new Texture("KMD.jpeg");
 
         Posicion posicionInicial = new Posicion(140, 50);
 
@@ -56,77 +54,63 @@ public class Main_game extends ApplicationAdapter {
 
         float delta = Gdx.graphics.getDeltaTime();
 
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f); // "Limpia la pantalla despues de cada frame"
+        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+
+        boolean seMueve = false;
 
         // MOVIMIENTO HORIZONTAL
-
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-
-            jugador.getPosicion().moverX(
-                (float) (jugador.getVelocidad() * delta)
-            );
+            jugador.getPosicion().moverX((float) (jugador.getVelocidad() * delta));
+            seMueve = true;
+            mirandoIzquierda = false;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-
-            jugador.getPosicion().moverX(
-                (float) (-jugador.getVelocidad() * delta)
-            );
-        }
-        
-        // CAÍDA RAPIDA
-        
-        if (Gdx.input.isKeyPressed(Input.Keys.S)
-                && jugador.getPosicion().getY() > pisoY) {
-
-            velocidadY -= aceleracionCaidaRapida * delta;
+            jugador.getPosicion().moverX((float) (-jugador.getVelocidad() * delta));
+            seMueve = true;
+            mirandoIzquierda = true;
         }
         
         // SALTO
-
-        if ((Gdx.input.isKeyJustPressed(Input.Keys.SPACE) ||
-        	     Gdx.input.isKeyJustPressed(Input.Keys.W))
-        	        && jugador.getPosicion().getY() == pisoY) {
-
-        	velocidadY = 400;
+        if ((Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || Gdx.input.isKeyJustPressed(Input.Keys.W))
+                && jugador.getPosicion().getY() == pisoY) {
+            velocidadY = 400;
         }
 
-        // GRAVEDAD
+        float velocidadActualY = velocidadY;
+
+        // CAÍDA RÁPIDA Y GRAVEDAD
+        if (Gdx.input.isKeyPressed(Input.Keys.S) && jugador.getPosicion().getY() > pisoY) {
+            velocidadY -= aceleracionCaidaRapida * delta;
+        }
 
         velocidadY += gravedad * delta;
 
+        // MOVER POSICIÓN
         jugador.getPosicion().moverY(
             velocidadY * delta
         );
 
         // COLISIÓN CON EL PISO
-
-        if (jugador.getPosicion().getY() < pisoY) {
-
+        boolean enElPiso = false;
+        if (jugador.getPosicion().getY() <= pisoY) {
             jugador.getPosicion().setY(pisoY);
-
             velocidadY = 0;
+            velocidadActualY = 0;
+            enElPiso = true;
         }
 
+        // EVALUAR Y ACTUALIZAR ESTADO
+        jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
+
         // DIBUJAR
-
         batch.begin();
-
-        batch.draw(
-            image,
-            jugador.getPosicion().getX(),
-            jugador.getPosicion().getY(),
-            80,
-            140
-        );
-
+        jugador.render(batch, delta);
         batch.end();
     }
 
     @Override
     public void dispose() {
-
         batch.dispose();
-        image.dispose();
     }
 }

@@ -1,28 +1,44 @@
 package io.github.escuela_tecnica_n35.entidades;
 
-// herramientas que se encargan de "dibujar", recortar y mostrar los frames
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class Jugador extends Entidad {
-	
-	private int monedas;
-	private Inventario inventario;
-	private Item objetoActivo;
-	
-	// Variables para la animación de LibGDX
-		private Animation<TextureRegion> caminataAnimacion;
-		private float stateTime = 0f;
-	
-	public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) {
-		
+
+    private int monedas;
+    private Inventario inventario;
+    private Item objetoActivo;
+
+    // Frames individuales
+    private TextureRegion frameQuieto;
+    private TextureRegion frameSaltoDerecha;
+    private TextureRegion frameCaidaDerechaInicio;
+    private TextureRegion frameCaidaDerechaEstatico;
+
+    private TextureRegion frameSaltoIzquierda;
+    private TextureRegion frameCaidaIzquierdaInicio;
+    private TextureRegion frameCaidaIzquierdaEstatico;
+
+    // Animaciones
+    private Animation<TextureRegion> animCaminarDerecha;
+    private Animation<TextureRegion> animCaminarIzquierda;
+
+    private float stateTime = 0f;
+    private float tiempoCaida = 0f; // Para controlar la transición durante la caída
+
+    // Estados
+    private boolean moviendose = false;
+    private boolean mirandoIzquierda = false;
+    private boolean enElPiso = true;
+    private float velocidadY = 0f;
+
+    public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) {
         super(nombre, posicion, vidaMax, velocidad, daño);
         this.monedas = 0;
         this.inventario = new Inventario();
-        
-     // Cargar y configurar la animación del Spritesheet
+
         Texture walkSheet = new Texture("frames.png");
         int FRAME_COLS = 17;
         int FRAME_ROWS = 1;
@@ -33,78 +49,132 @@ public class Jugador extends Entidad {
             walkSheet.getHeight() / FRAME_ROWS
         );
 
-        TextureRegion[] walkFrames = new TextureRegion[FRAME_COLS];
-        for (int j = 0; j < FRAME_COLS; j++) {
-            walkFrames[j] = tmp[0][j];
+        // Frame 0: Quieto
+        frameQuieto = tmp[0][0];
+
+        // Frames 1 a 5: Caminata Derecha (5 frames)
+        TextureRegion[] framesDerecha = new TextureRegion[5];
+        for (int i = 0; i < 5; i++) {
+            framesDerecha[i] = tmp[0][i + 1];
+        }
+        animCaminarDerecha = new Animation<TextureRegion>(0.09f, framesDerecha);
+
+        // Frame 6: Salto Derecha
+        frameSaltoDerecha = tmp[0][6];
+
+        // Frames 7 y 8: Caída Derecha (Instante inicial vs Estático)
+        frameCaidaDerechaInicio = tmp[0][7];
+        frameCaidaDerechaEstatico = tmp[0][8];
+
+        // Frames 9 a 13: Caminata Izquierda (5 frames)
+        TextureRegion[] framesIzquierda = new TextureRegion[5];
+        for (int i = 0; i < 5; i++) {
+            framesIzquierda[i] = tmp[0][i + 9];
+        }
+        animCaminarIzquierda = new Animation<TextureRegion>(0.09f, framesIzquierda);
+
+        // Frame 14: Salto Izquierda
+        frameSaltoIzquierda = tmp[0][14];
+
+        // Frames 15 y 16: Caída Izquierda (Instante inicial vs Estático)
+        frameCaidaIzquierdaInicio = tmp[0][15];
+        frameCaidaIzquierdaEstatico = tmp[0][16];
+    }
+
+    public void setEstado(boolean moviendose, boolean mirandoIzquierda, boolean enElPiso, float velocidadY) {
+        if (this.enElPiso != enElPiso || this.mirandoIzquierda != mirandoIzquierda) {
+            stateTime = 0f;
+            tiempoCaida = 0f;
+        }
+        
+        this.moviendose = moviendose;
+        this.mirandoIzquierda = mirandoIzquierda;
+        this.enElPiso = enElPiso;
+        this.velocidadY = velocidadY;
+    }
+
+    public void render(SpriteBatch batch, float delta) {
+        TextureRegion frameActual;
+
+        if (!enElPiso) {
+            // EN EL AIRE
+            if (velocidadY >= 0) {
+                // Impulso hacia arriba: Frame de Salto
+                tiempoCaida = 0f;
+                frameActual = mirandoIzquierda ? frameSaltoIzquierda : frameSaltoDerecha;
+            } else {
+                // Descendiendo
+                tiempoCaida += delta;
+
+                // Sostiene el primer frame de caída por 0.12 segundos y luego pasa al estático
+                if (tiempoCaida < 0.3f) {
+                    frameActual = mirandoIzquierda ? frameCaidaIzquierdaInicio : frameCaidaDerechaInicio;
+                } else {
+                    frameActual = mirandoIzquierda ? frameCaidaIzquierdaEstatico : frameCaidaDerechaEstatico;
+                }
+            }
+        } else if (moviendose) {
+            // EN EL PISO CAMINANDO
+            stateTime += delta;
+            if (mirandoIzquierda) {
+                frameActual = animCaminarIzquierda.getKeyFrame(stateTime, true);
+            } else {
+                frameActual = animCaminarDerecha.getKeyFrame(stateTime, true);
+            }
+        } else {
+            // EN EL PISO QUIETO
+            stateTime = 0f;
+            tiempoCaida = 0f;
+            frameActual = frameQuieto;
         }
 
-        // Se asigna la animación (0.05 segundos por frame)
-        this.caminataAnimacion = new Animation<TextureRegion>(0.05f, walkFrames);
+        batch.draw(frameActual, getPosicion().getX(), getPosicion().getY());
     }
-	
-	// Método para dibujar al jugador animado en pantalla
-	public void render(SpriteBatch batch, float delta) {
-		stateTime += delta;
-		TextureRegion frameActual = caminataAnimacion.getKeyFrame(stateTime, true);
-		
-		// Usa las coordenadas X e Y guardadas en el objeto Posicion
-		batch.draw(frameActual, getPosicion().getX(), getPosicion().getY());
-	}
-        
-    }
-	
+
 	//----------------------------\/EFECTOS A VIDA\/-----------------------------
 	
 	public void atacar(Entidad objetivo) {
-        objetivo.recibirDaño(getDaño());
-    }
+		objetivo.recibirDaño(getDaño());
+	}
 	
 	public void aumentarVidaMax(Entidad objetivo) {
-        objetivo.recibirDaño(getVidaMax());
-    }
+		objetivo.recibirDaño(getVidaMax());
+	}
 	
 	//----------------------------/\EFECTOS A VIDA/\-----------------------------
 	
 	//----------------------------\/MONEDAS\/-----------------------------
 	
 	public int agarrarMonedas(int monedasGanadas) {
-		
 		return monedas += monedasGanadas;
-    }
+	}
 	
 	public int restarMonedas(int monedasPerdidas) {
-		
-		if(monedas >= monedasPerdidas) {
+		if (monedas >= monedasPerdidas) {
 			monedas -= monedasPerdidas;
-			
 		}
-		
-		
 		return monedas;
-    }
+	}
 	
 	public int getMonedas() {
-        return monedas;
-    }
+		return monedas;
+	}
 	
 	//----------------------------/\MONEDAS/\-----------------------------
 	
 	//----------------------------\/OBJETO ACTIVO\/-----------------------------
 	
 	public Item getObjetoActivo() {
-        return objetoActivo;
-    }
+		return objetoActivo;
+	}
 	
 	//----------------------------/\OBJETO ACTIVO/\-----------------------------
 	
 	//----------------------------\/INVENTARIO\/-----------------------------
 	
 	public Inventario getInventario() {
-        return inventario;
-    }
+		return inventario;
+	}
 	
 	//----------------------------/\INVENTARIO/\-----------------------------
-	
-	
-	
 }

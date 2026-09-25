@@ -3,6 +3,9 @@ package io.github.escuela_tecnica_n35.etapas;
 import java.util.Random;
 import java.util.ArrayList;
 
+import io.github.escuela_tecnica_n35.entidades.Enemigo;
+import io.github.escuela_tecnica_n35.entidades.Jefe;
+
 public class GeneracionEtapa {
 
     public Etapa generarEtapa(int numeroPiso) {
@@ -25,28 +28,56 @@ public class GeneracionEtapa {
 
     private Etapa generarVarianteA(int numeroPiso) {
 
+        // Generamos la estructura completa del piso.
         Sala[][] mapa = generarMapa(numeroPiso);
 
         imprimirMapa(mapa);
 
-        // Más adelante:
-        // crear enemigos exclusivos de esta etapa
-        // crear jefe correspondiente
+        // Por ahora todavía no colocamos enemigos reales.
+        ArrayList<Enemigo> enemigos =
+            new ArrayList<Enemigo>();
 
-        return null;
+        // El jefe concreto lo agregaremos más adelante.
+        Jefe jefe = null;
+
+        // IMPORTANTE:
+        // Ahora devolvemos una Etapa real que contiene
+        // el mapa que acabamos de generar.
+        return new Etapa(
+            "DISCOTERÍA " + numeroPiso + " - Variante A",
+            numeroPiso,
+            numeroPiso,
+            enemigos,
+            jefe,
+            mapa
+        );
     }
 
     private Etapa generarVarianteB(int numeroPiso) {
 
+    	// Generamos la estructura completa del piso.
         Sala[][] mapa = generarMapa(numeroPiso);
 
         imprimirMapa(mapa);
 
-        // Más adelante:
-        // crear enemigos exclusivos de esta etapa
-        // crear jefe correspondiente
+        // Por ahora todavía no colocamos enemigos reales.
+        ArrayList<Enemigo> enemigos =
+            new ArrayList<Enemigo>();
 
-        return null;
+        // El jefe concreto lo agregaremos más adelante.
+        Jefe jefe = null;
+
+        // IMPORTANTE:
+        // Ahora devolvemos una Etapa real que contiene
+        // el mapa que acabamos de generar.
+        return new Etapa(
+            "ROCK AND FALL " + numeroPiso + " - Variante B",
+            numeroPiso,
+            numeroPiso,
+            enemigos,
+            jefe,
+            mapa
+        );
     }
 
     private Etapa generarPisoFinal() {

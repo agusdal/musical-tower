@@ -15,13 +15,15 @@ public class Etapa {
     private Sala[][] mapa;
 
     public Etapa(String nombre, int dificultad, int numeroPiso,
-                 ArrayList<Enemigo> enemigos, Jefe jefe) {
+                 ArrayList<Enemigo> enemigos, Jefe jefe, Sala[][] mapa) {
 
         this.nombre = nombre;
         this.dificultad = dificultad;
         this.numeroPiso = numeroPiso;
         this.enemigos = enemigos;
         this.jefe = jefe;
+        
+        this.mapa = mapa;
     }
 
     public String getNombre() {

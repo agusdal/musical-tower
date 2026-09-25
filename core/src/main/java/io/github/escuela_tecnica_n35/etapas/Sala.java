@@ -64,4 +64,20 @@ public class Sala {
     public void setDistanciaInicial(int distanciaInicial) {
         this.distanciaInicial = distanciaInicial;
     }
+    
+    // Devuelve true solamente cuando no queda ningún enemigo vivo.
+    //
+    // Por ahora, como las salas están vacías,
+    // este método devolverá true automáticamente.
+    public boolean puedeSalir() {
+
+        for (Enemigo enemigo : enemigos) {
+
+            if (enemigo.estaVivo()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

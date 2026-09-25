@@ -13,6 +13,7 @@ public class Jugador extends Entidad {
 
     // Frames individuales
     private TextureRegion frameQuieto;
+    
     private TextureRegion frameSaltoDerecha;
     private TextureRegion frameCaidaDerechaInicio;
     private TextureRegion frameCaidaDerechaEstatico;
@@ -33,8 +34,10 @@ public class Jugador extends Entidad {
     private boolean mirandoIzquierda = false;
     private boolean enElPiso = true;
     private float velocidadY = 0f;
+    
+    
 
-    public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) {
+    public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) { // CONSTRUCTOR
         super(nombre, posicion, vidaMax, velocidad, daño);
         this.monedas = 0;
         this.inventario = new Inventario();

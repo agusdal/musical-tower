@@ -44,6 +44,38 @@ public class Main_game extends ApplicationAdapter {
     private float gravedad;
     private float pisoY;
     
+	// -----------------------------------------
+	// SALTO
+	// -----------------------------------------
+	
+	// Velocidad inicial de cada salto.
+	private float fuerzaSalto;
+	
+	// Cantidad de saltos disponibles.
+	// 2 = salto normal + doble salto.
+	private int saltosDisponibles;
+	
+	// Gravedad extra que se aplica cuando
+	// soltamos el botón antes de llegar al punto máximo.
+	private float gravedadSaltoCorto;
+	
+	
+	// -----------------------------------------
+	// DASH
+	// -----------------------------------------
+	
+	private boolean haciendoDash;
+	
+	private float tiempoDashRestante;
+	private float tiempoCooldownDash;
+	
+	private int direccionDash;
+	
+	private float velocidadDash;
+	private float duracionDash;
+	private float cooldownDash;
+    
+    
     private boolean mirandoIzquierda = false;
     
     
@@ -133,6 +165,40 @@ public class Main_game extends ApplicationAdapter {
         gravedad = -800;
 
         pisoY = 50;
+        
+	    // -----------------------------------------
+	    // SALTO
+	    // -----------------------------------------
+	
+	    fuerzaSalto = 500;
+	
+	    // Al comenzar tenemos salto normal
+	    // y doble salto disponibles.
+	    saltosDisponibles = 2;
+	
+	    // PROVISIONAL:
+	    // Hace que al soltar el botón durante la subida,
+	    // el personaje pierda velocidad vertical rápidamente.
+	    gravedadSaltoCorto = -1600;
+	
+	
+	    // -----------------------------------------
+	    // DASH
+	    // -----------------------------------------
+	
+	    haciendoDash = false;
+	
+	    tiempoDashRestante = 0;
+	    tiempoCooldownDash = 0;
+	
+	    // PROVISIONALES:
+	    // Después podemos ajustar estos valores
+	    // según cómo se sienta el movimiento.
+	    velocidadDash = 900;
+	    duracionDash = 0.15f;
+	    cooldownDash = 0.45f;
+	
+	    direccionDash = 1;
     }
 
     @Override
@@ -158,24 +224,122 @@ public class Main_game extends ApplicationAdapter {
 
         boolean seMueve = false;
 
-        // MOVIMIENTO HORIZONTAL
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            jugador.getPosicion().moverX((float) (jugador.getVelocidad() * delta));
-            seMueve = true;
-            mirandoIzquierda = false;
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            jugador.getPosicion().moverX((float) (-jugador.getVelocidad() * delta));
-            seMueve = true;
-            mirandoIzquierda = true;
-        }
+	    // --------------------------------------------------
+	    // DASH
+	    // --------------------------------------------------
+	
+	    // Reducimos el cooldown con el paso del tiempo.
+	    if (tiempoCooldownDash > 0) {
+	
+	        tiempoCooldownDash -= delta;
+	    }
+	
+	
+	    // SHIFT inicia el dash.
+	    if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+	
+	        iniciarDash();
+	    }
+	
+	
+	    // --------------------------------------------------
+	    // MOVIMIENTO HORIZONTAL
+	    // --------------------------------------------------
+	
+	    if (haciendoDash) {
+	
+	        // Durante el dash ignoramos momentáneamente
+	        // la velocidad normal del jugador.
+	        jugador.getPosicion().moverX(
+	            velocidadDash
+	            * direccionDash
+	            * delta
+	        );
+	
+	        seMueve = true;
+	
+	
+	        // Actualizamos hacia dónde mira.
+	        if (direccionDash == -1) {
+	            mirandoIzquierda = true;
+	        }
+	        else {
+	            mirandoIzquierda = false;
+	        }
+	
+	
+	        // Restamos el tiempo que dura el dash.
+	        tiempoDashRestante -= delta;
+	
+	
+	        // Cuando se acaba el tiempo,
+	        // volvemos al movimiento normal.
+	        if (tiempoDashRestante <= 0) {
+	
+	            haciendoDash = false;
+	        }
+	    }
+	    else {
+	
+	        // -----------------------------------------
+	        // MOVIMIENTO NORMAL
+	        // -----------------------------------------
+	
+	        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+	
+	            jugador.getPosicion().moverX(
+	                jugador.getVelocidad() * delta
+	            );
+	
+	            seMueve = true;
+	
+	            mirandoIzquierda = false;
+	        }
+	
+	
+	        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+	
+	            jugador.getPosicion().moverX(
+	                -jugador.getVelocidad() * delta
+	            );
+	
+	            seMueve = true;
+	
+	            mirandoIzquierda = true;
+	        }
+	    }
         
-        // SALTO
-        if ((Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || Gdx.input.isKeyJustPressed(Input.Keys.W))
-                && jugador.getPosicion().getY() == pisoY) {
-            velocidadY = 500;
-        }
+	    // --------------------------------------------------
+	    // SALTO + DOBLE SALTO
+	    // --------------------------------------------------
+	
+	    if (botonSaltoRecienPresionado()
+	            && saltosDisponibles > 0) {
+	
+	        // Cada salto vuelve a darle al personaje
+	        // una velocidad vertical hacia arriba.
+	        velocidadY = fuerzaSalto;
+	
+	        // Consumimos uno de los saltos.
+	        saltosDisponibles--;
+	    }
+	    
+		// --------------------------------------------------
+		// SALTO VARIABLE
+		// --------------------------------------------------
+	
+		// Si todavía estamos subiendo...
+		if (velocidadY > 0
+	
+		        // ...pero el jugador ya soltó W/SPACE...
+		        && !botonSaltoPresionado()) {
+	
+		    // ...aplicamos gravedad adicional.
+		    //
+		    // Esto corta antes la subida y genera
+		    // un salto más bajo.
+		    velocidadY += gravedadSaltoCorto * delta;
+		}
 
         float velocidadActualY = velocidadY;
 
@@ -194,10 +358,17 @@ public class Main_game extends ApplicationAdapter {
         // COLISIÓN CON EL PISO
         boolean enElPiso = false;
         if (jugador.getPosicion().getY() <= pisoY) {
+
             jugador.getPosicion().setY(pisoY);
+
             velocidadY = 0;
             velocidadActualY = 0;
+
             enElPiso = true;
+
+            // Recuperamos salto normal + doble salto
+            // al volver a tocar el piso.
+            saltosDisponibles = 2;
         }
 
         // EVALUAR Y ACTUALIZAR ESTADO
@@ -261,6 +432,75 @@ public class Main_game extends ApplicationAdapter {
         font.dispose();
         
         shapeRenderer.dispose();
+    }
+    
+    private boolean botonSaltoPresionado() {
+
+        return Gdx.input.isKeyPressed(Input.Keys.SPACE)
+            || Gdx.input.isKeyPressed(Input.Keys.W);
+    }
+
+
+    private boolean botonSaltoRecienPresionado() {
+
+        return Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
+            || Gdx.input.isKeyJustPressed(Input.Keys.W);
+    }
+    
+    private void iniciarDash() {
+
+        // Si todavía está en cooldown,
+        // no podemos volver a usarlo.
+        if (tiempoCooldownDash > 0) {
+            return;
+        }
+
+        // Tampoco iniciamos otro dash
+        // mientras ya estamos haciendo uno.
+        if (haciendoDash) {
+            return;
+        }
+
+
+        // --------------------------------------------------
+        // DIRECCIÓN
+        // --------------------------------------------------
+
+        // Si justo está manteniendo A,
+        // el dash será hacia la izquierda.
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+
+            direccionDash = -1;
+        }
+
+        // Si está manteniendo D,
+        // será hacia la derecha.
+        else if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+
+            direccionDash = 1;
+        }
+
+        // Si no está tocando A ni D,
+        // usamos hacia dónde está mirando.
+        else {
+
+            if (mirandoIzquierda) {
+                direccionDash = -1;
+            }
+            else {
+                direccionDash = 1;
+            }
+        }
+
+
+        // Comienza el dash.
+        haciendoDash = true;
+
+        tiempoDashRestante =
+            duracionDash;
+
+        tiempoCooldownDash =
+            cooldownDash;
     }
     
     // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------

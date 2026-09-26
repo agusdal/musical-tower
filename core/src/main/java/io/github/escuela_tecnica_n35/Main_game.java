@@ -71,6 +71,9 @@ public class Main_game extends ApplicationAdapter {
 	
 	private int direccionDash;
 	
+	// Solo puede dashear una vez en el aire
+	private int dashDisponibleAire;
+	
 	private float velocidadDash;
 	private float duracionDash;
 	private float cooldownDash;
@@ -187,7 +190,9 @@ public class Main_game extends ApplicationAdapter {
 	    // -----------------------------------------
 	
 	    haciendoDash = false;
-	
+	    
+	    dashDisponibleAire = 1;
+	    
 	    tiempoDashRestante = 0;
 	    tiempoCooldownDash = 0;
 	
@@ -233,15 +238,14 @@ public class Main_game extends ApplicationAdapter {
 	
 	        tiempoCooldownDash -= delta;
 	    }
+	    
+		// Intentamos iniciar el dash.
+		// El propio método comprobará si está permitido.
+		if (botonDashRecienPresionado()) {
 	
-	
-	    // SHIFT inicia el dash.
-	    if (Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
-	
-	        iniciarDash();
-	    }
-	
-	
+		    iniciarDash();
+		}
+	    
 	    // --------------------------------------------------
 	    // MOVIMIENTO HORIZONTAL
 	    // --------------------------------------------------
@@ -327,33 +331,39 @@ public class Main_game extends ApplicationAdapter {
 		// --------------------------------------------------
 		// SALTO VARIABLE
 		// --------------------------------------------------
+	    
+	    float velocidadActualY = velocidadY;
+	    
+	    // Si NO estamos haciendo el dash... (para que sea estatico durante el mismo)
+	    if (!haciendoDash) {
+	    
+			// Si todavía estamos subiendo...
+			if (velocidadY > 0
+		
+			        // ...pero el jugador ya soltó W/SPACE...
+			        && !botonSaltoPresionado()) {
+		
+			    // ...aplicamos gravedad adicional.
+			    //
+			    // Esto corta antes la subida y genera
+			    // un salto más bajo.
+			    velocidadY += gravedadSaltoCorto * delta;
+			}
+			
+	        // CAÍDA RÁPIDA
+	        if (Gdx.input.isKeyPressed(Input.Keys.S) && jugador.getPosicion().getY() > pisoY) {
+	            velocidadY -= aceleracionCaidaRapida * delta;
+	        }
+	        
+	        // GRAVEDAD
+	        velocidadY += gravedad * delta;
 	
-		// Si todavía estamos subiendo...
-		if (velocidadY > 0
-	
-		        // ...pero el jugador ya soltó W/SPACE...
-		        && !botonSaltoPresionado()) {
-	
-		    // ...aplicamos gravedad adicional.
-		    //
-		    // Esto corta antes la subida y genera
-		    // un salto más bajo.
-		    velocidadY += gravedadSaltoCorto * delta;
-		}
-
-        float velocidadActualY = velocidadY;
-
-        // CAÍDA RÁPIDA Y GRAVEDAD
-        if (Gdx.input.isKeyPressed(Input.Keys.S) && jugador.getPosicion().getY() > pisoY) {
-            velocidadY -= aceleracionCaidaRapida * delta;
-        }
-
-        velocidadY += gravedad * delta;
-
-        // MOVER POSICIÓN
-        jugador.getPosicion().moverY(
-            velocidadY * delta
-        );
+	        // MOVER POSICIÓN
+	        jugador.getPosicion().moverY(
+	            velocidadY * delta
+	        );
+        
+	    }
 
         // COLISIÓN CON EL PISO
         boolean enElPiso = false;
@@ -369,6 +379,9 @@ public class Main_game extends ApplicationAdapter {
             // Recuperamos salto normal + doble salto
             // al volver a tocar el piso.
             saltosDisponibles = 2;
+            
+            //Recuperamos el dash en el aire
+            dashDisponibleAire = 1;
         }
 
         // EVALUAR Y ACTUALIZAR ESTADO
@@ -447,41 +460,54 @@ public class Main_game extends ApplicationAdapter {
             || Gdx.input.isKeyJustPressed(Input.Keys.W);
     }
     
+    private boolean botonDashRecienPresionado() {
+
+        return Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT);
+    }
+    
     private void iniciarDash() {
 
+        // --------------------------------------------------
+        // COMPROBACIONES
+        // --------------------------------------------------
+
         // Si todavía está en cooldown,
-        // no podemos volver a usarlo.
+        // no podemos hacer otro dash.
         if (tiempoCooldownDash > 0) {
             return;
         }
 
-        // Tampoco iniciamos otro dash
-        // mientras ya estamos haciendo uno.
+        // Si ya estamos haciendo dash,
+        // tampoco comenzamos otro.
         if (haciendoDash) {
             return;
         }
 
 
+        // Comprobamos si estamos en el aire.
+        boolean estaEnElAire =
+            jugador.getPosicion().getY() > pisoY;
+
+
+        // Si estamos en el aire y ya usamos
+        // nuestro único dash aéreo, no hacemos nada.
+        if (estaEnElAire && dashDisponibleAire <= 0) {
+            return;
+        }
+
+
         // --------------------------------------------------
-        // DIRECCIÓN
+        // DIRECCIÓN DEL DASH
         // --------------------------------------------------
 
-        // Si justo está manteniendo A,
-        // el dash será hacia la izquierda.
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
 
             direccionDash = -1;
         }
-
-        // Si está manteniendo D,
-        // será hacia la derecha.
         else if (Gdx.input.isKeyPressed(Input.Keys.D)) {
 
             direccionDash = 1;
         }
-
-        // Si no está tocando A ni D,
-        // usamos hacia dónde está mirando.
         else {
 
             if (mirandoIzquierda) {
@@ -493,14 +519,31 @@ public class Main_game extends ApplicationAdapter {
         }
 
 
-        // Comienza el dash.
+        // --------------------------------------------------
+        // INICIAMOS EL DASH
+        // --------------------------------------------------
+
         haciendoDash = true;
 
-        tiempoDashRestante =
-            duracionDash;
+        tiempoDashRestante = duracionDash;
 
-        tiempoCooldownDash =
-            cooldownDash;
+        tiempoCooldownDash = cooldownDash;
+
+        // El dash detiene momentáneamente
+        // el movimiento vertical.
+        velocidadY = 0;
+
+
+        // --------------------------------------------------
+        // CONSUMIMOS EL DASH AÉREO
+        // --------------------------------------------------
+
+        // Solamente gastamos el dash aéreo
+        // si realmente estamos en el aire.
+        if (estaEnElAire) {
+
+            dashDisponibleAire--;
+        }
     }
     
     // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------

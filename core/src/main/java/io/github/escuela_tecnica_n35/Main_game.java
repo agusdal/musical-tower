@@ -14,14 +14,30 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont; // IMPORTA MAPA
+import io.github.escuela_tecnica_n35.etapas.Sala;
+import io.github.escuela_tecnica_n35.etapas.TipoSala; // IMPORTA PARA EL MAPA
+
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.utils.viewport.FitViewport; // IMPORTS PARA LA PANTALLA
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
 public class Main_game extends ApplicationAdapter {
     
+	private static final float ANCHO_MUNDO = 1280f;
+	private static final float ALTO_MUNDO = 720f;
+
+	private OrthographicCamera camara;
+	private Viewport viewport;
+	
+	
     private SpriteBatch batch;
     
     private Jugador jugador;
     private Juego juego;
+    private BitmapFont font; // MAPA
+    private GlyphLayout layout;
     
     private float velocidadY;
     private float aceleracionCaidaRapida;
@@ -30,7 +46,6 @@ public class Main_game extends ApplicationAdapter {
     
     private boolean mirandoIzquierda = false;
     
-    private Texture image;
     
     private ShapeRenderer shapeRenderer;
 
@@ -61,17 +76,48 @@ public class Main_game extends ApplicationAdapter {
             "KMD",
             posicionInicial,
             100,
-            200,
+            250,
             7
         );
-        
-        image = new Texture("KMD.jpeg");
         
         juego = new Juego(jugador);
         juego.iniciarJuego();
         
+        font = new BitmapFont();
+        font.getData().setScale(1.2f); // Hace el texto del mapa un poco más grande
+        
+        layout = new GlyphLayout();
+        
         
         shapeRenderer = new ShapeRenderer();
+        
+	     // --------------------------------------------------
+	     // CÁMARA Y RESOLUCIÓN VIRTUAL
+	     // --------------------------------------------------
+	
+	     camara = new OrthographicCamera();
+	
+	     viewport = new FitViewport(
+	         ANCHO_MUNDO,
+	         ALTO_MUNDO,
+	         camara
+	     );
+	
+	     // Centramos la cámara en nuestro mundo.
+	     camara.position.set(
+	         ANCHO_MUNDO / 2,
+	         ALTO_MUNDO / 2,
+	         0
+	     );
+	
+	     camara.update();
+	
+	     batch.setProjectionMatrix(camara.combined);
+	     shapeRenderer.setProjectionMatrix(camara.combined);
+	     
+	     // --------------------------------------------------
+	     // CÁMARA Y RESOLUCIÓN VIRTUAL
+	     // --------------------------------------------------
 
         puertaIzquierda = new Rectangle(); // Cracion de la puerta izquierda
         puertaDerecha = new Rectangle(); // Cracion de la puerta derecha
@@ -95,6 +141,20 @@ public class Main_game extends ApplicationAdapter {
         float delta = Gdx.graphics.getDeltaTime();
 
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+        
+        // Aplicamos la resolución virtual.
+        viewport.apply();
+
+        camara.update();
+
+        batch.setProjectionMatrix(
+            camara.combined
+        );
+
+        shapeRenderer.setProjectionMatrix(
+            camara.combined
+        );
+        
 
         boolean seMueve = false;
 
@@ -114,7 +174,7 @@ public class Main_game extends ApplicationAdapter {
         // SALTO
         if ((Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || Gdx.input.isKeyJustPressed(Input.Keys.W))
                 && jugador.getPosicion().getY() == pisoY) {
-            velocidadY = 400;
+            velocidadY = 500;
         }
 
         float velocidadActualY = velocidadY;
@@ -143,68 +203,342 @@ public class Main_game extends ApplicationAdapter {
         // EVALUAR Y ACTUALIZAR ESTADO
         jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
 
-        // DIBUJAR
-        batch.begin();
-        jugador.render(batch, delta);
-        batch.end();
-        
 	     // --------------------------------------------------
-	     // ACTUALIZAMOS LAS PUERTAS DE LA HABITACIÓN
+	     // ACTUALIZAMOS LAS PUERTAS
 	     // --------------------------------------------------
 	
 	     actualizarPuertas();
 	
 	
 	     // --------------------------------------------------
-	     // EVITAMOS QUE EL JUGADOR SALGA DE LA PANTALLA
+	     // LIMITAMOS AL JUGADOR A LA HABITACIÓN
 	     // --------------------------------------------------
-	     
+	
 	     limitarJugadorAHabitacion();
 	
 	
 	     // --------------------------------------------------
-	     // COMPROBAMOS SI ENTRÓ EN UNA PUERTA
+	     // COMPROBAMOS CAMBIO DE SALA
 	     // --------------------------------------------------
 	
 	     comprobarCambioSala();
-	     
+	
+	
+	     // --------------------------------------------------
+	     // DIBUJAMOS LA HABITACIÓN PRIMERO
+	     // --------------------------------------------------
+	
 	     dibujarHabitacion();
-	     
-	     
+	
+	
+	     // --------------------------------------------------
+	     // DIBUJAMOS EL PERSONAJE ANIMADO
+	     // --------------------------------------------------
+	
 	     batch.begin();
-
-	     batch.draw(
-	         image,
-	         jugador.getPosicion().getX(),
-	         jugador.getPosicion().getY(),
-	         ANCHO_JUGADOR,
-	         ALTO_JUGADOR
-	     );
-
+	
+	     jugador.render(batch, delta);
+	
 	     batch.end();
+	
+	
+	     // --------------------------------------------------
+	     // DIBUJAMOS EL HUD AL FINAL
+	     //
+	     // De esta forma siempre queda por encima
+	     // del escenario y del personaje.
+	     // --------------------------------------------------
+	
+	     dibujarHUD();
+	     
     }
 
     @Override
     public void dispose() {
 
         batch.dispose();
-
-        image.dispose();
-
+        
+        font.dispose();
+        
         shapeRenderer.dispose();
     }
     
+    // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
+    
+    @Override
+    public void resize(int width, int height) {
+
+        // Adapta nuestro mundo 1280x720
+        // al tamaño real de la ventana.
+        viewport.update(
+            width,
+            height,
+            true
+        );
+    }
+    
+    // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
+    
+    // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
+    
+    private Color obtenerColorSala(Sala sala) {
+
+        if (sala == null) {
+            return Color.DARK_GRAY;
+        }
+
+        switch (sala.getTipo()) {
+
+            case INICIAL:
+                return Color.GREEN;
+
+            case ENEMIGOS:
+                return Color.LIGHT_GRAY; // COLORES PREDETERMINADOS PARA CADA SALA EN EL MAPA
+
+            case ITEM:
+                return Color.YELLOW;
+
+            case TIENDA:
+                return Color.BROWN;
+
+            case JEFE:
+                return Color.RED;
+        }
+
+        return Color.WHITE;
+    }
+    
+    private void dibujarNombreEtapa() {
+
+        // Obtenemos el nombre de la etapa que estamos jugando actualmente.
+        String nombreEtapa =
+            juego.getEtapaActual().getNombre();
+
+        // Calculamos cuánto ocupa el texto.
+        layout.setText(
+            font,
+            nombreEtapa
+        );
+
+        // Calculamos la posición X necesaria
+        // para que quede perfectamente centrado.
+        float posicionX =
+            (ANCHO_MUNDO - layout.width) / 2;
+
+        // Lo colocamos cerca del borde superior.
+        float posicionY =
+            ALTO_MUNDO - 20;
+
+        batch.begin();
+
+        font.draw(
+            batch,
+            layout,
+            posicionX,
+            posicionY
+        );
+
+        batch.end();
+    }
+    
+    private void dibujarBarraVida() {
+
+        float barraX = 20;
+        float barraY = ALTO_MUNDO - 35;
+        float barraAncho = 180;
+        float barraAlto = 18;
+
+        float porcentajeVida =
+            (float) jugador.getVidaActual() / jugador.getVidaMax();
+
+        // Fondo de la barra
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(
+            barraX,
+            barraY,
+            barraAncho,
+            barraAlto
+        );
+
+        // Vida actual
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(
+            barraX,
+            barraY,
+            barraAncho * porcentajeVida,
+            barraAlto
+        );
+
+        shapeRenderer.end();
+
+        // Borde
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        shapeRenderer.setColor(Color.WHITE);
+        shapeRenderer.rect(
+            barraX,
+            barraY,
+            barraAncho,
+            barraAlto
+        );
+
+        shapeRenderer.end();
+    }
+    
+    private void dibujarMiniMapa() {
+
+        Sala[][] mapa = juego.getEtapaActual().getMapa();
+        Sala salaActual = juego.getSalaActual();
+
+        float tamañoCelda = 16;
+        float separacion = 4;
+
+        float anchoMiniMapa =
+            mapa[0].length * (tamañoCelda + separacion);
+
+        float inicioX =
+        	ANCHO_MUNDO - anchoMiniMapa - 30;
+
+        float inicioY =
+            ALTO_MUNDO - 30;
+
+        // ---------------------------
+        // CUADRADOS DEL MAPA
+        // ---------------------------
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        for (int fila = 0; fila < mapa.length; fila++) {
+
+            for (int columna = 0; columna < mapa[fila].length; columna++) {
+
+                Sala sala = mapa[fila][columna];
+
+                if (sala != null) {
+
+                    float x =
+                        inicioX + columna * (tamañoCelda + separacion);
+
+                    float y =
+                        inicioY - (fila + 1) * (tamañoCelda + separacion);
+
+                    // Si es la sala actual del jugador,
+                    // la pintamos blanca para destacar su posición.
+                    if (sala == salaActual) {
+                        shapeRenderer.setColor(Color.WHITE);
+                    } else {
+                        shapeRenderer.setColor(obtenerColorSala(sala));
+                    }
+
+                    shapeRenderer.rect(
+                        x,
+                        y,
+                        tamañoCelda,
+                        tamañoCelda
+                    );
+                }
+            }
+        }
+
+        shapeRenderer.end();
+
+        // ---------------------------
+        // BORDES DEL MAPA
+        // ---------------------------
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        shapeRenderer.setColor(Color.BLACK);
+
+        for (int fila = 0; fila < mapa.length; fila++) {
+
+            for (int columna = 0; columna < mapa[fila].length; columna++) {
+
+                Sala sala = mapa[fila][columna];
+
+                if (sala != null) {
+
+                    float x =
+                        inicioX + columna * (tamañoCelda + separacion);
+
+                    float y =
+                        inicioY - (fila + 1) * (tamañoCelda + separacion);
+
+                    shapeRenderer.rect(
+                        x,
+                        y,
+                        tamañoCelda,
+                        tamañoCelda
+                    );
+                }
+            }
+        }
+
+        shapeRenderer.end();
+    }
+    
+    private void dibujarTextoHUD() {
+
+        Sala salaActual = juego.getSalaActual();
+
+        batch.begin();
+
+        // Vida numérica
+        font.draw(
+            batch,
+            "Vida: " + jugador.getVidaActual() + "/" + jugador.getVidaMax(),
+            20,
+            ALTO_MUNDO - 10
+        );
+
+        // Tipo de sala actual
+        font.draw(
+            batch,
+            "Sala: " + salaActual.getTipo(),
+            20,
+            ALTO_MUNDO - 50
+        );
+
+        // Posición en el mapa
+        font.draw(
+            batch,
+            "Posicion: [" + salaActual.getFila() + "][" + salaActual.getColumna() + "]",
+            20,
+            ALTO_MUNDO - 80
+        );
+
+        // Título del minimapa
+        font.draw(
+            batch,
+            "Mapa",
+            ANCHO_MUNDO - 110,
+            ALTO_MUNDO - 10
+        );
+
+        batch.end();
+    }
+    
+    private void dibujarHUD() {
+
+        dibujarBarraVida();
+        dibujarMiniMapa();
+        dibujarTextoHUD();
+        dibujarNombreEtapa();
+    }
+    
+    // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
+    
     private void actualizarPuertas() {
 
-        float anchoPantalla =
-            Gdx.graphics.getWidth();
+    	float anchoPantalla =
+    		    ANCHO_MUNDO;
 
         // -----------------------------
         // PUERTAS LATERALES
         // -----------------------------
 
-        float anchoPuertaLateral = 60;
-        float altoPuerta = 110;
+        float anchoPuertaLateral = 80;
+        float altoPuerta = 170;
 
 
         puertaIzquierda.set(
@@ -227,9 +561,9 @@ public class Main_game extends ApplicationAdapter {
         // PUERTAS ARRIBA / ABAJO
         // -----------------------------
 
-        float anchoPuertaCentral = 60;
+        float anchoPuertaCentral = 80;
 
-        float separacion = 10;
+        float separacion = 30;
 
         float centroPantalla =
             anchoPantalla / 2;
@@ -413,10 +747,9 @@ public class Main_game extends ApplicationAdapter {
 		        int cambioFila,
 		        int cambioColumna) {
 
-		    float anchoPantalla =
-		        Gdx.graphics.getWidth();
-
-
+		 	float anchoPantalla = ANCHO_MUNDO;
+		 	
+		 	
 		    // --------------------------------------------------
 		    // SALIMOS POR IZQUIERDA
 		    //
@@ -488,9 +821,9 @@ public class Main_game extends ApplicationAdapter {
 	 
 	 private void limitarJugadorAHabitacion() {
 
-		    float anchoPantalla =
-		        Gdx.graphics.getWidth();
-
+		 	float anchoPantalla = ANCHO_MUNDO;
+		 	
+		 	
 		    float maximoX =
 		        anchoPantalla - ANCHO_JUGADOR;
 
@@ -511,11 +844,11 @@ public class Main_game extends ApplicationAdapter {
 	 
 	 private void dibujarHabitacion() {
 
-		    float anchoPantalla =
-		        Gdx.graphics.getWidth();
+		 	float anchoPantalla =
+				    ANCHO_MUNDO;
 
-		    float altoPantalla =
-		        Gdx.graphics.getHeight();
+			float altoPantalla =
+				    ALTO_MUNDO;
 
 
 		    shapeRenderer.begin(

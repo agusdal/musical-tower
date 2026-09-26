@@ -44,7 +44,7 @@ public class GeneracionEtapa {
         // Ahora devolvemos una Etapa real que contiene
         // el mapa que acabamos de generar.
         return new Etapa(
-            "DISCOTERÍA " + numeroPiso + " - Variante A",
+            "DISCOTERÍA",
             numeroPiso,
             numeroPiso,
             enemigos,
@@ -71,7 +71,7 @@ public class GeneracionEtapa {
         // Ahora devolvemos una Etapa real que contiene
         // el mapa que acabamos de generar.
         return new Etapa(
-            "ROCK AND FALL " + numeroPiso + " - Variante B",
+            "ROCK AND FALL",
             numeroPiso,
             numeroPiso,
             enemigos,

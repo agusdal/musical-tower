@@ -10,6 +10,12 @@ public class Jugador extends Entidad {
     private int monedas;
     private Inventario inventario;
     private Item objetoActivo;
+    
+    // Desfase únicamente visual.
+    //
+    // Valor PROVISIONAL.
+    // Ajustalo mirando dónde quedan exactamente los pies.
+    private static final float OFFSET_SPRITE_Y = -45f;
 
     // Frames individuales
     private TextureRegion frameQuieto;
@@ -131,7 +137,7 @@ public class Jugador extends Entidad {
             frameActual = frameQuieto;
         }
 
-        batch.draw(frameActual, getPosicion().getX(), getPosicion().getY());
+        batch.draw(frameActual, getPosicion().getX(), getPosicion().getY() + OFFSET_SPRITE_Y);
     }
 
 	//----------------------------\/EFECTOS A VIDA\/-----------------------------

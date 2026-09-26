@@ -146,19 +146,6 @@ public class Jugador extends Entidad {
 		objetivo.recibirDaño(getDaño());
 	}
 	
-	// En Entidad.java
-
-	public void aumentarVidaMax(int aumento) {
-
-	    if (aumento > 0) {
-	        vidaMax += aumento;
-
-	        // Opcional, pero normalmente tiene sentido:
-	        // al aumentar la vida máxima también ganamos esa vida.
-	        vidaActual += aumento;
-	    }
-	}
-	
 	//----------------------------/\EFECTOS A VIDA/\-----------------------------
 	
 	//----------------------------\/MONEDAS\/-----------------------------

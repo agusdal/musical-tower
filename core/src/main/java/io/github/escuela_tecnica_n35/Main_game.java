@@ -24,6 +24,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport; // IMPORTS PARA LA PANTALLA
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
+import com.badlogic.gdx.graphics.Texture;
+
 public class Main_game extends ApplicationAdapter {
     
 	private static final float ANCHO_MUNDO = 1280f;
@@ -37,12 +39,23 @@ public class Main_game extends ApplicationAdapter {
     
     private Jugador jugador;
     private Juego juego;
-	// Enemigo temporal para probar el sistema de combate.
-	// Después desaparecerá de Main_game y estará dentro de las salas.
-	private Enemigo enemigoPrueba;
+    
+	// --------------------------------------------------
+	// DAÑO POR CONTACTO
+	// --------------------------------------------------
+	
+	private float tiempoInvulnerable;
+	private float duracionInvulnerabilidad;
+    
+	// --------------------------------------------------
+	// ENEMIGO DE PRUEBA EN LA SALA INICIAL
+	// --------------------------------------------------
     
     private BitmapFont font; // MAPA
     private GlyphLayout layout;
+    
+    // Imagen de la moneda para el HUD
+    private Texture texturaMoneda;
     
     private float velocidadY;
     private float aceleracionCaidaRapida;
@@ -126,6 +139,14 @@ public class Main_game extends ApplicationAdapter {
             7
         );
         
+        texturaMoneda = new Texture("moneda.png");
+        
+        tiempoInvulnerable = 0;
+
+	    // PROVISIONAL:
+	    // después podemos ajustarlo.
+	    duracionInvulnerabilidad = 0.7f;
+        
         juego = new Juego(jugador);
         juego.iniciarJuego();
         
@@ -181,12 +202,10 @@ public class Main_game extends ApplicationAdapter {
         pisoY = 50;
         
 	    // --------------------------------------------------
-	    // ENEMIGO DE PRUEBA
+	    // ENEMIGO DE PRUEBA EN LA SALA INICIAL
 	    // --------------------------------------------------
 	
-	    // Todavía NO pertenece a ninguna Sala.
-	    // Existe únicamente para comprobar ataque y daño.
-	    enemigoPrueba = new Enemigo(
+	    Enemigo enemigoPrueba = new Enemigo(
 	        "Enemigo prueba",
 	        new Posicion(800, pisoY),
 	        30,     // Vida máxima
@@ -194,6 +213,12 @@ public class Main_game extends ApplicationAdapter {
 	        10,     // Daño
 	        1,      // Monedas mínimas
 	        3       // Monedas máximas
+	    );
+	
+	
+	    // El enemigo pertenece a la sala inicial.
+	    juego.getSalaActual().agregarEnemigo(
+	        enemigoPrueba
 	    );
         
 	    // -----------------------------------------
@@ -451,9 +476,15 @@ public class Main_game extends ApplicationAdapter {
 	
 	     dibujarHabitacion();
 	     
-	     //DIBUJAMOS ENEMIGO DE PRUEBA
+	     // DIBUJAMOS TODOS LOS ENEMIGOS DE LA HABITACIÓN ACTUAL
 	     
-	     dibujarEnemigoPrueba();
+	     dibujarEnemigos();
+	     
+		 // --------------------------------------------------
+		 // DAÑO DE LOS ENEMIGOS
+		 // --------------------------------------------------
+	
+		 comprobarDañoEnemigos(delta);
 	     
 	     // --------------------------------------------------
 	     // DIBUJAMOS EL PERSONAJE ANIMADO
@@ -485,6 +516,8 @@ public class Main_game extends ApplicationAdapter {
         font.dispose();
         
         shapeRenderer.dispose();
+        
+        texturaMoneda.dispose();
     }
     
     private boolean botonSaltoPresionado() {
@@ -710,6 +743,41 @@ public class Main_game extends ApplicationAdapter {
         shapeRenderer.end();
     }
     
+    private void dibujarMonedas() {
+
+        // Posición del icono, debajo de la barra de vida.
+        float monedaX = 20;
+        float monedaY = ALTO_MUNDO - 80;
+
+        // Tamaño visual de la moneda en el HUD.
+        float tamañoMoneda = 28;
+
+
+        batch.begin();
+
+
+        // Dibujamos la imagen de la moneda.
+        batch.draw(
+            texturaMoneda,
+            monedaX,
+            monedaY,
+            tamañoMoneda,
+            tamañoMoneda
+        );
+
+
+        // Dibujamos la cantidad a la derecha de la imagen.
+        font.draw(
+            batch,
+            "" + jugador.getMonedas(),
+            monedaX + tamañoMoneda + 8,
+            monedaY + 21
+        );
+
+
+        batch.end();
+    }
+    
     private void dibujarMiniMapa() {
 
         Sala[][] mapa = juego.getEtapaActual().getMapa();
@@ -819,7 +887,7 @@ public class Main_game extends ApplicationAdapter {
             batch,
             "Sala: " + salaActual.getTipo(),
             20,
-            ALTO_MUNDO - 50
+            ALTO_MUNDO - 95
         );
 
         // Posición en el mapa
@@ -827,7 +895,7 @@ public class Main_game extends ApplicationAdapter {
             batch,
             "Posicion: [" + salaActual.getFila() + "][" + salaActual.getColumna() + "]",
             20,
-            ALTO_MUNDO - 80
+            ALTO_MUNDO - 125
         );
 
         // Título del minimapa
@@ -844,6 +912,7 @@ public class Main_game extends ApplicationAdapter {
     private void dibujarHUD() {
 
         dibujarBarraVida();
+        dibujarMonedas();
         dibujarMiniMapa();
         dibujarTextoHUD();
         dibujarNombreEtapa();
@@ -1363,71 +1432,208 @@ public class Main_game extends ApplicationAdapter {
 	 
 	 private void comprobarAtaqueJugador() {
 
-		    // Solamente atacamos una vez por pulsación.
+		    // Atacamos una sola vez por pulsación.
 		    if (!Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
 		        return;
 		    }
 
 
-		    // Si el enemigo ya murió, no hacemos nada.
-		    if (!enemigoPrueba.estaVivo()) {
+		    Sala salaActual =
+		        juego.getSalaActual();
 
-		        System.out.println("El enemigo ya está derrotado.");
+
+		    // Guardamos cuál enemigo vamos a atacar.
+		    Enemigo objetivo = null;
+
+
+		    // --------------------------------------------------
+		    // BUSCAR ENEMIGO EN RANGO
+		    // --------------------------------------------------
+
+		    for (Enemigo enemigo : salaActual.getEnemigos()) {
+
+		        if (enemigoEstaEnRango(enemigo)) {
+
+		            objetivo = enemigo;
+
+		            // Por ahora Q golpea solamente
+		            // al primer enemigo encontrado.
+		            break;
+		        }
+		    }
+
+
+		    // No encontramos ninguno.
+		    if (objetivo == null) {
+
+		        System.out.println(
+		            "No hay enemigos al alcance."
+		        );
 
 		        return;
 		    }
 
 
-		    // Comprobamos la distancia.
-		    if (!enemigoEstaEnRango(enemigoPrueba)) {
+		    // --------------------------------------------------
+		    // ATAQUE
+		    // --------------------------------------------------
 
-		        System.out.println("El enemigo está demasiado lejos.");
-
-		        return;
-		    }
-
-
-		    // Usamos el método que YA existe en Jugador.
-		    jugador.atacar(enemigoPrueba);
+		    jugador.atacar(objetivo);
 
 
 		    System.out.println(
-		        "Golpeaste al enemigo. Vida restante: "
-		        + enemigoPrueba.getVidaActual()
+		        "Golpeaste a "
+		        + objetivo.getVidaActual()
 		        + "/"
-		        + enemigoPrueba.getVidaMax()
+		        + objetivo.getVidaMax()
 		    );
 
 
-		    if (!enemigoPrueba.estaVivo()) {
+		    // --------------------------------------------------
+		    // MUERTE
+		    // --------------------------------------------------
+
+		    if (!objetivo.estaVivo()) {
 
 		        System.out.println(
 		            "Enemigo derrotado."
 		        );
+
+
+		        // Generamos el drop antes de eliminarlo.
+		        int monedas =
+		            objetivo.generarMonedasDrop();
+
+		        jugador.agarrarMonedas(monedas);
+
+
+		        System.out.println(
+		            "Ganaste "
+		            + monedas
+		            + " monedas."
+		        );
+
+
+		        // Ahora sí desaparece de la habitación.
+		        salaActual.eliminarEnemigo(
+		            objetivo
+		        );
 		    }
 		}
 	 
-	 private void dibujarEnemigoPrueba() {
+	 private void dibujarEnemigos() {
 
-		    // Si murió, dejamos de dibujarlo.
-		    if (!enemigoPrueba.estaVivo()) {
-		        return;
-		    }
+		    Sala salaActual =
+		        juego.getSalaActual();
 
 
 		    shapeRenderer.begin(
 		        ShapeRenderer.ShapeType.Filled
 		    );
 
-		    shapeRenderer.setColor(Color.RED);
-
-		    shapeRenderer.rect(
-		        enemigoPrueba.getPosicion().getX(),
-		        enemigoPrueba.getPosicion().getY(),
-		        ANCHO_ENEMIGO,
-		        ALTO_ENEMIGO
+		    shapeRenderer.setColor(
+		        Color.RED
 		    );
 
+
+		    for (Enemigo enemigo :
+		            salaActual.getEnemigos()) {
+
+		        shapeRenderer.rect(
+		            enemigo.getPosicion().getX(),
+		            enemigo.getPosicion().getY(),
+		            ANCHO_ENEMIGO,
+		            ALTO_ENEMIGO
+		        );
+		    }
+
+
 		    shapeRenderer.end();
+		}
+	 
+	 private boolean jugadorTocaEnemigo(
+		        Enemigo enemigo) {
+
+		    Rectangle hitboxJugador =
+		        new Rectangle(
+		            jugador.getPosicion().getX(),
+		            jugador.getPosicion().getY(),
+		            ANCHO_JUGADOR,
+		            ALTO_JUGADOR
+		        );
+
+
+		    Rectangle hitboxEnemigo =
+		        new Rectangle(
+		            enemigo.getPosicion().getX(),
+		            enemigo.getPosicion().getY(),
+		            ANCHO_ENEMIGO,
+		            ALTO_ENEMIGO
+		        );
+
+
+		    return hitboxJugador.overlaps(
+		        hitboxEnemigo
+		    );
+		}
+	 
+	 private void comprobarDañoEnemigos(
+		        float delta) {
+
+		    // Reducimos el tiempo de invulnerabilidad.
+		    if (tiempoInvulnerable > 0) {
+
+		        tiempoInvulnerable -= delta;
+		    }
+
+
+		    // Si todavía somos invulnerables,
+		    // no recibimos otro golpe.
+		    if (tiempoInvulnerable > 0) {
+
+		        return;
+		    }
+
+
+		    Sala salaActual =
+		        juego.getSalaActual();
+
+
+		    for (Enemigo enemigo :
+		            salaActual.getEnemigos()) {
+
+		        if (jugadorTocaEnemigo(enemigo)) {
+
+		            // El enemigo daña al jugador.
+		            jugador.recibirDaño(
+		                enemigo.getDaño()
+		            );
+
+
+		            System.out.println(
+		                "El jugador recibió "
+		                + enemigo.getDaño()
+		                + " de daño."
+		            );
+
+
+		            System.out.println(
+		                "Vida jugador: "
+		                + jugador.getVidaActual()
+		                + "/"
+		                + jugador.getVidaMax()
+		            );
+
+
+		            // Comienza la invulnerabilidad.
+		            tiempoInvulnerable =
+		                duracionInvulnerabilidad;
+
+
+		            // Solamente permitimos un golpe
+		            // en este frame.
+		            break;
+		        }
+		    }
 		}
 }

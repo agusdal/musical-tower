@@ -35,13 +35,25 @@ public class Entidad {
         return vidaMax;
     }
     
-    public float getVelocidad() {
-        return velocidad;
-    }
-    
     public int getVidaActual() {
     	
         return vidaActual;
+    }
+    
+    public void aumentarVidaMax(int aumento) {
+
+        if (aumento > 0) {
+
+            vidaMax += aumento;
+
+            // También aumentamos la vida actual
+            // en la misma cantidad.
+            vidaActual += aumento;
+        }
+    }
+    
+    public float getVelocidad() {
+        return velocidad;
     }
     
     public void recibirDaño(int cantidadDaño) {

@@ -54,6 +54,10 @@ public class Sala {
     public void agregarEnemigo(Enemigo enemigo) {
         enemigos.add(enemigo);
     }
+    
+    public void eliminarEnemigo(Enemigo enemigo) {
+        enemigos.remove(enemigo);
+    }
 
     // -------------------- DISTANCIA DESDE INICIAL --------------------
 

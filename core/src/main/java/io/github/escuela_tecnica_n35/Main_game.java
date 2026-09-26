@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.escuela_tecnica_n35.entidades.Jugador;
+import io.github.escuela_tecnica_n35.entidades.Enemigo;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.juego.Juego;
 
@@ -36,6 +37,10 @@ public class Main_game extends ApplicationAdapter {
     
     private Jugador jugador;
     private Juego juego;
+	// Enemigo temporal para probar el sistema de combate.
+	// Después desaparecerá de Main_game y estará dentro de las salas.
+	private Enemigo enemigoPrueba;
+    
     private BitmapFont font; // MAPA
     private GlyphLayout layout;
     
@@ -87,6 +92,12 @@ public class Main_game extends ApplicationAdapter {
 	 // Tamaño temporal del personaje.
 	 private static final float ANCHO_JUGADOR = 80;
 	 private static final float ALTO_JUGADOR = 80;
+	 
+	// Tamaño temporal del enemigoPrueba.
+	 private static final float ANCHO_ENEMIGO = 80f;
+	 private static final float ALTO_ENEMIGO = 120f;
+
+	 private static final float ALCANCE_ATAQUE = 120f;
 	
 	 // Puertas laterales.
 	 private Rectangle puertaIzquierda;
@@ -168,6 +179,22 @@ public class Main_game extends ApplicationAdapter {
         gravedad = -800;
 
         pisoY = 50;
+        
+	    // --------------------------------------------------
+	    // ENEMIGO DE PRUEBA
+	    // --------------------------------------------------
+	
+	    // Todavía NO pertenece a ninguna Sala.
+	    // Existe únicamente para comprobar ataque y daño.
+	    enemigoPrueba = new Enemigo(
+	        "Enemigo prueba",
+	        new Posicion(800, pisoY),
+	        30,     // Vida máxima
+	        100,    // Velocidad
+	        10,     // Daño
+	        1,      // Monedas mínimas
+	        3       // Monedas máximas
+	    );
         
 	    // -----------------------------------------
 	    // SALTO
@@ -386,6 +413,16 @@ public class Main_game extends ApplicationAdapter {
 
         // EVALUAR Y ACTUALIZAR ESTADO
         jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
+        
+	     // --------------------------------------------------
+	     // ATAQUE DEL JUGADOR
+	     // --------------------------------------------------
+	
+	     comprobarAtaqueJugador();
+	     
+	     
+	     
+	     
 
 	     // --------------------------------------------------
 	     // ACTUALIZAMOS LAS PUERTAS
@@ -413,8 +450,11 @@ public class Main_game extends ApplicationAdapter {
 	     // --------------------------------------------------
 	
 	     dibujarHabitacion();
-	
-	
+	     
+	     //DIBUJAMOS ENEMIGO DE PRUEBA
+	     
+	     dibujarEnemigoPrueba();
+	     
 	     // --------------------------------------------------
 	     // DIBUJAMOS EL PERSONAJE ANIMADO
 	     // --------------------------------------------------
@@ -1302,5 +1342,92 @@ public class Main_game extends ApplicationAdapter {
 		        centroX + 10,
 		        abajo + 15
 		    );
+		}
+	 
+	 private boolean enemigoEstaEnRango(Enemigo enemigo) {
+
+		    float jugadorX =
+		        jugador.getPosicion().getX();
+
+		    float enemigoX =
+		        enemigo.getPosicion().getX();
+
+
+		    // Distancia horizontal entre ambos.
+		    float distanciaX =
+		        Math.abs(jugadorX - enemigoX);
+
+
+		    return distanciaX <= ALCANCE_ATAQUE;
+	 }
+	 
+	 private void comprobarAtaqueJugador() {
+
+		    // Solamente atacamos una vez por pulsación.
+		    if (!Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
+		        return;
+		    }
+
+
+		    // Si el enemigo ya murió, no hacemos nada.
+		    if (!enemigoPrueba.estaVivo()) {
+
+		        System.out.println("El enemigo ya está derrotado.");
+
+		        return;
+		    }
+
+
+		    // Comprobamos la distancia.
+		    if (!enemigoEstaEnRango(enemigoPrueba)) {
+
+		        System.out.println("El enemigo está demasiado lejos.");
+
+		        return;
+		    }
+
+
+		    // Usamos el método que YA existe en Jugador.
+		    jugador.atacar(enemigoPrueba);
+
+
+		    System.out.println(
+		        "Golpeaste al enemigo. Vida restante: "
+		        + enemigoPrueba.getVidaActual()
+		        + "/"
+		        + enemigoPrueba.getVidaMax()
+		    );
+
+
+		    if (!enemigoPrueba.estaVivo()) {
+
+		        System.out.println(
+		            "Enemigo derrotado."
+		        );
+		    }
+		}
+	 
+	 private void dibujarEnemigoPrueba() {
+
+		    // Si murió, dejamos de dibujarlo.
+		    if (!enemigoPrueba.estaVivo()) {
+		        return;
+		    }
+
+
+		    shapeRenderer.begin(
+		        ShapeRenderer.ShapeType.Filled
+		    );
+
+		    shapeRenderer.setColor(Color.RED);
+
+		    shapeRenderer.rect(
+		        enemigoPrueba.getPosicion().getX(),
+		        enemigoPrueba.getPosicion().getY(),
+		        ANCHO_ENEMIGO,
+		        ALTO_ENEMIGO
+		    );
+
+		    shapeRenderer.end();
 		}
 }

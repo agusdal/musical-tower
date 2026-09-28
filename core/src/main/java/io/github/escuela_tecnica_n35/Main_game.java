@@ -733,7 +733,7 @@ public class Main_game extends ApplicationAdapter {
 
         float barraX = 20;
         float barraY = ALTO_MUNDO - 35;
-        float barraAncho = 180;
+        float barraAncho = 240;
         float barraAlto = 18;
 
         float porcentajeVida =
@@ -782,7 +782,7 @@ public class Main_game extends ApplicationAdapter {
         float monedaY = ALTO_MUNDO - 80;
 
         // Tamaño visual de la moneda en el HUD.
-        float tamañoMoneda = 28;
+        float tamañoMoneda = 40;
 
 
         batch.begin();
@@ -803,7 +803,7 @@ public class Main_game extends ApplicationAdapter {
             batch,
             "" + jugador.getMonedas(),
             monedaX + tamañoMoneda + 8,
-            monedaY + 21
+            monedaY + 25
         );
 
 
@@ -911,7 +911,7 @@ public class Main_game extends ApplicationAdapter {
             batch,
             "Vida: " + jugador.getVidaActual() + "/" + jugador.getVidaMax(),
             20,
-            ALTO_MUNDO - 10
+            ALTO_MUNDO - 19
         );
 
         // Tipo de sala actual

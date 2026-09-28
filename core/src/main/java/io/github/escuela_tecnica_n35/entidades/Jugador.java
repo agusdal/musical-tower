@@ -182,4 +182,37 @@ public class Jugador extends Entidad {
 	}
 	
 	//----------------------------/\INVENTARIO/\-----------------------------
+	
+	//----------------------------\/MUERTE\/-----------------------------
+	
+	public void reiniciarJugador(
+	        float xInicial,
+	        float yInicial,
+	        int vidaMaxInicial) {
+
+	    // Vida
+	    reiniciarVida(vidaMaxInicial);
+
+	    // Posición
+	    getPosicion().setX(xInicial);
+	    getPosicion().setY(yInicial);
+
+	    // Monedas
+	    monedas = 0;
+
+	    // Inventario y objeto activo
+	    inventario = new Inventario();
+	    objetoActivo = null;
+
+	    // Estados de animación
+	    stateTime = 0f;
+	    tiempoCaida = 0f;
+
+	    moviendose = false;
+	    mirandoIzquierda = false;
+	    enElPiso = true;
+	    velocidadY = 0f;
+	}
+	
+	//----------------------------/\MUERTE/\-----------------------------
 }

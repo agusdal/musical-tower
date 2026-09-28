@@ -30,7 +30,13 @@ public class Main_game extends ApplicationAdapter {
     
 	private static final float ANCHO_MUNDO = 1280f;
 	private static final float ALTO_MUNDO = 720f;
+	
+	// --------------------------------------------------
+	// GAME OVER
+	// --------------------------------------------------
 
+	private boolean gameOver;
+	
 	private OrthographicCamera camara;
 	private Viewport viewport;
 	
@@ -126,6 +132,8 @@ public class Main_game extends ApplicationAdapter {
     
     @Override
     public void create() {
+    	
+    	gameOver = false;
 
         batch = new SpriteBatch();
 
@@ -278,7 +286,31 @@ public class Main_game extends ApplicationAdapter {
             camara.combined
         );
         
-
+	    // --------------------------------------------------
+	    // GAME OVER
+	    // --------------------------------------------------
+	
+	    if (gameOver) {
+	
+	        // Mostramos la pantalla de derrota.
+	        dibujarGameOver();
+	
+	
+	        // ENTER comienza una partida nueva.
+	        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+	
+	            reiniciarPartida();
+	        }
+	        
+	        // MUY IMPORTANTE:
+	        // terminamos este frame acá.
+	        //
+	        // De esta manera, mientras estamos en Game Over,
+	        // no se ejecutan movimiento, salto, dash, ataques,
+	        // enemigos, puertas, etc.
+	        return;
+	    }
+        
         boolean seMueve = false;
 
 	    // --------------------------------------------------
@@ -1608,6 +1640,15 @@ public class Main_game extends ApplicationAdapter {
 		            jugador.recibirDaño(
 		                enemigo.getDaño()
 		            );
+		            
+			         // Si la vida llegó a 0,
+			         // activamos el Game Over.
+			         if (!jugador.estaVivo()) {
+	
+			             gameOver = true;
+	
+			             System.out.println("GAME OVER");
+			         }
 
 
 		            System.out.println(
@@ -1635,5 +1676,181 @@ public class Main_game extends ApplicationAdapter {
 		            break;
 		        }
 		    }
+		}
+	 
+	 private void dibujarGameOver() {
+
+		    // --------------------------------------------------
+		    // FONDO
+		    // --------------------------------------------------
+
+		    shapeRenderer.begin(
+		        ShapeRenderer.ShapeType.Filled
+		    );
+
+		    shapeRenderer.setColor(Color.BLACK);
+
+		    shapeRenderer.rect(
+		        0,
+		        0,
+		        ANCHO_MUNDO,
+		        ALTO_MUNDO
+		    );
+
+		    shapeRenderer.end();
+
+
+		    // --------------------------------------------------
+		    // TEXTO GAME OVER
+		    // --------------------------------------------------
+
+		    batch.begin();
+
+
+		    // Hacemos temporalmente la letra más grande.
+		    font.getData().setScale(3f);
+
+		    layout.setText(
+		        font,
+		        "GAME OVER"
+		    );
+
+		    float gameOverX =
+		        (ANCHO_MUNDO - layout.width) / 2;
+
+		    float gameOverY =
+		        ALTO_MUNDO / 2 + 50;
+
+
+		    font.draw(
+		        batch,
+		        layout,
+		        gameOverX,
+		        gameOverY
+		    );
+
+
+		    // --------------------------------------------------
+		    // TEXTO REINICIAR
+		    // --------------------------------------------------
+
+		    font.getData().setScale(1.5f);
+
+		    layout.setText(
+		        font,
+		        "Presiona ENTER para volver a jugar"
+		    );
+
+		    float reiniciarX =
+		        (ANCHO_MUNDO - layout.width) / 2;
+
+		    float reiniciarY =
+		        ALTO_MUNDO / 2 - 30;
+
+
+		    font.draw(
+		        batch,
+		        layout,
+		        reiniciarX,
+		        reiniciarY
+		    );
+
+
+		    // Volvemos al tamaño normal que usás en el HUD.
+		    font.getData().setScale(1.2f);
+
+
+		    batch.end();
+		}
+	 
+	 private void reiniciarPartida() {
+
+		    // --------------------------------------------------
+		    // JUGADOR
+		    // --------------------------------------------------
+
+		    jugador.reiniciarJugador(
+		        140,
+		        pisoY,
+		        100
+		    );
+
+
+		    // --------------------------------------------------
+		    // NUEVA PARTIDA
+		    // --------------------------------------------------
+
+		    // Creamos nuevamente la lógica de la partida
+		    // utilizando el mismo jugador.
+		    juego = new Juego(jugador);
+
+		    juego.iniciarJuego();
+
+
+		    // --------------------------------------------------
+		    // ENEMIGO DE PRUEBA
+		    // --------------------------------------------------
+
+		    // IMPORTANTE:
+		    // Esto es temporal hasta que hagamos la generación
+		    // real de enemigos por habitación.
+
+		    Enemigo enemigoPrueba = new Enemigo(
+		        "Enemigo prueba",
+		        new Posicion(800, pisoY),
+		        30,
+		        100,
+		        10,
+		        1,
+		        3
+		    );
+
+		    juego.getSalaActual().agregarEnemigo(
+		        enemigoPrueba
+		    );
+
+
+		    // --------------------------------------------------
+		    // FÍSICA
+		    // --------------------------------------------------
+
+		    velocidadY = 0;
+
+		    tiempoInvulnerable = 0;
+
+
+		    // --------------------------------------------------
+		    // SALTO
+		    // --------------------------------------------------
+
+		    saltosDisponibles = 2;
+
+
+		    // --------------------------------------------------
+		    // DASH
+		    // --------------------------------------------------
+
+		    haciendoDash = false;
+
+		    dashDisponibleAire = 1;
+
+		    tiempoDashRestante = 0;
+
+		    tiempoCooldownDash = 0;
+
+		    direccionDash = 1;
+
+
+		    // --------------------------------------------------
+		    // OTROS ESTADOS
+		    // --------------------------------------------------
+
+		    mirandoIzquierda = false;
+
+		    transicionBloqueada = false;
+
+
+		    // Finalmente salimos del Game Over.
+		    gameOver = false;
 		}
 }

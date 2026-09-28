@@ -85,4 +85,10 @@ public class Entidad {
     public void setVelocidad(float velocidad) {
         this.velocidad = velocidad;
     }
+    
+    public void reiniciarVida(int vidaMaxInicial) {
+
+        this.vidaMax = vidaMaxInicial;
+        this.vidaActual = vidaMaxInicial;
+    }
 }

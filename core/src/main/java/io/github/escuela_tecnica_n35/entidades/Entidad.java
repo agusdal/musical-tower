@@ -52,6 +52,12 @@ public class Entidad {
         }
     }
     
+    public void reiniciarVida(int vidaMaxInicial) {
+
+        this.vidaMax = vidaMaxInicial;
+        this.vidaActual = vidaMaxInicial;
+    }
+    
     public float getVelocidad() {
         return velocidad;
     }

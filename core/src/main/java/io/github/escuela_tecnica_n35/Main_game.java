@@ -14,6 +14,7 @@ import io.github.escuela_tecnica_n35.juego.Juego;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.graphics.GL20;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont; // IMPORTA MAPA
 import io.github.escuela_tecnica_n35.etapas.Sala;
@@ -27,1613 +28,2050 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.Texture;
 
 public class Main_game extends ApplicationAdapter {
-    
+
 	private static final float ANCHO_MUNDO = 1280f;
 	private static final float ALTO_MUNDO = 720f;
 
+	// --------------------------------------------------
+	// GAME OVER
+	// --------------------------------------------------
+
+	private boolean gameOver;
+
 	private OrthographicCamera camara;
 	private Viewport viewport;
-	
-	
-    private SpriteBatch batch;
-    
-    private Jugador jugador;
-    private Juego juego;
-    
+
+
+	private SpriteBatch batch;
+
+	private Jugador jugador;
+	private Juego juego;
+
 	// --------------------------------------------------
 	// DAÑO POR CONTACTO
 	// --------------------------------------------------
-	
+
 	private float tiempoInvulnerable;
 	private float duracionInvulnerabilidad;
-    
+
 	// --------------------------------------------------
 	// ENEMIGO DE PRUEBA EN LA SALA INICIAL
 	// --------------------------------------------------
-    
-    private BitmapFont font; // MAPA
-    private GlyphLayout layout;
-    
-    // Imagen de la moneda para el HUD
-    private Texture texturaMoneda;
-    
-    private float velocidadY;
-    private float aceleracionCaidaRapida;
-    private float gravedad;
-    private float pisoY;
-    
+
+	private BitmapFont font; // MAPA
+	private GlyphLayout layout;
+
+	// Imagen de la moneda para el HUD
+	private Texture texturaMoneda;
+
+	private float velocidadY;
+	private float aceleracionCaidaRapida;
+	private float gravedad;
+	private float pisoY;
+
 	// -----------------------------------------
 	// SALTO
 	// -----------------------------------------
-	
+
 	// Velocidad inicial de cada salto.
 	private float fuerzaSalto;
-	
+
 	// Cantidad de saltos disponibles.
 	// 2 = salto normal + doble salto.
 	private int saltosDisponibles;
-	
+
 	// Gravedad extra que se aplica cuando
 	// soltamos el botón antes de llegar al punto máximo.
 	private float gravedadSaltoCorto;
-	
-	
+
+
 	// -----------------------------------------
 	// DASH
 	// -----------------------------------------
-	
+
 	private boolean haciendoDash;
-	
+
 	private float tiempoDashRestante;
 	private float tiempoCooldownDash;
-	
+
 	private int direccionDash;
-	
+
 	// Solo puede dashear una vez en el aire
 	private int dashDisponibleAire;
-	
+
 	private float velocidadDash;
 	private float duracionDash;
 	private float cooldownDash;
-    
-    
-    private boolean mirandoIzquierda = false;
-    
-    
-    private ShapeRenderer shapeRenderer;
 
-	 // Tamaño temporal del personaje.
-	 private static final float ANCHO_JUGADOR = 80;
-	 private static final float ALTO_JUGADOR = 80;
-	 
+
+	private boolean mirandoIzquierda = false;
+
+
+	private ShapeRenderer shapeRenderer;
+
+	// Tamaño temporal del personaje.
+	private static final float ANCHO_JUGADOR = 80;
+	private static final float ALTO_JUGADOR = 80;
+	
+	// --------------------------------------------------
+	// HITBOX CORPORAL DEL JUGADOR
+	// --------------------------------------------------
+
+	// PROVISIONAL:
+	// La imagen ocupa 80 px de ancho,
+	// pero el cuerpo real es bastante más angosto.
+	private static final float ANCHO_HITBOX_JUGADOR = 50f;
+
+	private static final float ALTO_HITBOX_JUGADOR = 75f;
+	
+
 	// Tamaño temporal del enemigoPrueba.
-	 private static final float ANCHO_ENEMIGO = 80f;
-	 private static final float ALTO_ENEMIGO = 120f;
+	private static final float ANCHO_ENEMIGO = 80f;
+	private static final float ALTO_ENEMIGO = 120f;
 
-	 private static final float ALCANCE_ATAQUE = 120f;
-	
-	 // Puertas laterales.
-	 private Rectangle puertaIzquierda;
-	 private Rectangle puertaDerecha;
-	
-	 // Las dos puertas centrales de tu dibujo.
-	 private Rectangle puertaArriba;
-	 private Rectangle puertaAbajo;
-	
-	 // Evita que al entrar a una habitación
-	 // volvamos instantáneamente a la anterior.
-	 private boolean transicionBloqueada;
-    
-    @Override
-    public void create() {
+	// Alcance horizontal del dibujarEnemigos básico del jugador.
+	private static final float ALCANCE_ATAQUE_JUGADOR = 150f;
 
-        batch = new SpriteBatch();
+	// Altura de la zona de dibujarEnemigos.
+	private static final float ALTO_ATAQUE_JUGADOR = 120f;
 
-        Posicion posicionInicial = new Posicion(140, 50);
+	// --------------------------------------------------
+	// HITBOX VISUAL DEL dibujarEnemigos - DEBUG
+	// --------------------------------------------------
 
-        jugador = new Jugador(
-            "KMD",
-            posicionInicial,
-            100,
-            250,
-            7
-        );
-        
-        texturaMoneda = new Texture("moneda.png");
-        
-        tiempoInvulnerable = 0;
+	// Guarda temporalmente dónde estuvo el último dibujarEnemigos.
+	private Rectangle hitboxAtaqueDebug;
 
-	    // PROVISIONAL:
-	    // después podemos ajustarlo.
-	    duracionInvulnerabilidad = 0.7f;
-        
-        juego = new Juego(jugador);
-        juego.iniciarJuego();
-        
-        font = new BitmapFont();
-        font.getData().setScale(1.2f); // Hace el texto del mapa un poco más grande
-        
-        layout = new GlyphLayout();
-        
-        
-        shapeRenderer = new ShapeRenderer();
-        
-	     // --------------------------------------------------
-	     // CÁMARA Y RESOLUCIÓN VIRTUAL
-	     // --------------------------------------------------
-	
-	     camara = new OrthographicCamera();
-	
-	     viewport = new FitViewport(
-	         ANCHO_MUNDO,
-	         ALTO_MUNDO,
-	         camara
-	     );
-	
-	     // Centramos la cámara en nuestro mundo.
-	     camara.position.set(
-	         ANCHO_MUNDO / 2,
-	         ALTO_MUNDO / 2,
-	         0
-	     );
-	
-	     camara.update();
-	
-	     batch.setProjectionMatrix(camara.combined);
-	     shapeRenderer.setProjectionMatrix(camara.combined);
-	     
-	     // --------------------------------------------------
-	     // CÁMARA Y RESOLUCIÓN VIRTUAL
-	     // --------------------------------------------------
+	// Tiempo durante el cual la mostramos en pantalla.
+	private float tiempoHitboxAtaqueDebug;
 
-        puertaIzquierda = new Rectangle(); // Cracion de la puerta izquierda
-        puertaDerecha = new Rectangle(); // Cracion de la puerta derecha
+	// Puertas laterales.
+	private Rectangle puertaIzquierda;
+	private Rectangle puertaDerecha;
 
-        puertaArriba = new Rectangle(); // Cracion de la puerta que sube
-        puertaAbajo = new Rectangle(); // Cracion de la puerta que baja
-        
-        transicionBloqueada = false;
-        
-        
-        velocidadY = 0;
-        aceleracionCaidaRapida = 1400;
-        gravedad = -800;
+	// Las dos puertas centrales de tu dibujo.
+	private Rectangle puertaArriba;
+	private Rectangle puertaAbajo;
 
-        pisoY = 50;
-        
-	    // --------------------------------------------------
-	    // ENEMIGO DE PRUEBA EN LA SALA INICIAL
-	    // --------------------------------------------------
-	
-	    Enemigo enemigoPrueba = new Enemigo(
-	        "Enemigo prueba",
-	        new Posicion(800, pisoY),
-	        30,     // Vida máxima
-	        100,    // Velocidad
-	        10,     // Daño
-	        1,      // Monedas mínimas
-	        3       // Monedas máximas
-	    );
-	
-	
-	    // El enemigo pertenece a la sala inicial.
-	    juego.getSalaActual().agregarEnemigo(
-	        enemigoPrueba
-	    );
-        
-	    // -----------------------------------------
-	    // SALTO
-	    // -----------------------------------------
-	
-	    fuerzaSalto = 500;
-	
-	    // Al comenzar tenemos salto normal
-	    // y doble salto disponibles.
-	    saltosDisponibles = 2;
-	
-	    // PROVISIONAL:
-	    // Hace que al soltar el botón durante la subida,
-	    // el personaje pierda velocidad vertical rápidamente.
-	    gravedadSaltoCorto = -1600;
-	
-	
-	    // -----------------------------------------
-	    // DASH
-	    // -----------------------------------------
-	
-	    haciendoDash = false;
-	    
-	    dashDisponibleAire = 1;
-	    
-	    tiempoDashRestante = 0;
-	    tiempoCooldownDash = 0;
-	
-	    // PROVISIONALES:
-	    // Después podemos ajustar estos valores
-	    // según cómo se sienta el movimiento.
-	    velocidadDash = 900;
-	    duracionDash = 0.15f;
-	    cooldownDash = 0.45f;
-	
-	    direccionDash = 1;
-    }
+	// Evita que al entrar a una habitación
+	// volvamos instantáneamente a la anterior.
+	private boolean transicionBloqueada;
 
-    @Override
-    public void render() {
+	@Override
+	public void create() {
 
-        float delta = Gdx.graphics.getDeltaTime();
+		gameOver = false;
 
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
-        
-        // Aplicamos la resolución virtual.
-        viewport.apply();
+		batch = new SpriteBatch();
 
-        camara.update();
+		Posicion posicionInicial = new Posicion(140, 50);
 
-        batch.setProjectionMatrix(
-            camara.combined
-        );
+		jugador = new Jugador(
+				"KMD",
+				posicionInicial,
+				100,
+				250,
+				7
+		);
+		// CREAR HITBOXES\/
+		hitboxAtaqueDebug = new Rectangle();
 
-        shapeRenderer.setProjectionMatrix(
-            camara.combined
-        );
-        
+		tiempoHitboxAtaqueDebug = 0;
+		// CREAR HITBOXES/\
 
-        boolean seMueve = false;
+		texturaMoneda = new Texture("moneda.png");
 
-	    // --------------------------------------------------
-	    // DASH
-	    // --------------------------------------------------
-	
-	    // Reducimos el cooldown con el paso del tiempo.
-	    if (tiempoCooldownDash > 0) {
-	
-	        tiempoCooldownDash -= delta;
-	    }
-	    
+		tiempoInvulnerable = 0;
+
+		// PROVISIONAL:
+		// después podemos ajustarlo.
+		duracionInvulnerabilidad = 0.7f;
+
+		juego = new Juego(jugador);
+		juego.iniciarJuego();
+
+		font = new BitmapFont();
+		font.getData().setScale(1.2f); // Hace el texto del mapa un poco más grande
+
+		layout = new GlyphLayout();
+
+
+		shapeRenderer = new ShapeRenderer();
+
+		// --------------------------------------------------
+		// CÁMARA Y RESOLUCIÓN VIRTUAL
+		// --------------------------------------------------
+
+		camara = new OrthographicCamera();
+
+		viewport = new FitViewport(
+				ANCHO_MUNDO,
+				ALTO_MUNDO,
+				camara
+		);
+
+		// Centramos la cámara en nuestro mundo.
+		camara.position.set(
+				ANCHO_MUNDO / 2,
+				ALTO_MUNDO / 2,
+				0
+		);
+
+		camara.update();
+
+		batch.setProjectionMatrix(camara.combined);
+		shapeRenderer.setProjectionMatrix(camara.combined);
+
+		// --------------------------------------------------
+		// CÁMARA Y RESOLUCIÓN VIRTUAL
+		// --------------------------------------------------
+
+		puertaIzquierda = new Rectangle(); // Cracion de la puerta izquierda
+		puertaDerecha = new Rectangle(); // Cracion de la puerta derecha
+
+		puertaArriba = new Rectangle(); // Cracion de la puerta que sube
+		puertaAbajo = new Rectangle(); // Cracion de la puerta que baja
+
+		transicionBloqueada = false;
+
+
+		velocidadY = 0;
+		aceleracionCaidaRapida = 1400;
+		gravedad = -800;
+
+		pisoY = 50;
+
+		// --------------------------------------------------
+		// ENEMIGO DE PRUEBA EN LA SALA INICIAL
+		// --------------------------------------------------
+
+		Enemigo enemigoPrueba = new Enemigo(
+				"Enemigo prueba",
+				new Posicion(400, pisoY),
+				30,     // Vida máxima
+				100,    // Velocidad
+				25,     // Daño
+				1,      // Monedas mínimas
+				3       // Monedas máximas
+		);
+
+
+		// El enemigo pertenece a la sala inicial.
+		juego.getSalaActual().agregarEnemigo(
+				enemigoPrueba
+		);
+
+		// -----------------------------------------
+		// SALTO
+		// -----------------------------------------
+
+		fuerzaSalto = 500;
+
+		// Al comenzar tenemos salto normal
+		// y doble salto disponibles.
+		saltosDisponibles = 2;
+
+		// PROVISIONAL:
+		// Hace que al soltar el botón durante la subida,
+		// el personaje pierda velocidad vertical rápidamente.
+		gravedadSaltoCorto = -1600;
+
+
+		// -----------------------------------------
+		// DASH
+		// -----------------------------------------
+
+		haciendoDash = false;
+
+		dashDisponibleAire = 1;
+
+		tiempoDashRestante = 0;
+		tiempoCooldownDash = 0;
+
+		// PROVISIONALES:
+		// Después podemos ajustar estos valores
+		// según cómo se sienta el movimiento.
+		velocidadDash = 900;
+		duracionDash = 0.15f;
+		cooldownDash = 0.45f;
+
+		direccionDash = 1;
+	}
+
+	@Override
+	public void render() {
+
+		float delta = Gdx.graphics.getDeltaTime();
+
+		ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+
+		// Aplicamos la resolución virtual.
+		viewport.apply();
+
+		camara.update();
+
+		batch.setProjectionMatrix(
+				camara.combined
+		);
+
+		shapeRenderer.setProjectionMatrix(
+				camara.combined
+		);
+
+		// --------------------------------------------------
+		// GAME OVER
+		// --------------------------------------------------
+
+		if (gameOver) {
+
+			// Mostramos la pantalla de derrota.
+			dibujarGameOver();
+
+
+			// ENTER comienza una partida nueva.
+			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+
+				reiniciarPartida();
+			}
+
+			// MUY IMPORTANTE:
+			// terminamos este frame acá.
+			//
+			// De esta manera, mientras estamos en Game Over,
+			// no se ejecutan movimiento, salto, dash, dibujarEnemigoss,
+			// enemigos, puertas, etc.
+			return;
+		}
+
+		boolean seMueve = false;
+
+		// --------------------------------------------------
+		// DASH
+		// --------------------------------------------------
+
+		// Reducimos el cooldown con el paso del tiempo.
+		if (tiempoCooldownDash > 0) {
+
+			tiempoCooldownDash -= delta;
+		}
+
 		// Intentamos iniciar el dash.
 		// El propio método comprobará si está permitido.
 		if (botonDashRecienPresionado()) {
-	
-		    iniciarDash();
+
+			iniciarDash();
 		}
-	    
-	    // --------------------------------------------------
-	    // MOVIMIENTO HORIZONTAL
-	    // --------------------------------------------------
-	
-	    if (haciendoDash) {
-	
-	        // Durante el dash ignoramos momentáneamente
-	        // la velocidad normal del jugador.
-	        jugador.getPosicion().moverX(
-	            velocidadDash
-	            * direccionDash
-	            * delta
-	        );
-	
-	        seMueve = true;
-	
-	
-	        // Actualizamos hacia dónde mira.
-	        if (direccionDash == -1) {
-	            mirandoIzquierda = true;
-	        }
-	        else {
-	            mirandoIzquierda = false;
-	        }
-	
-	
-	        // Restamos el tiempo que dura el dash.
-	        tiempoDashRestante -= delta;
-	
-	
-	        // Cuando se acaba el tiempo,
-	        // volvemos al movimiento normal.
-	        if (tiempoDashRestante <= 0) {
-	
-	            haciendoDash = false;
-	        }
-	    }
-	    else {
-	
-	        // -----------------------------------------
-	        // MOVIMIENTO NORMAL
-	        // -----------------------------------------
-	
-	        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-	
-	            jugador.getPosicion().moverX(
-	                jugador.getVelocidad() * delta
-	            );
-	
-	            seMueve = true;
-	
-	            mirandoIzquierda = false;
-	        }
-	
-	
-	        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-	
-	            jugador.getPosicion().moverX(
-	                -jugador.getVelocidad() * delta
-	            );
-	
-	            seMueve = true;
-	
-	            mirandoIzquierda = true;
-	        }
-	    }
-        
-	    // --------------------------------------------------
-	    // SALTO + DOBLE SALTO
-	    // --------------------------------------------------
-	
-	    if (botonSaltoRecienPresionado()
-	            && saltosDisponibles > 0) {
-	
-	        // Cada salto vuelve a darle al personaje
-	        // una velocidad vertical hacia arriba.
-	        velocidadY = fuerzaSalto;
-	
-	        // Consumimos uno de los saltos.
-	        saltosDisponibles--;
-	    }
-	    
+
+		// --------------------------------------------------
+		// MOVIMIENTO HORIZONTAL
+		// --------------------------------------------------
+
+		if (haciendoDash) {
+
+			// Durante el dash ignoramos momentáneamente
+			// la velocidad normal del jugador.
+			jugador.getPosicion().moverX(
+					velocidadDash
+							* direccionDash
+							* delta
+			);
+
+			seMueve = true;
+
+
+			// Actualizamos hacia dónde mira.
+			if (direccionDash == -1) {
+				mirandoIzquierda = true;
+			}
+			else {
+				mirandoIzquierda = false;
+			}
+
+
+			// Restamos el tiempo que dura el dash.
+			tiempoDashRestante -= delta;
+
+
+			// Cuando se acaba el tiempo,
+			// volvemos al movimiento normal.
+			if (tiempoDashRestante <= 0) {
+
+				haciendoDash = false;
+			}
+		}
+		else {
+
+			// -----------------------------------------
+			// MOVIMIENTO NORMAL
+			// -----------------------------------------
+
+			if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+
+				jugador.getPosicion().moverX(
+						jugador.getVelocidad() * delta
+				);
+
+				seMueve = true;
+
+				mirandoIzquierda = false;
+			}
+
+
+			if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+
+				jugador.getPosicion().moverX(
+						-jugador.getVelocidad() * delta
+				);
+
+				seMueve = true;
+
+				mirandoIzquierda = true;
+			}
+		}
+
+		// --------------------------------------------------
+		// SALTO + DOBLE SALTO
+		// --------------------------------------------------
+
+		if (botonSaltoRecienPresionado()
+				&& saltosDisponibles > 0) {
+
+			// Cada salto vuelve a darle al personaje
+			// una velocidad vertical hacia arriba.
+			velocidadY = fuerzaSalto;
+
+			// Consumimos uno de los saltos.
+			saltosDisponibles--;
+		}
+
 		// --------------------------------------------------
 		// SALTO VARIABLE
 		// --------------------------------------------------
-	    
-	    float velocidadActualY = velocidadY;
-	    
-	    // Si NO estamos haciendo el dash... (para que sea estatico durante el mismo)
-	    if (!haciendoDash) {
-	    
+
+		float velocidadActualY = velocidadY;
+
+		// Si NO estamos haciendo el dash... (para que sea estatico durante el mismo)
+		if (!haciendoDash) {
+
 			// Si todavía estamos subiendo...
 			if (velocidadY > 0
-		
-			        // ...pero el jugador ya soltó W/SPACE...
-			        && !botonSaltoPresionado()) {
-		
-			    // ...aplicamos gravedad adicional.
-			    //
-			    // Esto corta antes la subida y genera
-			    // un salto más bajo.
-			    velocidadY += gravedadSaltoCorto * delta;
+
+					// ...pero el jugador ya soltó W/SPACE...
+					&& !botonSaltoPresionado()) {
+
+				// ...aplicamos gravedad adicional.
+				//
+				// Esto corta antes la subida y genera
+				// un salto más bajo.
+				velocidadY += gravedadSaltoCorto * delta;
 			}
-			
-	        // CAÍDA RÁPIDA
-	        if (Gdx.input.isKeyPressed(Input.Keys.S) && jugador.getPosicion().getY() > pisoY) {
-	            velocidadY -= aceleracionCaidaRapida * delta;
-	        }
-	        
-	        // GRAVEDAD
-	        velocidadY += gravedad * delta;
+
+			// CAÍDA RÁPIDA
+			if (Gdx.input.isKeyPressed(Input.Keys.S) && jugador.getPosicion().getY() > pisoY) {
+				velocidadY -= aceleracionCaidaRapida * delta;
+			}
+
+			// GRAVEDAD
+			velocidadY += gravedad * delta;
+
+			// MOVER POSICIÓN
+			jugador.getPosicion().moverY(
+					velocidadY * delta
+			);
+
+		}
+
+		// COLISIÓN CON EL PISO
+		boolean enElPiso = false;
+		if (jugador.getPosicion().getY() <= pisoY) {
+
+			jugador.getPosicion().setY(pisoY);
+
+			velocidadY = 0;
+			velocidadActualY = 0;
+
+			enElPiso = true;
+
+			// Recuperamos salto normal + doble salto
+			// al volver a tocar el piso.
+			saltosDisponibles = 2;
+
+			//Recuperamos el dash en el aire
+			dashDisponibleAire = 1;
+		}
+
+		// EVALUAR Y ACTUALIZAR ESTADO
+		jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
+
+		// --------------------------------------------------
+		// ATAQUE DEL JUGADOR
+		// --------------------------------------------------
+
+		comprobarAtaqueJugador();
+
+
+
+
+
+		// --------------------------------------------------
+		// ACTUALIZAMOS LAS PUERTAS
+		// --------------------------------------------------
+
+		actualizarPuertas();
+
+
+		// --------------------------------------------------
+		// LIMITAMOS AL JUGADOR A LA HABITACIÓN
+		// --------------------------------------------------
+
+		limitarJugadorAHabitacion();
+
+
+		// --------------------------------------------------
+		// COMPROBAMOS CAMBIO DE SALA
+		// --------------------------------------------------
+
+		comprobarCambioSala();
+
+
+		// --------------------------------------------------
+		// DIBUJAMOS LA HABITACIÓN PRIMERO
+		// --------------------------------------------------
+
+		dibujarHabitacion();
+
+		// DIBUJAMOS TODOS LOS ENEMIGOS DE LA HABITACIÓN ACTUAL
+
+		dibujarEnemigos();
+
+		// --------------------------------------------------
+		// DAÑO DE LOS ENEMIGOS
+		// --------------------------------------------------
+
+		comprobarDañoEnemigos(delta);
+
+		// --------------------------------------------------
+		// DEBUG DEL ATAQUE
+		// --------------------------------------------------
+
+		dibujarHitboxAtaque(delta);
+
+		// --------------------------------------------------
+		// DIBUJAMOS EL PERSONAJE ANIMADO
+		// --------------------------------------------------
+
+		// DIBUJAMOS PERSONAJE
+		batch.begin();
+
+		jugador.render(batch, delta);
+
+		batch.end();
+
+
+		// DEBUG: hitbox corporal del jugador
+		dibujarHitboxJugador();
+
+
+		// HUD
+		dibujarHUD();
+
+
+		// --------------------------------------------------
+		// DIBUJAMOS EL HUD AL FINAL
+		//
+		// De esta forma siempre queda por encima
+		// del escenario y del personaje.
+		// --------------------------------------------------
+
+		dibujarHUD();
+
+	}
+
+	@Override
+	public void dispose() {
+
+		batch.dispose();
+
+		font.dispose();
+
+		shapeRenderer.dispose();
+
+		texturaMoneda.dispose();
+	}
+
+	private boolean botonSaltoPresionado() {
+
+		return Gdx.input.isKeyPressed(Input.Keys.SPACE)
+				|| Gdx.input.isKeyPressed(Input.Keys.W);
+	}
+
+
+	private boolean botonSaltoRecienPresionado() {
+
+		return Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
+				|| Gdx.input.isKeyJustPressed(Input.Keys.W);
+	}
+
+	private boolean botonDashRecienPresionado() {
+
+		return Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT);
+	}
+
+	private void iniciarDash() {
+
+		// --------------------------------------------------
+		// COMPROBACIONES
+		// --------------------------------------------------
+
+		// Si todavía está en cooldown,
+		// no podemos hacer otro dash.
+		if (tiempoCooldownDash > 0) {
+			return;
+		}
+
+		// Si ya estamos haciendo dash,
+		// tampoco comenzamos otro.
+		if (haciendoDash) {
+			return;
+		}
+
+
+		// Comprobamos si estamos en el aire.
+		boolean estaEnElAire =
+				jugador.getPosicion().getY() > pisoY;
+
+
+		// Si estamos en el aire y ya usamos
+		// nuestro único dash aéreo, no hacemos nada.
+		if (estaEnElAire && dashDisponibleAire <= 0) {
+			return;
+		}
+
+
+		// --------------------------------------------------
+		// DIRECCIÓN DEL DASH
+		// --------------------------------------------------
+
+		if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+
+			direccionDash = -1;
+		}
+		else if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+
+			direccionDash = 1;
+		}
+		else {
+
+			if (mirandoIzquierda) {
+				direccionDash = -1;
+			}
+			else {
+				direccionDash = 1;
+			}
+		}
+
+
+		// --------------------------------------------------
+		// INICIAMOS EL DASH
+		// --------------------------------------------------
+
+		haciendoDash = true;
+
+		tiempoDashRestante = duracionDash;
+
+		tiempoCooldownDash = cooldownDash;
+
+		// El dash detiene momentáneamente
+		// el movimiento vertical.
+		velocidadY = 0;
+
+
+		// --------------------------------------------------
+		// CONSUMIMOS EL DASH AÉREO
+		// --------------------------------------------------
+
+		// Solamente gastamos el dash aéreo
+		// si realmente estamos en el aire.
+		if (estaEnElAire) {
+
+			dashDisponibleAire--;
+		}
+	}
+
+	// ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
+
+	@Override
+	public void resize(int width, int height) {
+
+		// Adapta nuestro mundo 1280x720
+		// al tamaño real de la ventana.
+		viewport.update(
+				width,
+				height,
+				true
+		);
+	}
+
+	// ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
+
+	// ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
+
+	private Color obtenerColorSala(Sala sala) {
+
+		if (sala == null) {
+			return Color.DARK_GRAY;
+		}
+
+		switch (sala.getTipo()) {
+
+			case INICIAL:
+				return Color.GREEN;
+
+			case ENEMIGOS:
+				return Color.LIGHT_GRAY; // COLORES PREDETERMINADOS PARA CADA SALA EN EL MAPA
+
+			case ITEM:
+				return Color.YELLOW;
+
+			case TIENDA:
+				return Color.BROWN;
+
+			case JEFE:
+				return Color.RED;
+		}
+
+		return Color.WHITE;
+	}
+
+	private void dibujarNombreEtapa() {
+
+		// Obtenemos el nombre de la etapa que estamos jugando actualmente.
+		String nombreEtapa =
+				juego.getEtapaActual().getNombre();
+
+		// Calculamos cuánto ocupa el texto.
+		layout.setText(
+				font,
+				nombreEtapa
+		);
+
+		// Calculamos la posición X necesaria
+		// para que quede perfectamente centrado.
+		float posicionX =
+				(ANCHO_MUNDO - layout.width) / 2;
+
+		// Lo colocamos cerca del borde superior.
+		float posicionY =
+				ALTO_MUNDO - 20;
+
+		batch.begin();
+
+		font.draw(
+				batch,
+				layout,
+				posicionX,
+				posicionY
+		);
+
+		batch.end();
+	}
+
+	private void dibujarBarraVida() {
+
+		float barraX = 20;
+		float barraY = ALTO_MUNDO - 35;
+		float barraAncho = 240;
+		float barraAlto = 18;
+
+		float porcentajeVida =
+				(float) jugador.getVidaActual() / jugador.getVidaMax();
+
+		// Fondo de la barra
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+		shapeRenderer.setColor(Color.DARK_GRAY);
+		shapeRenderer.rect(
+				barraX,
+				barraY,
+				barraAncho,
+				barraAlto
+		);
+
+		// Vida actual
+		shapeRenderer.setColor(Color.RED);
+		shapeRenderer.rect(
+				barraX,
+				barraY,
+				barraAncho * porcentajeVida,
+				barraAlto
+		);
+
+		shapeRenderer.end();
+
+		// Borde
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+		shapeRenderer.setColor(Color.WHITE);
+		shapeRenderer.rect(
+				barraX,
+				barraY,
+				barraAncho,
+				barraAlto
+		);
+
+		shapeRenderer.end();
+	}
+
+	private void dibujarMonedas() {
+
+		// Posición del icono, debajo de la barra de vida.
+		float monedaX = 20;
+		float monedaY = ALTO_MUNDO - 80;
+
+		// Tamaño visual de la moneda en el HUD.
+		float tamañoMoneda = 40;
+
+
+		batch.begin();
+
+
+		// Dibujamos la imagen de la moneda.
+		batch.draw(
+				texturaMoneda,
+				monedaX,
+				monedaY,
+				tamañoMoneda,
+				tamañoMoneda
+		);
+
+
+		// Dibujamos la cantidad a la derecha de la imagen.
+		font.draw(
+				batch,
+				"" + jugador.getMonedas(),
+				monedaX + tamañoMoneda + 8,
+				monedaY + 25
+		);
+
+
+		batch.end();
+	}
+
+	private void dibujarMiniMapa() {
+
+		Sala[][] mapa = juego.getEtapaActual().getMapa();
+		Sala salaActual = juego.getSalaActual();
+
+		float tamañoCelda = 16;
+		float separacion = 4;
+
+		float anchoMiniMapa =
+				mapa[0].length * (tamañoCelda + separacion);
+
+		float inicioX =
+				ANCHO_MUNDO - anchoMiniMapa - 30;
+
+		float inicioY =
+				ALTO_MUNDO - 30;
+
+		// ---------------------------
+		// CUADRADOS DEL MAPA
+		// ---------------------------
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+		for (int fila = 0; fila < mapa.length; fila++) {
+
+			for (int columna = 0; columna < mapa[fila].length; columna++) {
+
+				Sala sala = mapa[fila][columna];
+
+				if (sala != null) {
+
+					float x =
+							inicioX + columna * (tamañoCelda + separacion);
+
+					float y =
+							inicioY - (fila + 1) * (tamañoCelda + separacion);
+
+					// Si es la sala actual del jugador,
+					// la pintamos blanca para destacar su posición.
+					if (sala == salaActual) {
+						shapeRenderer.setColor(Color.WHITE);
+					} else {
+						shapeRenderer.setColor(obtenerColorSala(sala));
+					}
+
+					shapeRenderer.rect(
+							x,
+							y,
+							tamañoCelda,
+							tamañoCelda
+					);
+				}
+			}
+		}
+
+		shapeRenderer.end();
+
+		// ---------------------------
+		// BORDES DEL MAPA
+		// ---------------------------
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+		shapeRenderer.setColor(Color.BLACK);
+
+		for (int fila = 0; fila < mapa.length; fila++) {
+
+			for (int columna = 0; columna < mapa[fila].length; columna++) {
+
+				Sala sala = mapa[fila][columna];
+
+				if (sala != null) {
+
+					float x =
+							inicioX + columna * (tamañoCelda + separacion);
+
+					float y =
+							inicioY - (fila + 1) * (tamañoCelda + separacion);
+
+					shapeRenderer.rect(
+							x,
+							y,
+							tamañoCelda,
+							tamañoCelda
+					);
+				}
+			}
+		}
+
+		shapeRenderer.end();
+	}
+
+	private void dibujarTextoHUD() {
+
+		Sala salaActual = juego.getSalaActual();
+
+		batch.begin();
+
+		// Vida numérica
+		font.draw(
+				batch,
+				"Vida: " + jugador.getVidaActual() + "/" + jugador.getVidaMax(),
+				20,
+				ALTO_MUNDO - 19
+		);
+
+		// Tipo de sala actual
+		font.draw(
+				batch,
+				"Sala: " + salaActual.getTipo(),
+				20,
+				ALTO_MUNDO - 95
+		);
+
+		// Posición en el mapa
+		font.draw(
+				batch,
+				"Posicion: [" + salaActual.getFila() + "][" + salaActual.getColumna() + "]",
+				20,
+				ALTO_MUNDO - 125
+		);
+
+		// Título del minimapa
+		font.draw(
+				batch,
+				"Mapa",
+				ANCHO_MUNDO - 110,
+				ALTO_MUNDO - 10
+		);
+
+		batch.end();
+	}
+
+	private void dibujarHUD() {
+
+		dibujarBarraVida();
+		dibujarMonedas();
+		dibujarMiniMapa();
+		dibujarTextoHUD();
+		dibujarNombreEtapa();
+	}
+
+	// ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
+
+	private void actualizarPuertas() {
+
+		float anchoPantalla =
+				ANCHO_MUNDO;
+
+		// -----------------------------
+		// PUERTAS LATERALES
+		// -----------------------------
+
+		float anchoPuertaLateral = 80;
+		float altoPuerta = 170;
+
+
+		puertaIzquierda.set(
+				0,
+				pisoY,
+				anchoPuertaLateral,
+				altoPuerta
+		);
+
+
+		puertaDerecha.set(
+				anchoPantalla - anchoPuertaLateral,
+				pisoY,
+				anchoPuertaLateral,
+				altoPuerta
+		);
+
+
+		// -----------------------------
+		// PUERTAS ARRIBA / ABAJO
+		// -----------------------------
+
+		float anchoPuertaCentral = 80;
+
+		float separacion = 30;
+
+		float centroPantalla =
+				anchoPantalla / 2;
+
+
+		// La puerta ARRIBA queda a la izquierda
+		// de las dos puertas centrales.
+		puertaArriba.set(
+				centroPantalla
+						- anchoPuertaCentral
+						- separacion,
+
+				pisoY,
+
+				anchoPuertaCentral,
+				altoPuerta
+		);
+
+
+		// La puerta ABAJO queda a la derecha.
+		puertaAbajo.set(
+				centroPantalla + separacion,
+
+				pisoY,
+
+				anchoPuertaCentral,
+				altoPuerta
+		);
+	}
+
+	// Comprueba si el centro del jugador se encuentra
+	// dentro de la zona de una puerta.
+	private boolean jugadorEstaEnPuerta(Rectangle puerta) {
+
+		float centroJugadorX =
+				jugador.getPosicion().getX()
+						+ ANCHO_JUGADOR / 2;
+
+		float centroJugadorY =
+				jugador.getPosicion().getY()
+						+ ALTO_JUGADOR / 2;
+
+		return puerta.contains(
+				centroJugadorX,
+				centroJugadorY
+		);
+	}
+
+	// Comprueba solamente las puertas laterales.
+	//
+	// Se usa para evitar que al entrar por una puerta lateral
+	// el jugador vuelva instantáneamente a la sala anterior.
+	private boolean estaEnPuertaLateralActiva() {
+
+		// Puerta izquierda
+		if (juego.haySalaEnDireccion(0, -1)
+				&& jugadorEstaEnPuerta(puertaIzquierda)) {
+
+			return true;
+		}
+
+		// Puerta derecha
+		if (juego.haySalaEnDireccion(0, 1)
+				&& jugadorEstaEnPuerta(puertaDerecha)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private void comprobarCambioSala() {
+
+		// --------------------------------------------------
+		// BLOQUEO DE PUERTAS LATERALES
+		// --------------------------------------------------
+
+		// Si acabamos de cambiar por izquierda o derecha,
+		// esperamos a que el jugador se aleje de esa puerta
+		// antes de permitir otra transición lateral.
+		if (transicionBloqueada) {
+
+			if (!estaEnPuertaLateralActiva()) {
+				transicionBloqueada = false;
+			}
+
+			return;
+		}
+
+
+		// --------------------------------------------------
+		// IZQUIERDA
+		// Funciona simplemente tocando la puerta.
+		// --------------------------------------------------
+
+		if (juego.haySalaEnDireccion(0, -1)
+				&& jugadorEstaEnPuerta(puertaIzquierda)) {
+
+			if (juego.cambiarSala(0, -1)) {
+
+				colocarJugadorTrasCambio(
+						0,
+						-1
+				);
+
+				// Evitamos volver inmediatamente.
+				transicionBloqueada = true;
+			}
+
+			return;
+		}
+
+
+		// --------------------------------------------------
+		// DERECHA
+		// También funciona por contacto.
+		// --------------------------------------------------
+
+		if (juego.haySalaEnDireccion(0, 1)
+				&& jugadorEstaEnPuerta(puertaDerecha)) {
+
+			if (juego.cambiarSala(0, 1)) {
+
+				colocarJugadorTrasCambio(
+						0,
+						1
+				);
+
+				transicionBloqueada = true;
+			}
+
+			return;
+		}
+
+
+		// --------------------------------------------------
+		// ARRIBA
+		//
+		// Para usar esta puerta:
+		// 1. Debe existir una sala arriba.
+		// 2. El jugador debe estar frente a la puerta.
+		// 3. Debe presionar F.
+		// --------------------------------------------------
+
+		if (juego.haySalaEnDireccion(-1, 0)
+				&& jugadorEstaEnPuerta(puertaArriba)
+				&& Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+
+			if (juego.cambiarSala(-1, 0)) {
+
+				colocarJugadorTrasCambio(
+						-1,
+						0
+				);
+			}
+
+			return;
+		}
+
+
+		// --------------------------------------------------
+		// ABAJO
+		// Funciona igual que ARRIBA pero hacia fila + 1.
+		// --------------------------------------------------
+
+		if (juego.haySalaEnDireccion(1, 0)
+				&& jugadorEstaEnPuerta(puertaAbajo)
+				&& Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+
+			if (juego.cambiarSala(1, 0)) {
+
+				colocarJugadorTrasCambio(
+						1,
+						0
+				);
+			}
+		}
+	}
+
+	private void colocarJugadorTrasCambio(
+			int cambioFila,
+			int cambioColumna) {
+
+		float anchoPantalla = ANCHO_MUNDO;
+
+
+		// --------------------------------------------------
+		// SALIMOS POR IZQUIERDA
+		//
+		// Entramos a la siguiente habitación
+		// desde su puerta DERECHA.
+		// --------------------------------------------------
+
+		if (cambioColumna == -1) {
+
+			jugador.getPosicion().setX(
+					anchoPantalla - ANCHO_JUGADOR
+			);
+		}
+
+
+		// --------------------------------------------------
+		// SALIMOS POR DERECHA
+		//
+		// Entramos desde la puerta IZQUIERDA.
+		// --------------------------------------------------
+
+		else if (cambioColumna == 1) {
+
+			jugador.getPosicion().setX(0);
+		}
+
+
+		// --------------------------------------------------
+		// FUIMOS HACIA ARRIBA
+		//
+		// En la nueva sala aparecemos frente
+		// a la puerta que lleva ABAJO.
+		// --------------------------------------------------
+
+		else if (cambioFila == -1) {
+
+			jugador.getPosicion().setX(
+					puertaAbajo.x
+							+ puertaAbajo.width / 2
+							- ANCHO_JUGADOR / 2
+			);
+		}
+
+
+		// --------------------------------------------------
+		// FUIMOS HACIA ABAJO
+		//
+		// En la nueva sala aparecemos frente
+		// a la puerta que lleva ARRIBA.
+		// --------------------------------------------------
+
+		else if (cambioFila == 1) {
+
+			jugador.getPosicion().setX(
+					puertaArriba.x
+							+ puertaArriba.width / 2
+							- ANCHO_JUGADOR / 2
+			);
+		}
+
+
+		// Por ahora todas las puertas están al nivel del piso.
+		jugador.getPosicion().setY(pisoY);
+
+		// Cancelamos cualquier salto o caída
+		// que tuviera el personaje.
+		velocidadY = 0;
+	}
+
+	private void limitarJugadorAHabitacion() {
+
+		float anchoPantalla = ANCHO_MUNDO;
+
+
+		float maximoX =
+				anchoPantalla - ANCHO_JUGADOR;
+
+
+		// Límite izquierdo
+		if (jugador.getPosicion().getX() < 0) {
+
+			jugador.getPosicion().setX(0);
+		}
+
+
+		// Límite derecho
+		if (jugador.getPosicion().getX() > maximoX) {
+
+			jugador.getPosicion().setX(maximoX);
+		}
+	}
+
+	private void dibujarHabitacion() {
+
+		float anchoPantalla =
+				ANCHO_MUNDO;
+
+		float altoPantalla =
+				ALTO_MUNDO;
+
+
+		shapeRenderer.begin(
+				ShapeRenderer.ShapeType.Line
+		);
+
+		shapeRenderer.setColor(Color.WHITE);
+
+
+		// --------------------------------------------------
+		// CONTORNO TEMPORAL DE LA HABITACIÓN
+		// --------------------------------------------------
+
+		shapeRenderer.rect(
+				1,
+				pisoY,
+				anchoPantalla - 2,
+				altoPantalla - pisoY - 2
+		);
+
+
+		// --------------------------------------------------
+		// PUERTA IZQUIERDA
+		// --------------------------------------------------
+
+		if (juego.haySalaEnDireccion(0, -1)) {
+
+			shapeRenderer.rect(
+					puertaIzquierda.x,
+					puertaIzquierda.y,
+					puertaIzquierda.width,
+					puertaIzquierda.height
+			);
+		}
+
+
+		// --------------------------------------------------
+		// PUERTA DERECHA
+		// --------------------------------------------------
+
+		if (juego.haySalaEnDireccion(0, 1)) {
+
+			shapeRenderer.rect(
+					puertaDerecha.x,
+					puertaDerecha.y,
+					puertaDerecha.width,
+					puertaDerecha.height
+			);
+		}
+
+
+		// --------------------------------------------------
+		// PUERTA ARRIBA
+		// --------------------------------------------------
+
+		if (juego.haySalaEnDireccion(-1, 0)) {
+
+			shapeRenderer.rect(
+					puertaArriba.x,
+					puertaArriba.y,
+					puertaArriba.width,
+					puertaArriba.height
+			);
+
+			dibujarFlechaArriba(
+					puertaArriba
+			);
+		}
+
+
+		// --------------------------------------------------
+		// PUERTA ABAJO
+		// --------------------------------------------------
+
+		if (juego.haySalaEnDireccion(1, 0)) {
+
+			shapeRenderer.rect(
+					puertaAbajo.x,
+					puertaAbajo.y,
+					puertaAbajo.width,
+					puertaAbajo.height
+			);
+
+			dibujarFlechaAbajo(
+					puertaAbajo
+			);
+		}
+
+
+		shapeRenderer.end();
+	}
+
+	private void dibujarFlechaArriba(
+			Rectangle puerta) {
+
+		float centroX =
+				puerta.x + puerta.width / 2;
+
+		float abajo =
+				puerta.y + 25;
+
+		float arriba =
+				puerta.y + puerta.height - 25;
+
+
+		// Línea vertical
+		shapeRenderer.line(
+				centroX,
+				abajo,
+				centroX,
+				arriba
+		);
+
+
+		// Punta izquierda
+		shapeRenderer.line(
+				centroX,
+				arriba,
+				centroX - 10,
+				arriba - 15
+		);
+
+
+		// Punta derecha
+		shapeRenderer.line(
+				centroX,
+				arriba,
+				centroX + 10,
+				arriba - 15
+		);
+	}
+
+	private void dibujarFlechaAbajo(
+			Rectangle puerta) {
+
+		float centroX =
+				puerta.x + puerta.width / 2;
+
+		float arriba =
+				puerta.y + puerta.height - 25;
+
+		float abajo =
+				puerta.y + 25;
+
+
+		// Línea vertical
+		shapeRenderer.line(
+				centroX,
+				arriba,
+				centroX,
+				abajo
+		);
+
+
+		// Punta izquierda
+		shapeRenderer.line(
+				centroX,
+				abajo,
+				centroX - 10,
+				abajo + 15
+		);
+
+
+		// Punta derecha
+		shapeRenderer.line(
+				centroX,
+				abajo,
+				centroX + 10,
+				abajo + 15
+		);
+	}
 	
-	        // MOVER POSICIÓN
-	        jugador.getPosicion().moverY(
-	            velocidadY * delta
-	        );
-        
+	// --------------------------------------------------
+	// HITBOX DEL CUERPO DEL JUGADOR
+	// --------------------------------------------------
+
+	private Rectangle obtenerHitboxJugador() {
+
+	    // Como el sprite mide 80 px y la hitbox 50,
+	    // repartimos el espacio sobrante entre ambos lados.
+	    float offsetX =
+	        (ANCHO_JUGADOR - ANCHO_HITBOX_JUGADOR) / 2;
+
+
+	    return new Rectangle(
+
+	        jugador.getPosicion().getX() + offsetX,
+
+	        jugador.getPosicion().getY(),
+
+	        ANCHO_HITBOX_JUGADOR,
+
+	        ALTO_HITBOX_JUGADOR
+	    );
+	}
+	
+	// --------------------------------------------------
+	// HITBOX DEL ATAQUE DEL JUGADOR
+	// --------------------------------------------------
+
+	private Rectangle obtenerHitboxAtaqueJugador() {
+
+	    float ataqueX;
+
+	    float ataqueY =
+	        jugador.getPosicion().getY();
+
+
+	    // Centro horizontal de la hitbox lógica del jugador.
+	    Rectangle hitboxJugador =
+	    	    obtenerHitboxJugador();
+
+	    	float centroJugadorX =
+	    	    hitboxJugador.x
+	    	    + hitboxJugador.width / 2;
+
+
+	    // Ataque hacia la izquierda.
+	    if (mirandoIzquierda) {
+
+	        // La hitbox TERMINA justo en el centro del jugador.
+	        ataqueX =
+	            centroJugadorX
+	            - ALCANCE_ATAQUE_JUGADOR;
 	    }
 
-        // COLISIÓN CON EL PISO
-        boolean enElPiso = false;
-        if (jugador.getPosicion().getY() <= pisoY) {
-
-            jugador.getPosicion().setY(pisoY);
-
-            velocidadY = 0;
-            velocidadActualY = 0;
-
-            enElPiso = true;
-
-            // Recuperamos salto normal + doble salto
-            // al volver a tocar el piso.
-            saltosDisponibles = 2;
-            
-            //Recuperamos el dash en el aire
-            dashDisponibleAire = 1;
-        }
-
-        // EVALUAR Y ACTUALIZAR ESTADO
-        jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
-        
-	     // --------------------------------------------------
-	     // ATAQUE DEL JUGADOR
-	     // --------------------------------------------------
-	
-	     comprobarAtaqueJugador();
-	     
-	     
-	     
-	     
-
-	     // --------------------------------------------------
-	     // ACTUALIZAMOS LAS PUERTAS
-	     // --------------------------------------------------
-	
-	     actualizarPuertas();
-	
-	
-	     // --------------------------------------------------
-	     // LIMITAMOS AL JUGADOR A LA HABITACIÓN
-	     // --------------------------------------------------
-	
-	     limitarJugadorAHabitacion();
-	
-	
-	     // --------------------------------------------------
-	     // COMPROBAMOS CAMBIO DE SALA
-	     // --------------------------------------------------
-	
-	     comprobarCambioSala();
-	
-	
-	     // --------------------------------------------------
-	     // DIBUJAMOS LA HABITACIÓN PRIMERO
-	     // --------------------------------------------------
-	
-	     dibujarHabitacion();
-	     
-	     // DIBUJAMOS TODOS LOS ENEMIGOS DE LA HABITACIÓN ACTUAL
-	     
-	     dibujarEnemigos();
-	     
-		 // --------------------------------------------------
-		 // DAÑO DE LOS ENEMIGOS
-		 // --------------------------------------------------
-	
-		 comprobarDañoEnemigos(delta);
-	     
-	     // --------------------------------------------------
-	     // DIBUJAMOS EL PERSONAJE ANIMADO
-	     // --------------------------------------------------
-	
-	     batch.begin();
-	
-	     jugador.render(batch, delta);
-	
-	     batch.end();
-	
-	
-	     // --------------------------------------------------
-	     // DIBUJAMOS EL HUD AL FINAL
-	     //
-	     // De esta forma siempre queda por encima
-	     // del escenario y del personaje.
-	     // --------------------------------------------------
-	
-	     dibujarHUD();
-	     
-    }
-
-    @Override
-    public void dispose() {
-
-        batch.dispose();
-        
-        font.dispose();
-        
-        shapeRenderer.dispose();
-        
-        texturaMoneda.dispose();
-    }
-    
-    private boolean botonSaltoPresionado() {
-
-        return Gdx.input.isKeyPressed(Input.Keys.SPACE)
-            || Gdx.input.isKeyPressed(Input.Keys.W);
-    }
-
-
-    private boolean botonSaltoRecienPresionado() {
-
-        return Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
-            || Gdx.input.isKeyJustPressed(Input.Keys.W);
-    }
-    
-    private boolean botonDashRecienPresionado() {
-
-        return Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT);
-    }
-    
-    private void iniciarDash() {
-
-        // --------------------------------------------------
-        // COMPROBACIONES
-        // --------------------------------------------------
-
-        // Si todavía está en cooldown,
-        // no podemos hacer otro dash.
-        if (tiempoCooldownDash > 0) {
-            return;
-        }
-
-        // Si ya estamos haciendo dash,
-        // tampoco comenzamos otro.
-        if (haciendoDash) {
-            return;
-        }
-
-
-        // Comprobamos si estamos en el aire.
-        boolean estaEnElAire =
-            jugador.getPosicion().getY() > pisoY;
-
-
-        // Si estamos en el aire y ya usamos
-        // nuestro único dash aéreo, no hacemos nada.
-        if (estaEnElAire && dashDisponibleAire <= 0) {
-            return;
-        }
-
-
-        // --------------------------------------------------
-        // DIRECCIÓN DEL DASH
-        // --------------------------------------------------
-
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-
-            direccionDash = -1;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-
-            direccionDash = 1;
-        }
-        else {
-
-            if (mirandoIzquierda) {
-                direccionDash = -1;
-            }
-            else {
-                direccionDash = 1;
-            }
-        }
-
-
-        // --------------------------------------------------
-        // INICIAMOS EL DASH
-        // --------------------------------------------------
-
-        haciendoDash = true;
-
-        tiempoDashRestante = duracionDash;
-
-        tiempoCooldownDash = cooldownDash;
-
-        // El dash detiene momentáneamente
-        // el movimiento vertical.
-        velocidadY = 0;
-
-
-        // --------------------------------------------------
-        // CONSUMIMOS EL DASH AÉREO
-        // --------------------------------------------------
-
-        // Solamente gastamos el dash aéreo
-        // si realmente estamos en el aire.
-        if (estaEnElAire) {
-
-            dashDisponibleAire--;
-        }
-    }
-    
-    // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
-    
-    @Override
-    public void resize(int width, int height) {
-
-        // Adapta nuestro mundo 1280x720
-        // al tamaño real de la ventana.
-        viewport.update(
-            width,
-            height,
-            true
-        );
-    }
-    
-    // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
-    
-    // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
-    
-    private Color obtenerColorSala(Sala sala) {
-
-        if (sala == null) {
-            return Color.DARK_GRAY;
-        }
-
-        switch (sala.getTipo()) {
-
-            case INICIAL:
-                return Color.GREEN;
-
-            case ENEMIGOS:
-                return Color.LIGHT_GRAY; // COLORES PREDETERMINADOS PARA CADA SALA EN EL MAPA
-
-            case ITEM:
-                return Color.YELLOW;
-
-            case TIENDA:
-                return Color.BROWN;
-
-            case JEFE:
-                return Color.RED;
-        }
-
-        return Color.WHITE;
-    }
-    
-    private void dibujarNombreEtapa() {
-
-        // Obtenemos el nombre de la etapa que estamos jugando actualmente.
-        String nombreEtapa =
-            juego.getEtapaActual().getNombre();
-
-        // Calculamos cuánto ocupa el texto.
-        layout.setText(
-            font,
-            nombreEtapa
-        );
-
-        // Calculamos la posición X necesaria
-        // para que quede perfectamente centrado.
-        float posicionX =
-            (ANCHO_MUNDO - layout.width) / 2;
-
-        // Lo colocamos cerca del borde superior.
-        float posicionY =
-            ALTO_MUNDO - 20;
-
-        batch.begin();
-
-        font.draw(
-            batch,
-            layout,
-            posicionX,
-            posicionY
-        );
-
-        batch.end();
-    }
-    
-    private void dibujarBarraVida() {
-
-        float barraX = 20;
-        float barraY = ALTO_MUNDO - 35;
-        float barraAncho = 180;
-        float barraAlto = 18;
-
-        float porcentajeVida =
-            (float) jugador.getVidaActual() / jugador.getVidaMax();
-
-        // Fondo de la barra
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        shapeRenderer.setColor(Color.DARK_GRAY);
-        shapeRenderer.rect(
-            barraX,
-            barraY,
-            barraAncho,
-            barraAlto
-        );
-
-        // Vida actual
-        shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(
-            barraX,
-            barraY,
-            barraAncho * porcentajeVida,
-            barraAlto
-        );
-
-        shapeRenderer.end();
-
-        // Borde
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-
-        shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.rect(
-            barraX,
-            barraY,
-            barraAncho,
-            barraAlto
-        );
-
-        shapeRenderer.end();
-    }
-    
-    private void dibujarMonedas() {
-
-        // Posición del icono, debajo de la barra de vida.
-        float monedaX = 20;
-        float monedaY = ALTO_MUNDO - 80;
-
-        // Tamaño visual de la moneda en el HUD.
-        float tamañoMoneda = 28;
-
-
-        batch.begin();
-
-
-        // Dibujamos la imagen de la moneda.
-        batch.draw(
-            texturaMoneda,
-            monedaX,
-            monedaY,
-            tamañoMoneda,
-            tamañoMoneda
-        );
-
-
-        // Dibujamos la cantidad a la derecha de la imagen.
-        font.draw(
-            batch,
-            "" + jugador.getMonedas(),
-            monedaX + tamañoMoneda + 8,
-            monedaY + 21
-        );
-
-
-        batch.end();
-    }
-    
-    private void dibujarMiniMapa() {
-
-        Sala[][] mapa = juego.getEtapaActual().getMapa();
-        Sala salaActual = juego.getSalaActual();
-
-        float tamañoCelda = 16;
-        float separacion = 4;
-
-        float anchoMiniMapa =
-            mapa[0].length * (tamañoCelda + separacion);
-
-        float inicioX =
-        	ANCHO_MUNDO - anchoMiniMapa - 30;
-
-        float inicioY =
-            ALTO_MUNDO - 30;
-
-        // ---------------------------
-        // CUADRADOS DEL MAPA
-        // ---------------------------
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        for (int fila = 0; fila < mapa.length; fila++) {
-
-            for (int columna = 0; columna < mapa[fila].length; columna++) {
-
-                Sala sala = mapa[fila][columna];
-
-                if (sala != null) {
-
-                    float x =
-                        inicioX + columna * (tamañoCelda + separacion);
-
-                    float y =
-                        inicioY - (fila + 1) * (tamañoCelda + separacion);
-
-                    // Si es la sala actual del jugador,
-                    // la pintamos blanca para destacar su posición.
-                    if (sala == salaActual) {
-                        shapeRenderer.setColor(Color.WHITE);
-                    } else {
-                        shapeRenderer.setColor(obtenerColorSala(sala));
-                    }
-
-                    shapeRenderer.rect(
-                        x,
-                        y,
-                        tamañoCelda,
-                        tamañoCelda
-                    );
-                }
-            }
-        }
-
-        shapeRenderer.end();
-
-        // ---------------------------
-        // BORDES DEL MAPA
-        // ---------------------------
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-
-        shapeRenderer.setColor(Color.BLACK);
-
-        for (int fila = 0; fila < mapa.length; fila++) {
-
-            for (int columna = 0; columna < mapa[fila].length; columna++) {
-
-                Sala sala = mapa[fila][columna];
-
-                if (sala != null) {
-
-                    float x =
-                        inicioX + columna * (tamañoCelda + separacion);
-
-                    float y =
-                        inicioY - (fila + 1) * (tamañoCelda + separacion);
-
-                    shapeRenderer.rect(
-                        x,
-                        y,
-                        tamañoCelda,
-                        tamañoCelda
-                    );
-                }
-            }
-        }
-
-        shapeRenderer.end();
-    }
-    
-    private void dibujarTextoHUD() {
-
-        Sala salaActual = juego.getSalaActual();
-
-        batch.begin();
-
-        // Vida numérica
-        font.draw(
-            batch,
-            "Vida: " + jugador.getVidaActual() + "/" + jugador.getVidaMax(),
-            20,
-            ALTO_MUNDO - 10
-        );
-
-        // Tipo de sala actual
-        font.draw(
-            batch,
-            "Sala: " + salaActual.getTipo(),
-            20,
-            ALTO_MUNDO - 95
-        );
-
-        // Posición en el mapa
-        font.draw(
-            batch,
-            "Posicion: [" + salaActual.getFila() + "][" + salaActual.getColumna() + "]",
-            20,
-            ALTO_MUNDO - 125
-        );
-
-        // Título del minimapa
-        font.draw(
-            batch,
-            "Mapa",
-            ANCHO_MUNDO - 110,
-            ALTO_MUNDO - 10
-        );
-
-        batch.end();
-    }
-    
-    private void dibujarHUD() {
-
-        dibujarBarraVida();
-        dibujarMonedas();
-        dibujarMiniMapa();
-        dibujarTextoHUD();
-        dibujarNombreEtapa();
-    }
-    
-    // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
-    
-    private void actualizarPuertas() {
-
-    	float anchoPantalla =
-    		    ANCHO_MUNDO;
-
-        // -----------------------------
-        // PUERTAS LATERALES
-        // -----------------------------
-
-        float anchoPuertaLateral = 80;
-        float altoPuerta = 170;
-
-
-        puertaIzquierda.set(
-            0,
-            pisoY,
-            anchoPuertaLateral,
-            altoPuerta
-        );
-
-
-        puertaDerecha.set(
-            anchoPantalla - anchoPuertaLateral,
-            pisoY,
-            anchoPuertaLateral,
-            altoPuerta
-        );
-
-
-        // -----------------------------
-        // PUERTAS ARRIBA / ABAJO
-        // -----------------------------
-
-        float anchoPuertaCentral = 80;
-
-        float separacion = 30;
-
-        float centroPantalla =
-            anchoPantalla / 2;
-
-
-        // La puerta ARRIBA queda a la izquierda
-        // de las dos puertas centrales.
-        puertaArriba.set(
-            centroPantalla
-                - anchoPuertaCentral
-                - separacion,
-
-            pisoY,
-
-            anchoPuertaCentral,
-            altoPuerta
-        );
-
-
-        // La puerta ABAJO queda a la derecha.
-        puertaAbajo.set(
-            centroPantalla + separacion,
-
-            pisoY,
-
-            anchoPuertaCentral,
-            altoPuerta
-        );
-    }
-    
-	 // Comprueba si el centro del jugador se encuentra
-	 // dentro de la zona de una puerta.
-	 private boolean jugadorEstaEnPuerta(Rectangle puerta) {
-	
-	     float centroJugadorX =
-	         jugador.getPosicion().getX()
-	         + ANCHO_JUGADOR / 2;
-	
-	     float centroJugadorY =
-	         jugador.getPosicion().getY()
-	         + ALTO_JUGADOR / 2;
-	
-	     return puerta.contains(
-	         centroJugadorX,
-	         centroJugadorY
-	     );
-	 }
-	 
-	 // Comprueba solamente las puertas laterales.
-	 //
-	 // Se usa para evitar que al entrar por una puerta lateral
-	 // el jugador vuelva instantáneamente a la sala anterior.
-	 private boolean estaEnPuertaLateralActiva() {
-
-	     // Puerta izquierda
-	     if (juego.haySalaEnDireccion(0, -1)
-	         && jugadorEstaEnPuerta(puertaIzquierda)) {
-
-	         return true;
-	     }
-
-	     // Puerta derecha
-	     if (juego.haySalaEnDireccion(0, 1)
-	         && jugadorEstaEnPuerta(puertaDerecha)) {
-
-	         return true;
-	     }
-
-	     return false;
-	 }
-	 
-	 private void comprobarCambioSala() {
-
-		    // --------------------------------------------------
-		    // BLOQUEO DE PUERTAS LATERALES
-		    // --------------------------------------------------
-
-		    // Si acabamos de cambiar por izquierda o derecha,
-		    // esperamos a que el jugador se aleje de esa puerta
-		    // antes de permitir otra transición lateral.
-		    if (transicionBloqueada) {
-
-		        if (!estaEnPuertaLateralActiva()) {
-		            transicionBloqueada = false;
-		        }
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // IZQUIERDA
-		    // Funciona simplemente tocando la puerta.
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(0, -1)
-		        && jugadorEstaEnPuerta(puertaIzquierda)) {
-
-		        if (juego.cambiarSala(0, -1)) {
-
-		            colocarJugadorTrasCambio(
-		                0,
-		                -1
-		            );
-
-		            // Evitamos volver inmediatamente.
-		            transicionBloqueada = true;
-		        }
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // DERECHA
-		    // También funciona por contacto.
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(0, 1)
-		        && jugadorEstaEnPuerta(puertaDerecha)) {
-
-		        if (juego.cambiarSala(0, 1)) {
-
-		            colocarJugadorTrasCambio(
-		                0,
-		                1
-		            );
-
-		            transicionBloqueada = true;
-		        }
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // ARRIBA
-		    //
-		    // Para usar esta puerta:
-		    // 1. Debe existir una sala arriba.
-		    // 2. El jugador debe estar frente a la puerta.
-		    // 3. Debe presionar F.
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(-1, 0)
-		        && jugadorEstaEnPuerta(puertaArriba)
-		        && Gdx.input.isKeyJustPressed(Input.Keys.F)) {
-
-		        if (juego.cambiarSala(-1, 0)) {
-
-		            colocarJugadorTrasCambio(
-		                -1,
-		                0
-		            );
-		        }
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // ABAJO
-		    // Funciona igual que ARRIBA pero hacia fila + 1.
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(1, 0)
-		        && jugadorEstaEnPuerta(puertaAbajo)
-		        && Gdx.input.isKeyJustPressed(Input.Keys.F)) {
-
-		        if (juego.cambiarSala(1, 0)) {
-
-		            colocarJugadorTrasCambio(
-		                1,
-		                0
-		            );
-		        }
-		    }
-		}
-	 
-	 private void colocarJugadorTrasCambio(
-		        int cambioFila,
-		        int cambioColumna) {
-
-		 	float anchoPantalla = ANCHO_MUNDO;
-		 	
-		 	
-		    // --------------------------------------------------
-		    // SALIMOS POR IZQUIERDA
-		    //
-		    // Entramos a la siguiente habitación
-		    // desde su puerta DERECHA.
-		    // --------------------------------------------------
-
-		    if (cambioColumna == -1) {
-
-		        jugador.getPosicion().setX(
-		            anchoPantalla - ANCHO_JUGADOR
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // SALIMOS POR DERECHA
-		    //
-		    // Entramos desde la puerta IZQUIERDA.
-		    // --------------------------------------------------
-
-		    else if (cambioColumna == 1) {
-
-		        jugador.getPosicion().setX(0);
-		    }
-
-
-		    // --------------------------------------------------
-		    // FUIMOS HACIA ARRIBA
-		    //
-		    // En la nueva sala aparecemos frente
-		    // a la puerta que lleva ABAJO.
-		    // --------------------------------------------------
-
-		    else if (cambioFila == -1) {
-
-		        jugador.getPosicion().setX(
-		            puertaAbajo.x
-		            + puertaAbajo.width / 2
-		            - ANCHO_JUGADOR / 2
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // FUIMOS HACIA ABAJO
-		    //
-		    // En la nueva sala aparecemos frente
-		    // a la puerta que lleva ARRIBA.
-		    // --------------------------------------------------
-
-		    else if (cambioFila == 1) {
-
-		        jugador.getPosicion().setX(
-		            puertaArriba.x
-		            + puertaArriba.width / 2
-		            - ANCHO_JUGADOR / 2
-		        );
-		    }
-
-
-		    // Por ahora todas las puertas están al nivel del piso.
-		    jugador.getPosicion().setY(pisoY);
-
-		    // Cancelamos cualquier salto o caída
-		    // que tuviera el personaje.
-		    velocidadY = 0;
-	 }
-	 
-	 private void limitarJugadorAHabitacion() {
-
-		 	float anchoPantalla = ANCHO_MUNDO;
-		 	
-		 	
-		    float maximoX =
-		        anchoPantalla - ANCHO_JUGADOR;
-
-
-		    // Límite izquierdo
-		    if (jugador.getPosicion().getX() < 0) {
-
-		        jugador.getPosicion().setX(0);
-		    }
-
-
-		    // Límite derecho
-		    if (jugador.getPosicion().getX() > maximoX) {
-
-		        jugador.getPosicion().setX(maximoX);
-		    }
+	    // Ataque hacia la derecha.
+	    else {
+
+	        // La hitbox EMPIEZA justo en el centro del jugador.
+	        ataqueX =
+	            centroJugadorX;
+	    }
+
+
+	    return new Rectangle(
+	        ataqueX,
+	        ataqueY,
+	        ALCANCE_ATAQUE_JUGADOR,
+	        ALTO_ATAQUE_JUGADOR
+	    );
 	}
-	 
-	 private void dibujarHabitacion() {
-
-		 	float anchoPantalla =
-				    ANCHO_MUNDO;
-
-			float altoPantalla =
-				    ALTO_MUNDO;
 
 
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Line
-		    );
+	// --------------------------------------------------
+	// HITBOX DEL ENEMIGO
+	// --------------------------------------------------
 
-		    shapeRenderer.setColor(Color.WHITE);
+	private Rectangle obtenerHitboxEnemigo(
+			Enemigo enemigo) {
 
+		return new Rectangle(
+				enemigo.getPosicion().getX(),
+				enemigo.getPosicion().getY(),
+				ANCHO_ENEMIGO,
+				ALTO_ENEMIGO
+		);
+	}
 
-		    // --------------------------------------------------
-		    // CONTORNO TEMPORAL DE LA HABITACIÓN
-		    // --------------------------------------------------
+	private void dibujarHitboxAtaque(float delta) {
 
-		    shapeRenderer.rect(
-		        1,
-		        pisoY,
-		        anchoPantalla - 2,
-		        altoPantalla - pisoY - 2
-		    );
-
-
-		    // --------------------------------------------------
-		    // PUERTA IZQUIERDA
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(0, -1)) {
-
-		        shapeRenderer.rect(
-		            puertaIzquierda.x,
-		            puertaIzquierda.y,
-		            puertaIzquierda.width,
-		            puertaIzquierda.height
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // PUERTA DERECHA
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(0, 1)) {
-
-		        shapeRenderer.rect(
-		            puertaDerecha.x,
-		            puertaDerecha.y,
-		            puertaDerecha.width,
-		            puertaDerecha.height
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // PUERTA ARRIBA
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(-1, 0)) {
-
-		        shapeRenderer.rect(
-		            puertaArriba.x,
-		            puertaArriba.y,
-		            puertaArriba.width,
-		            puertaArriba.height
-		        );
-
-		        dibujarFlechaArriba(
-		            puertaArriba
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // PUERTA ABAJO
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(1, 0)) {
-
-		        shapeRenderer.rect(
-		            puertaAbajo.x,
-		            puertaAbajo.y,
-		            puertaAbajo.width,
-		            puertaAbajo.height
-		        );
-
-		        dibujarFlechaAbajo(
-		            puertaAbajo
-		        );
-		    }
-
-
-		    shapeRenderer.end();
+		// Si ya terminó el tiempo de visualización,
+		// no dibujamos nada.
+		if (tiempoHitboxAtaqueDebug <= 0) {
+			return;
 		}
-	 
-	 private void dibujarFlechaArriba(
-		        Rectangle puerta) {
-
-		    float centroX =
-		        puerta.x + puerta.width / 2;
-
-		    float abajo =
-		        puerta.y + 25;
-
-		    float arriba =
-		        puerta.y + puerta.height - 25;
+		
+		
+		// Reducimos el tiempo cada frame.
+		tiempoHitboxAtaqueDebug -= delta;
 
 
-		    // Línea vertical
-		    shapeRenderer.line(
-		        centroX,
-		        abajo,
-		        centroX,
-		        arriba
-		    );
+		// Activamos transparencia.
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+
+		Gdx.gl.glBlendFunc(
+				GL20.GL_SRC_ALPHA,
+				GL20.GL_ONE_MINUS_SRC_ALPHA
+		);
 
 
-		    // Punta izquierda
-		    shapeRenderer.line(
-		        centroX,
-		        arriba,
-		        centroX - 10,
-		        arriba - 15
-		    );
+		shapeRenderer.begin(
+				ShapeRenderer.ShapeType.Filled
+		);
 
 
-		    // Punta derecha
-		    shapeRenderer.line(
-		        centroX,
-		        arriba,
-		        centroX + 10,
-		        arriba - 15
-		    );
+		// Celeste con poca opacidad.
+		// El último valor es el alpha:
+		// 0 = invisible
+		// 1 = totalmente sólido
+		shapeRenderer.setColor(
+				0.2f,
+				0.7f,
+				1f,
+				0.25f
+		);
+
+
+		shapeRenderer.rect(
+				hitboxAtaqueDebug.x,
+				hitboxAtaqueDebug.y,
+				hitboxAtaqueDebug.width,
+				hitboxAtaqueDebug.height
+		);
+
+
+		shapeRenderer.end();
+
+
+		// Desactivamos el blending porque solamente
+		// lo necesitábamos para esta visualización.
+		Gdx.gl.glDisable(GL20.GL_BLEND);
+	}
+	
+	private void dibujarHitboxJugador() {
+
+	    Rectangle hitboxJugador =
+	        obtenerHitboxJugador();
+
+
+	    shapeRenderer.begin(
+	        ShapeRenderer.ShapeType.Line
+	    );
+
+	    // Verde para distinguirla de:
+	    // rojo = enemigo
+	    // celeste = ataque
+	    shapeRenderer.setColor(
+	        Color.GREEN
+	    );
+
+
+	    shapeRenderer.rect(
+	        hitboxJugador.x,
+	        hitboxJugador.y,
+	        hitboxJugador.width,
+	        hitboxJugador.height
+	    );
+
+
+	    shapeRenderer.end();
+	}
+
+	private void comprobarAtaqueJugador() {
+
+		// El ataque ocurre una sola vez
+		// cuando Q acaba de ser presionada.
+		if (!Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
+			return;
 		}
-	 
-	 private void dibujarFlechaAbajo(
-		        Rectangle puerta) {
-
-		    float centroX =
-		        puerta.x + puerta.width / 2;
-
-		    float arriba =
-		        puerta.y + puerta.height - 25;
-
-		    float abajo =
-		        puerta.y + 25;
 
 
-		    // Línea vertical
-		    shapeRenderer.line(
-		        centroX,
-		        arriba,
-		        centroX,
-		        abajo
-		    );
+		Sala salaActual =
+				juego.getSalaActual();
 
 
-		    // Punta izquierda
-		    shapeRenderer.line(
-		        centroX,
-		        abajo,
-		        centroX - 10,
-		        abajo + 15
-		    );
+		// Creamos la zona física del ataque
+		// según dónde está mirando el jugador.
+		Rectangle hitboxAtaque =
+				obtenerHitboxAtaqueJugador();
+
+		// --------------------------------------------------
+		// GUARDAMOS LA HITBOX PARA PODER VERLA
+		// --------------------------------------------------
+
+		hitboxAtaqueDebug.set(
+				hitboxAtaque.x,
+				hitboxAtaque.y,
+				hitboxAtaque.width,
+				hitboxAtaque.height
+		);
+
+		// La mostramos brevemente aunque Q haya sido
+		// presionada solamente durante un frame.
+		tiempoHitboxAtaqueDebug = 0.15f;
 
 
-		    // Punta derecha
-		    shapeRenderer.line(
-		        centroX,
-		        abajo,
-		        centroX + 10,
-		        abajo + 15
-		    );
+		Enemigo objetivo = null;
+
+
+		// --------------------------------------------------
+		// BUSCAR ENEMIGO GOLPEADO
+		// --------------------------------------------------
+
+		for (Enemigo enemigo :
+				salaActual.getEnemigos()) {
+
+			Rectangle hitboxEnemigo =
+					obtenerHitboxEnemigo(enemigo);
+
+
+			// Si ambas zonas se superponen,
+			// el golpe alcanzó al enemigo.
+			if (hitboxAtaque.overlaps(hitboxEnemigo)) {
+
+				objetivo = enemigo;
+
+				// Por ahora el ataque golpea
+				// solamente a un enemigo.
+				break;
+			}
 		}
-	 
-	 private boolean enemigoEstaEnRango(Enemigo enemigo) {
-
-		    float jugadorX =
-		        jugador.getPosicion().getX();
-
-		    float enemigoX =
-		        enemigo.getPosicion().getX();
 
 
-		    // Distancia horizontal entre ambos.
-		    float distanciaX =
-		        Math.abs(jugadorX - enemigoX);
+		// Si Q no alcanzó a nadie,
+		// terminamos el ataque.
+		if (objetivo == null) {
 
+			System.out.println(
+					"El ataque no golpeó a ningún enemigo."
+			);
 
-		    return distanciaX <= ALCANCE_ATAQUE;
-	 }
-	 
-	 private void comprobarAtaqueJugador() {
-
-		    // Atacamos una sola vez por pulsación.
-		    if (!Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
-		        return;
-		    }
-
-
-		    Sala salaActual =
-		        juego.getSalaActual();
-
-
-		    // Guardamos cuál enemigo vamos a atacar.
-		    Enemigo objetivo = null;
-
-
-		    // --------------------------------------------------
-		    // BUSCAR ENEMIGO EN RANGO
-		    // --------------------------------------------------
-
-		    for (Enemigo enemigo : salaActual.getEnemigos()) {
-
-		        if (enemigoEstaEnRango(enemigo)) {
-
-		            objetivo = enemigo;
-
-		            // Por ahora Q golpea solamente
-		            // al primer enemigo encontrado.
-		            break;
-		        }
-		    }
-
-
-		    // No encontramos ninguno.
-		    if (objetivo == null) {
-
-		        System.out.println(
-		            "No hay enemigos al alcance."
-		        );
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // ATAQUE
-		    // --------------------------------------------------
-
-		    jugador.atacar(objetivo);
-
-
-		    System.out.println(
-		        "Golpeaste a "
-		        + objetivo.getVidaActual()
-		        + "/"
-		        + objetivo.getVidaMax()
-		    );
-
-
-		    // --------------------------------------------------
-		    // MUERTE
-		    // --------------------------------------------------
-
-		    if (!objetivo.estaVivo()) {
-
-		        System.out.println(
-		            "Enemigo derrotado."
-		        );
-
-
-		        // Generamos el drop antes de eliminarlo.
-		        int monedas =
-		            objetivo.generarMonedasDrop();
-
-		        jugador.agarrarMonedas(monedas);
-
-
-		        System.out.println(
-		            "Ganaste "
-		            + monedas
-		            + " monedas."
-		        );
-
-
-		        // Ahora sí desaparece de la habitación.
-		        salaActual.eliminarEnemigo(
-		            objetivo
-		        );
-		    }
+			return;
 		}
-	 
-	 private void dibujarEnemigos() {
-
-		    Sala salaActual =
-		        juego.getSalaActual();
 
 
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Filled
-		    );
+		// --------------------------------------------------
+		// APLICAMOS DAÑO
+		// --------------------------------------------------
 
-		    shapeRenderer.setColor(
-		        Color.RED
-		    );
+		jugador.atacar(objetivo);
 
 
-		    for (Enemigo enemigo :
-		            salaActual.getEnemigos()) {
-
-		        shapeRenderer.rect(
-		            enemigo.getPosicion().getX(),
-		            enemigo.getPosicion().getY(),
-		            ANCHO_ENEMIGO,
-		            ALTO_ENEMIGO
-		        );
-		    }
+		System.out.println(
+				"Golpeaste al enemigo. Vida: "
+						+ objetivo.getVidaActual()
+						+ "/"
+						+ objetivo.getVidaMax()
+		);
 
 
-		    shapeRenderer.end();
+		// --------------------------------------------------
+		// MUERTE DEL ENEMIGO
+		// --------------------------------------------------
+
+		if (!objetivo.estaVivo()) {
+
+			System.out.println(
+					"Enemigo derrotado."
+			);
+
+
+			int monedas =
+					objetivo.generarMonedasDrop();
+
+
+			jugador.agarrarMonedas(
+					monedas
+			);
+
+
+			System.out.println(
+					"Ganaste "
+							+ monedas
+							+ " monedas."
+			);
+
+
+			// Lo eliminamos de la habitación.
+			salaActual.eliminarEnemigo(
+					objetivo
+			);
 		}
-	 
-	 private boolean jugadorTocaEnemigo(
-		        Enemigo enemigo) {
+	}
 
-		    Rectangle hitboxJugador =
-		        new Rectangle(
-		            jugador.getPosicion().getX(),
-		            jugador.getPosicion().getY(),
-		            ANCHO_JUGADOR,
-		            ALTO_JUGADOR
-		        );
+	private void dibujarEnemigos() {
+
+		Sala salaActual =
+				juego.getSalaActual();
 
 
-		    Rectangle hitboxEnemigo =
-		        new Rectangle(
-		            enemigo.getPosicion().getX(),
-		            enemigo.getPosicion().getY(),
-		            ANCHO_ENEMIGO,
-		            ALTO_ENEMIGO
-		        );
+		shapeRenderer.begin(
+				ShapeRenderer.ShapeType.Filled
+		);
+
+		shapeRenderer.setColor(
+				Color.RED
+		);
 
 
-		    return hitboxJugador.overlaps(
-		        hitboxEnemigo
-		    );
+		for (Enemigo enemigo :
+				salaActual.getEnemigos()) {
+
+			shapeRenderer.rect(
+					enemigo.getPosicion().getX(),
+					enemigo.getPosicion().getY(),
+					ANCHO_ENEMIGO,
+					ALTO_ENEMIGO
+			);
 		}
-	 
-	 private void comprobarDañoEnemigos(
-		        float delta) {
-
-		    // Reducimos el tiempo de invulnerabilidad.
-		    if (tiempoInvulnerable > 0) {
-
-		        tiempoInvulnerable -= delta;
-		    }
 
 
-		    // Si todavía somos invulnerables,
-		    // no recibimos otro golpe.
-		    if (tiempoInvulnerable > 0) {
+		shapeRenderer.end();
+	}
 
-		        return;
-		    }
+	private boolean jugadorTocaEnemigo(
+	        Enemigo enemigo) {
 
+	    Rectangle hitboxJugador =
+	        obtenerHitboxJugador();
 
-		    Sala salaActual =
-		        juego.getSalaActual();
-
-
-		    for (Enemigo enemigo :
-		            salaActual.getEnemigos()) {
-
-		        if (jugadorTocaEnemigo(enemigo)) {
-
-		            // El enemigo daña al jugador.
-		            jugador.recibirDaño(
-		                enemigo.getDaño()
-		            );
+	    Rectangle hitboxEnemigo =
+	        obtenerHitboxEnemigo(enemigo);
 
 
-		            System.out.println(
-		                "El jugador recibió "
-		                + enemigo.getDaño()
-		                + " de daño."
-		            );
+	    return hitboxJugador.overlaps(
+	        hitboxEnemigo
+	    );
+	}
 
+	private void comprobarDañoEnemigos(
+			float delta) {
 
-		            System.out.println(
-		                "Vida jugador: "
-		                + jugador.getVidaActual()
-		                + "/"
-		                + jugador.getVidaMax()
-		            );
+		// Reducimos el tiempo de invulnerabilidad.
+		if (tiempoInvulnerable > 0) {
 
-
-		            // Comienza la invulnerabilidad.
-		            tiempoInvulnerable =
-		                duracionInvulnerabilidad;
-
-
-		            // Solamente permitimos un golpe
-		            // en este frame.
-		            break;
-		        }
-		    }
+			tiempoInvulnerable -= delta;
 		}
+
+
+		// Si todavía somos invulnerables,
+		// no recibimos otro golpe.
+		if (tiempoInvulnerable > 0) {
+
+			return;
+		}
+
+
+		Sala salaActual =
+				juego.getSalaActual();
+
+
+		for (Enemigo enemigo :
+				salaActual.getEnemigos()) {
+
+			if (jugadorTocaEnemigo(enemigo)) {
+
+				// El enemigo daña al jugador.
+				jugador.recibirDaño(
+						enemigo.getDaño()
+				);
+
+				// Si la vida llegó a 0,
+				// activamos el Game Over.
+				if (!jugador.estaVivo()) {
+
+					gameOver = true;
+
+					System.out.println("GAME OVER");
+				}
+
+
+				System.out.println(
+						"El jugador recibió "
+								+ enemigo.getDaño()
+								+ " de daño."
+				);
+
+
+				System.out.println(
+						"Vida jugador: "
+								+ jugador.getVidaActual()
+								+ "/"
+								+ jugador.getVidaMax()
+				);
+
+
+				// Comienza la invulnerabilidad.
+				tiempoInvulnerable =
+						duracionInvulnerabilidad;
+
+
+				// Solamente permitimos un golpe
+				// en este frame.
+				break;
+			}
+		}
+	}
+
+	private void dibujarGameOver() {
+
+		// --------------------------------------------------
+		// FONDO
+		// --------------------------------------------------
+
+		shapeRenderer.begin(
+				ShapeRenderer.ShapeType.Filled
+		);
+
+		shapeRenderer.setColor(Color.BLACK);
+
+		shapeRenderer.rect(
+				0,
+				0,
+				ANCHO_MUNDO,
+				ALTO_MUNDO
+		);
+
+		shapeRenderer.end();
+
+
+		// --------------------------------------------------
+		// TEXTO GAME OVER
+		// --------------------------------------------------
+
+		batch.begin();
+
+
+		// Hacemos temporalmente la letra más grande.
+		font.getData().setScale(3f);
+
+		layout.setText(
+				font,
+				"GAME OVER"
+		);
+
+		float gameOverX =
+				(ANCHO_MUNDO - layout.width) / 2;
+
+		float gameOverY =
+				ALTO_MUNDO / 2 + 50;
+
+
+		font.draw(
+				batch,
+				layout,
+				gameOverX,
+				gameOverY
+		);
+
+
+		// --------------------------------------------------
+		// TEXTO REINICIAR
+		// --------------------------------------------------
+
+		font.getData().setScale(1.5f);
+
+		layout.setText(
+				font,
+				"Presiona ENTER para volver a jugar"
+		);
+
+		float reiniciarX =
+				(ANCHO_MUNDO - layout.width) / 2;
+
+		float reiniciarY =
+				ALTO_MUNDO / 2 - 30;
+
+
+		font.draw(
+				batch,
+				layout,
+				reiniciarX,
+				reiniciarY
+		);
+
+
+		// Volvemos al tamaño normal que usás en el HUD.
+		font.getData().setScale(1.2f);
+
+
+		batch.end();
+	}
+
+	private void reiniciarPartida() {
+
+		// --------------------------------------------------
+		// JUGADOR
+		// --------------------------------------------------
+
+		jugador.reiniciarJugador(
+				140,
+				pisoY,
+				100
+		);
+
+
+		// --------------------------------------------------
+		// NUEVA PARTIDA
+		// --------------------------------------------------
+
+		// Creamos nuevamente la lógica de la partida
+		// utilizando el mismo jugador.
+		juego = new Juego(jugador);
+
+		juego.iniciarJuego();
+
+
+		// --------------------------------------------------
+		// ENEMIGO DE PRUEBA
+		// --------------------------------------------------
+
+		// IMPORTANTE:
+		// Esto es temporal hasta que hagamos la generación
+		// real de enemigos por habitación.
+
+		Enemigo enemigoPrueba = new Enemigo(
+				"Enemigo prueba",
+				new Posicion(800, pisoY),
+				30,
+				100,
+				25,
+				1,
+				3
+		);
+
+		juego.getSalaActual().agregarEnemigo(
+				enemigoPrueba
+		);
+
+
+		// --------------------------------------------------
+		// FÍSICA
+		// --------------------------------------------------
+
+		velocidadY = 0;
+
+		tiempoInvulnerable = 0;
+
+
+		// --------------------------------------------------
+		// SALTO
+		// --------------------------------------------------
+
+		saltosDisponibles = 2;
+
+
+		// --------------------------------------------------
+		// DASH
+		// --------------------------------------------------
+
+		haciendoDash = false;
+
+		dashDisponibleAire = 1;
+
+		tiempoDashRestante = 0;
+
+		tiempoCooldownDash = 0;
+
+		direccionDash = 1;
+
+
+		// --------------------------------------------------
+		// OTROS ESTADOS
+		// --------------------------------------------------
+
+		mirandoIzquierda = false;
+
+		transicionBloqueada = false;
+
+
+		// Finalmente salimos del Game Over.
+		gameOver = false;
+	}
 }

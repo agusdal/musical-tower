@@ -120,9 +120,9 @@ public class Main_game extends ApplicationAdapter {
 	// PROVISIONAL:
 	// La imagen ocupa 80 px de ancho,
 	// pero el cuerpo real es bastante más angosto.
-	private static final float ANCHO_HITBOX_JUGADOR = 50f;
+	private static final float ANCHO_HITBOX_JUGADOR = 80f;
 
-	private static final float ALTO_HITBOX_JUGADOR = 75f;
+	private static final float ALTO_HITBOX_JUGADOR = 150f;
 	
 	 
 	// Tamaño temporal del enemigoPrueba.
@@ -301,9 +301,9 @@ public class Main_game extends ApplicationAdapter {
 
     @Override
     public void render() {
-
+    	
         float delta = Gdx.graphics.getDeltaTime();
-
+        
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
         
         // Aplicamos la resolución virtual.
@@ -1494,15 +1494,24 @@ public class Main_game extends ApplicationAdapter {
 	 private Rectangle obtenerHitboxAtaqueJugador() {
 
 		    float ataqueX;
+		    
+		    float separacionCentral = 15;
 
-		    float ataqueY =
-		        jugador.getPosicion().getY();
+		    // Obtenemos la hitbox corporal real del jugador.
+		    Rectangle hitboxJugador =
+		        obtenerHitboxJugador();
 
 
-		    // Centro horizontal del personaje.
+		    // Centro horizontal REAL de la hitbox corporal.
 		    float centroJugadorX =
-		        jugador.getPosicion().getX()
-		        + ANCHO_JUGADOR / 2;
+		        hitboxJugador.x
+		        + hitboxJugador.width / 2;
+
+
+		    // Por ahora hacemos que el ataque empiece
+		    // a la misma altura que la hitbox del jugador.
+		    float ataqueY =
+		        hitboxJugador.y;
 
 
 		    // Ataque hacia la izquierda.
@@ -1510,14 +1519,14 @@ public class Main_game extends ApplicationAdapter {
 
 		        ataqueX =
 		            centroJugadorX
-		            - ALCANCE_ATAQUE_JUGADOR;
+		            - ALCANCE_ATAQUE_JUGADOR - separacionCentral;
 		    }
 
 		    // Ataque hacia la derecha.
 		    else {
 
 		        ataqueX =
-		            centroJugadorX;
+		            centroJugadorX + separacionCentral;
 		    }
 
 
@@ -1533,22 +1542,24 @@ public class Main_game extends ApplicationAdapter {
 		// HITBOX DEL CUERPO DEL JUGADOR
 		// --------------------------------------------------
 	
-		private Rectangle obtenerHitboxJugador() {
-	
-		    // Como el sprite mide 80 px y la hitbox 50,
-		    // repartimos el espacio sobrante entre ambos lados.
-		    float offsetX =
-		        (ANCHO_JUGADOR - ANCHO_HITBOX_JUGADOR) / 2;
-	
-	
+	 	private Rectangle obtenerHitboxJugador() {
+
+		    // Centramos la hitbox respecto al sprite visual.
+		    float hitboxX =
+		        jugador.getSpriteX()
+		        + (jugador.getAnchoSprite() - ANCHO_HITBOX_JUGADOR) / 2f;
+
+		    // Para un juego de plataformas, normalmente conviene
+		    // que la hitbox apoye "abajo" con el personaje,
+		    // no centrarla verticalmente del todo.
+		    float hitboxY =
+		    	    jugador.getSpriteY()
+		    	    + (jugador.getAltoSprite() - ALTO_HITBOX_JUGADOR) / 2f;
+
 		    return new Rectangle(
-	
-		        jugador.getPosicion().getX() + offsetX,
-	
-		        jugador.getPosicion().getY(),
-	
+		        hitboxX,
+		        hitboxY,
 		        ANCHO_HITBOX_JUGADOR,
-	
 		        ALTO_HITBOX_JUGADOR
 		    );
 		}

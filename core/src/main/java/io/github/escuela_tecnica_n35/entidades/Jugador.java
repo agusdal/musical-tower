@@ -16,6 +16,11 @@ public class Jugador extends Entidad {
     // Valor PROVISIONAL.
     // Ajustalo mirando dónde quedan exactamente los pies.
     private static final float OFFSET_SPRITE_Y = -45f;
+    
+	// Tamaño visual con el que dibujamos al jugador.
+	// Ajustalo si después agrandás o achicás el personaje.
+	private static final float ANCHO_SPRITE = 160f;
+	private static final float ALTO_SPRITE = 260f;
 
     // Frames individuales
     private TextureRegion frameQuieto;
@@ -137,7 +142,13 @@ public class Jugador extends Entidad {
             frameActual = frameQuieto;
         }
 
-        batch.draw(frameActual, getPosicion().getX(), getPosicion().getY() + OFFSET_SPRITE_Y);
+        batch.draw(
+        	    frameActual,
+        	    getPosicion().getX(),
+        	    getPosicion().getY() + OFFSET_SPRITE_Y,
+        	    ANCHO_SPRITE,
+        	    ALTO_SPRITE
+        	);
     }
 
 	//----------------------------\/EFECTOS A VIDA\/-----------------------------
@@ -182,6 +193,25 @@ public class Jugador extends Entidad {
 	}
 	
 	//----------------------------/\INVENTARIO/\-----------------------------
+	
+	// -------------------- SPRITE VISUAL --------------------
+
+	public float getSpriteX() {
+	    return getPosicion().getX();
+	}
+
+	public float getSpriteY() {
+	    return getPosicion().getY() + OFFSET_SPRITE_Y;
+	}
+
+	public float getAnchoSprite() {
+	    return ANCHO_SPRITE;
+	}
+
+	public float getAltoSprite() {
+	    return ALTO_SPRITE;
+	}
+	
 	
 	// --------------------------------------------------
 	// REINICIAR JUGADOR

@@ -14,6 +14,7 @@ import io.github.escuela_tecnica_n35.juego.Juego;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.graphics.GL20;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont; // IMPORTA MAPA
 import io.github.escuela_tecnica_n35.etapas.Sala;
@@ -108,27 +109,53 @@ public class Main_game extends ApplicationAdapter {
     
     private ShapeRenderer shapeRenderer;
 
-	 // Tamaño temporal del personaje.
-	 private static final float ANCHO_JUGADOR = 80;
-	 private static final float ALTO_JUGADOR = 80;
+	// Tamaño temporal del personaje.
+	private static final float ANCHO_JUGADOR = 80;
+	private static final float ALTO_JUGADOR = 80;
+	
+	// --------------------------------------------------
+	// HITBOX CORPORAL DEL JUGADOR
+	// --------------------------------------------------
+
+	// PROVISIONAL:
+	// La imagen ocupa 80 px de ancho,
+	// pero el cuerpo real es bastante más angosto.
+	private static final float ANCHO_HITBOX_JUGADOR = 50f;
+
+	private static final float ALTO_HITBOX_JUGADOR = 75f;
+	
 	 
 	// Tamaño temporal del enemigoPrueba.
-	 private static final float ANCHO_ENEMIGO = 80f;
-	 private static final float ALTO_ENEMIGO = 120f;
+	private static final float ANCHO_ENEMIGO = 80f;
+	private static final float ALTO_ENEMIGO = 120f;
 
-	 private static final float ALCANCE_ATAQUE = 120f;
+	// Alcance horizontal del ataque básico del jugador.
+	private static final float ALCANCE_ATAQUE_JUGADOR = 130f;
+
+	// Altura de la zona de ataque.
+	private static final float ALTO_ATAQUE_JUGADOR = 140f;
+	 
+	// --------------------------------------------------
+	// HITBOX VISUAL DEL ATAQUE - DEBUG
+	// --------------------------------------------------
+	 
+	// Guarda temporalmente dónde estuvo el último ataque.
+	private Rectangle hitboxAtaqueDebug;
+	 
+	// Tiempo durante el cual la mostramos en pantalla.
+	private float tiempoHitboxAtaqueDebug;
 	
-	 // Puertas laterales.
-	 private Rectangle puertaIzquierda;
-	 private Rectangle puertaDerecha;
+	// Puertas laterales.
+	private Rectangle puertaIzquierda;
+	private Rectangle puertaDerecha;
 	
-	 // Las dos puertas centrales de tu dibujo.
-	 private Rectangle puertaArriba;
-	 private Rectangle puertaAbajo;
+	// Las dos puertas centrales de tu dibujo.
+	private Rectangle puertaArriba;
+	private Rectangle puertaAbajo;
 	
-	 // Evita que al entrar a una habitación
-	 // volvamos instantáneamente a la anterior.
-	 private boolean transicionBloqueada;
+	// Evita que al entrar a una habitación
+	// volvamos instantáneamente a la anterior.
+	private boolean transicionBloqueada;
     
     @Override
     public void create() {
@@ -146,6 +173,12 @@ public class Main_game extends ApplicationAdapter {
             250,
             7
         );
+        
+        //-------------HITBOXES--------------
+        hitboxAtaqueDebug = new Rectangle();
+
+        tiempoHitboxAtaqueDebug = 0;
+        //-------------HITBOXES--------------
         
         texturaMoneda = new Texture("moneda.png");
         
@@ -512,6 +545,13 @@ public class Main_game extends ApplicationAdapter {
 	     
 	     dibujarEnemigos();
 	     
+	     // --------------------------------------------------
+	     // DEBUG DEL ATAQUE
+	     // --------------------------------------------------
+
+	     dibujarHitboxAtaque(delta);
+	     
+	     
 		 // --------------------------------------------------
 		 // DAÑO DE LOS ENEMIGOS
 		 // --------------------------------------------------
@@ -527,8 +567,10 @@ public class Main_game extends ApplicationAdapter {
 	     jugador.render(batch, delta);
 	
 	     batch.end();
-	
-	
+	     
+	     dibujarHitboxJugador();
+	     
+	     
 	     // --------------------------------------------------
 	     // DIBUJAMOS EL HUD AL FINAL
 	     //
@@ -1444,27 +1486,93 @@ public class Main_game extends ApplicationAdapter {
 		        abajo + 15
 		    );
 		}
+		 
+		// --------------------------------------------------
+		// HITBOX DEL ATAQUE DEL JUGADOR
+		// --------------------------------------------------
+	
+	 private Rectangle obtenerHitboxAtaqueJugador() {
+
+		    float ataqueX;
+
+		    float ataqueY =
+		        jugador.getPosicion().getY();
+
+
+		    // Centro horizontal del personaje.
+		    float centroJugadorX =
+		        jugador.getPosicion().getX()
+		        + ANCHO_JUGADOR / 2;
+
+
+		    // Ataque hacia la izquierda.
+		    if (mirandoIzquierda) {
+
+		        ataqueX =
+		            centroJugadorX
+		            - ALCANCE_ATAQUE_JUGADOR;
+		    }
+
+		    // Ataque hacia la derecha.
+		    else {
+
+		        ataqueX =
+		            centroJugadorX;
+		    }
+
+
+		    return new Rectangle(
+		        ataqueX,
+		        ataqueY,
+		        ALCANCE_ATAQUE_JUGADOR,
+		        ALTO_ATAQUE_JUGADOR
+		    );
+		}
+		 
+		// --------------------------------------------------
+		// HITBOX DEL CUERPO DEL JUGADOR
+		// --------------------------------------------------
+	
+		private Rectangle obtenerHitboxJugador() {
+	
+		    // Como el sprite mide 80 px y la hitbox 50,
+		    // repartimos el espacio sobrante entre ambos lados.
+		    float offsetX =
+		        (ANCHO_JUGADOR - ANCHO_HITBOX_JUGADOR) / 2;
+	
+	
+		    return new Rectangle(
+	
+		        jugador.getPosicion().getX() + offsetX,
+	
+		        jugador.getPosicion().getY(),
+	
+		        ANCHO_HITBOX_JUGADOR,
+	
+		        ALTO_HITBOX_JUGADOR
+		    );
+		}
+	
+	
+		// --------------------------------------------------
+		// HITBOX DEL ENEMIGO
+		// --------------------------------------------------
+	
+		private Rectangle obtenerHitboxEnemigo(
+		        Enemigo enemigo) {
+	
+		    return new Rectangle(
+		        enemigo.getPosicion().getX(),
+		        enemigo.getPosicion().getY(),
+		        ANCHO_ENEMIGO,
+		        ALTO_ENEMIGO
+		    );
+		}
 	 
-	 private boolean enemigoEstaEnRango(Enemigo enemigo) {
+		private void comprobarAtaqueJugador() {
 
-		    float jugadorX =
-		        jugador.getPosicion().getX();
-
-		    float enemigoX =
-		        enemigo.getPosicion().getX();
-
-
-		    // Distancia horizontal entre ambos.
-		    float distanciaX =
-		        Math.abs(jugadorX - enemigoX);
-
-
-		    return distanciaX <= ALCANCE_ATAQUE;
-	 }
-	 
-	 private void comprobarAtaqueJugador() {
-
-		    // Atacamos una sola vez por pulsación.
+		    // El ataque ocurre una sola vez
+		    // cuando Q acaba de ser presionada.
 		    if (!Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
 		        return;
 		    }
@@ -1474,32 +1582,60 @@ public class Main_game extends ApplicationAdapter {
 		        juego.getSalaActual();
 
 
-		    // Guardamos cuál enemigo vamos a atacar.
+		    // Creamos la zona física del ataque
+		    // según dónde está mirando el jugador.
+		    Rectangle hitboxAtaque =
+		        obtenerHitboxAtaqueJugador();
+		    
+			// --------------------------------------------------
+			// GUARDAMOS LA HITBOX PARA PODER VERLA
+			// --------------------------------------------------
+	
+			hitboxAtaqueDebug.set(
+			    hitboxAtaque.x,
+			    hitboxAtaque.y,
+			    hitboxAtaque.width,
+			    hitboxAtaque.height
+			);
+	
+			// La mostramos brevemente aunque Q haya sido
+			// presionada solamente durante un frame.
+			tiempoHitboxAtaqueDebug = 0.15f;
+		 
+		 
 		    Enemigo objetivo = null;
 
 
 		    // --------------------------------------------------
-		    // BUSCAR ENEMIGO EN RANGO
+		    // BUSCAR ENEMIGO GOLPEADO
 		    // --------------------------------------------------
 
-		    for (Enemigo enemigo : salaActual.getEnemigos()) {
+		    for (Enemigo enemigo :
+		            salaActual.getEnemigos()) {
 
-		        if (enemigoEstaEnRango(enemigo)) {
+		        Rectangle hitboxEnemigo =
+		            obtenerHitboxEnemigo(enemigo);
+
+
+		        // Si ambas zonas se superponen,
+		        // el golpe alcanzó al enemigo.
+		        if (hitboxAtaque.overlaps(hitboxEnemigo)) {
 
 		            objetivo = enemigo;
 
-		            // Por ahora Q golpea solamente
-		            // al primer enemigo encontrado.
+		            // Por ahora el ataque golpea
+		            // solamente a un enemigo.
 		            break;
 		        }
 		    }
 
 
-		    // No encontramos ninguno.
+		    // Si Q no alcanzó a nadie,
+		    // terminamos el ataque.
 		    if (objetivo == null) {
 
 		        System.out.println(
-		            "No hay enemigos al alcance."
+		            "El ataque no golpeó a ningún enemigo."
 		        );
 
 		        return;
@@ -1507,14 +1643,14 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // --------------------------------------------------
-		    // ATAQUE
+		    // APLICAMOS DAÑO
 		    // --------------------------------------------------
 
 		    jugador.atacar(objetivo);
 
 
 		    System.out.println(
-		        "Golpeaste a "
+		        "Golpeaste al enemigo. Vida: "
 		        + objetivo.getVidaActual()
 		        + "/"
 		        + objetivo.getVidaMax()
@@ -1522,7 +1658,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // --------------------------------------------------
-		    // MUERTE
+		    // MUERTE DEL ENEMIGO
 		    // --------------------------------------------------
 
 		    if (!objetivo.estaVivo()) {
@@ -1532,11 +1668,13 @@ public class Main_game extends ApplicationAdapter {
 		        );
 
 
-		        // Generamos el drop antes de eliminarlo.
 		        int monedas =
 		            objetivo.generarMonedasDrop();
 
-		        jugador.agarrarMonedas(monedas);
+
+		        jugador.agarrarMonedas(
+		            monedas
+		        );
 
 
 		        System.out.println(
@@ -1546,11 +1684,40 @@ public class Main_game extends ApplicationAdapter {
 		        );
 
 
-		        // Ahora sí desaparece de la habitación.
+		        // Lo eliminamos de la habitación.
 		        salaActual.eliminarEnemigo(
 		            objetivo
 		        );
 		    }
+		}
+		
+		private void dibujarHitboxJugador() {
+
+		    Rectangle hitboxJugador =
+		        obtenerHitboxJugador();
+
+
+		    shapeRenderer.begin(
+		        ShapeRenderer.ShapeType.Line
+		    );
+
+		    // Verde para distinguirla de:
+		    // rojo = enemigo
+		    // celeste = ataque
+		    shapeRenderer.setColor(
+		        Color.GREEN
+		    );
+
+
+		    shapeRenderer.rect(
+		        hitboxJugador.x,
+		        hitboxJugador.y,
+		        hitboxJugador.width,
+		        hitboxJugador.height
+		    );
+
+
+		    shapeRenderer.end();
 		}
 	 
 	 private void dibujarEnemigos() {
@@ -1583,25 +1750,69 @@ public class Main_game extends ApplicationAdapter {
 		    shapeRenderer.end();
 		}
 	 
+	 private void dibujarHitboxAtaque(float delta) {
+
+		    // Si ya terminó el tiempo de visualización,
+		    // no dibujamos nada.
+		    if (tiempoHitboxAtaqueDebug <= 0) {
+		        return;
+		    }
+
+
+		    // Reducimos el tiempo cada frame.
+		    tiempoHitboxAtaqueDebug -= delta;
+
+
+		    // Activamos transparencia.
+		    Gdx.gl.glEnable(GL20.GL_BLEND);
+
+		    Gdx.gl.glBlendFunc(
+		        GL20.GL_SRC_ALPHA,
+		        GL20.GL_ONE_MINUS_SRC_ALPHA
+		    );
+
+
+		    shapeRenderer.begin(
+		        ShapeRenderer.ShapeType.Filled
+		    );
+
+
+		    // Celeste con poca opacidad.
+		    // El último valor es el alpha:
+		    // 0 = invisible
+		    // 1 = totalmente sólido
+		    shapeRenderer.setColor(
+		        0.2f,
+		        0.7f,
+		        1f,
+		        0.25f
+		    );
+
+
+		    shapeRenderer.rect(
+		        hitboxAtaqueDebug.x,
+		        hitboxAtaqueDebug.y,
+		        hitboxAtaqueDebug.width,
+		        hitboxAtaqueDebug.height
+		    );
+
+
+		    shapeRenderer.end();
+
+
+		    // Desactivamos el blending porque solamente
+		    // lo necesitábamos para esta visualización.
+		    Gdx.gl.glDisable(GL20.GL_BLEND);
+		}
+	 
 	 private boolean jugadorTocaEnemigo(
 		        Enemigo enemigo) {
 
 		    Rectangle hitboxJugador =
-		        new Rectangle(
-		            jugador.getPosicion().getX(),
-		            jugador.getPosicion().getY(),
-		            ANCHO_JUGADOR,
-		            ALTO_JUGADOR
-		        );
-
+		        obtenerHitboxJugador();
 
 		    Rectangle hitboxEnemigo =
-		        new Rectangle(
-		            enemigo.getPosicion().getX(),
-		            enemigo.getPosicion().getY(),
-		            ANCHO_ENEMIGO,
-		            ALTO_ENEMIGO
-		        );
+		        obtenerHitboxEnemigo(enemigo);
 
 
 		    return hitboxJugador.overlaps(

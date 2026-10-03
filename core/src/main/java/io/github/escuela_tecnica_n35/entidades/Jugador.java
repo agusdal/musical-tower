@@ -186,6 +186,8 @@ public class Jugador extends Entidad {
 	// --------------------------------------------------
 	// REINICIAR JUGADOR
 	// --------------------------------------------------
+	
+	//----------------------------\/MUERTE\/-----------------------------
 
 	public void reiniciarJugador(
 	        float xInicial,
@@ -194,30 +196,27 @@ public class Jugador extends Entidad {
 
 	    // Restauramos la vida.
 	    reiniciarVida(vidaMaxInicial);
-
-
+	    
 	    // Volvemos a la posición inicial.
 	    getPosicion().setX(xInicial);
 	    getPosicion().setY(yInicial);
-
-
-	    // Perdemos las monedas de la partida anterior.
+	    
+	    // Reiniciamos las monedas.
 	    monedas = 0;
-
-
-	    // Por ahora reiniciamos el objeto activo.
+	    
+	    // Reiniciamos inventario y objeto activo.
+	    inventario = new Inventario();
 	    objetoActivo = null;
-
-
+	    
 	    // Reiniciamos estados de animación.
 	    stateTime = 0f;
 	    tiempoCaida = 0f;
-
+	    
 	    moviendose = false;
 	    mirandoIzquierda = false;
 	    enElPiso = true;
-
 	    velocidadY = 0f;
 	}
-	
+
+	//----------------------------/\MUERTE/\-----------------------------
 }

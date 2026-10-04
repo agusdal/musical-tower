@@ -406,7 +406,7 @@ public class Main_game extends ApplicationAdapter {
 	        // MOVIMIENTO NORMAL
 	        // -----------------------------------------
 	
-	        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+	        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
 	
 	            jugador.getPosicion().moverX(
 	                jugador.getVelocidad() * delta
@@ -418,7 +418,7 @@ public class Main_game extends ApplicationAdapter {
 	        }
 	
 	
-	        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+	        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 	
 	            jugador.getPosicion().moverX(
 	                -jugador.getVelocidad() * delta
@@ -457,7 +457,7 @@ public class Main_game extends ApplicationAdapter {
 			// Si todavía estamos subiendo...
 			if (velocidadY > 0
 		
-			        // ...pero el jugador ya soltó W/SPACE...
+			        // ...pero el jugador ya soltó Z/UP...
 			        && !botonSaltoPresionado()) {
 		
 			    // ...aplicamos gravedad adicional.
@@ -468,7 +468,7 @@ public class Main_game extends ApplicationAdapter {
 			}
 			
 	        // CAÍDA RÁPIDA
-	        if (Gdx.input.isKeyPressed(Input.Keys.S) && jugador.getPosicion().getY() > pisoY) {
+	        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) && jugador.getPosicion().getY() > pisoY) {
 	            velocidadY -= aceleracionCaidaRapida * delta;
 	        }
 	        
@@ -596,20 +596,20 @@ public class Main_game extends ApplicationAdapter {
     
     private boolean botonSaltoPresionado() {
 
-        return Gdx.input.isKeyPressed(Input.Keys.SPACE)
-            || Gdx.input.isKeyPressed(Input.Keys.W);
+        return Gdx.input.isKeyPressed(Input.Keys.Z) ||
+        		Gdx.input.isKeyPressed(Input.Keys.UP);
     }
 
 
     private boolean botonSaltoRecienPresionado() {
 
-        return Gdx.input.isKeyJustPressed(Input.Keys.SPACE)
-            || Gdx.input.isKeyJustPressed(Input.Keys.W);
+    	return Gdx.input.isKeyPressed(Input.Keys.Z) ||
+        		Gdx.input.isKeyPressed(Input.Keys.UP);
     }
     
     private boolean botonDashRecienPresionado() {
 
-        return Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT);
+        return Gdx.input.isKeyJustPressed(Input.Keys.C);
     }
     
     private void iniciarDash() {
@@ -647,11 +647,11 @@ public class Main_game extends ApplicationAdapter {
         // DIRECCIÓN DEL DASH
         // --------------------------------------------------
 
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 
             direccionDash = -1;
         }
-        else if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+        else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
 
             direccionDash = 1;
         }
@@ -1584,7 +1584,7 @@ public class Main_game extends ApplicationAdapter {
 
 		    // El ataque ocurre una sola vez
 		    // cuando Q acaba de ser presionada.
-		    if (!Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
+		    if (!Gdx.input.isKeyJustPressed(Input.Keys.X)) {
 		        return;
 		    }
 

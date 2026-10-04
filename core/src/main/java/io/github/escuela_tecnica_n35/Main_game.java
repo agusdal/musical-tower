@@ -64,7 +64,11 @@ public class Main_game extends ApplicationAdapter {
     // Imagen de la moneda para el HUD
     private Texture texturaMoneda;
     
+    private float velocidadX;
     private float velocidadY;
+
+    private float desaceleracionX;
+
     private float aceleracionCaidaRapida;
     private float gravedad;
     private float pisoY;
@@ -134,7 +138,21 @@ public class Main_game extends ApplicationAdapter {
 
 	// Altura de la zona de ataque.
 	private static final float ALTO_ATAQUE_JUGADOR = 140f;
-	 
+	
+	// --------------------------------------------------
+	// POGO
+	// --------------------------------------------------
+
+	// Tamaño provisional de la hitbox hacia abajo.
+	private static final float ANCHO_POGO_JUGADOR = 100f;
+	private static final float ALTO_POGO_JUGADOR = 80f;
+
+	private static final float FUERZA_RETROCESO_X = 400f;
+
+	// Fuerza vertical que recibe el jugador
+	// cuando conecta un pogo.
+	private float fuerzaPogo;
+	
 	// --------------------------------------------------
 	// HITBOX VISUAL DEL ATAQUE - DEBUG
 	// --------------------------------------------------
@@ -237,6 +255,12 @@ public class Main_game extends ApplicationAdapter {
         
         
         velocidadY = 0;
+        
+        velocidadX = 0;
+
+        // Cuánto pierde de velocidad horizontal por segundo por cada golpe conectado.
+        desaceleracionX = 1800f;
+     
         aceleracionCaidaRapida = 1400;
         gravedad = -800;
 
@@ -249,7 +273,7 @@ public class Main_game extends ApplicationAdapter {
 	    Enemigo enemigoPrueba = new Enemigo(
 	        "Enemigo prueba",
 	        new Posicion(800, pisoY),
-	        30,     // Vida máxima
+	        300000,     // Vida máxima
 	        100,    // Velocidad
 	        10,     // Daño
 	        1,      // Monedas mínimas
@@ -276,6 +300,12 @@ public class Main_game extends ApplicationAdapter {
 	    // Hace que al soltar el botón durante la subida,
 	    // el personaje pierda velocidad vertical rápidamente.
 	    gravedadSaltoCorto = -1600;
+	    
+	    // -----------------------------------------
+	    // POGO
+	    // -----------------------------------------
+		// El pogo rebota un poco menos que un salto normal.
+		fuerzaPogo = 500f;
 	
 	
 	    // -----------------------------------------
@@ -429,6 +459,43 @@ public class Main_game extends ApplicationAdapter {
 	            mirandoIzquierda = true;
 	        }
 	    }
+	    
+		// --------------------------------------------------
+		// IMPULSO / RETROCESO HORIZONTAL
+		// --------------------------------------------------
+	
+		if (!haciendoDash && velocidadX != 0) {
+	
+		    // Aplicamos el movimiento producido por el impulso.
+		    jugador.getPosicion().moverX(
+		        velocidadX * delta
+		    );
+	
+	
+		    // Si el impulso va hacia la derecha...
+		    if (velocidadX > 0) {
+	
+		        velocidadX -= desaceleracionX * delta;
+	
+		        // Evitamos que al frenar termine yéndose
+		        // accidentalmente hacia el lado contrario.
+		        if (velocidadX < 0) {
+	
+		            velocidadX = 0;
+		        }
+		    }
+	
+		    // Si el impulso va hacia la izquierda...
+		    else {
+	
+		        velocidadX += desaceleracionX * delta;
+	
+		        if (velocidadX > 0) {
+	
+		            velocidadX = 0;
+		        }
+		    }
+		}
         
 	    // --------------------------------------------------
 	    // SALTO + DOBLE SALTO
@@ -468,9 +535,9 @@ public class Main_game extends ApplicationAdapter {
 			}
 			
 	        // CAÍDA RÁPIDA
-	        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) && jugador.getPosicion().getY() > pisoY) {
+	        /*if (Gdx.input.isKeyPressed(Input.Keys.DOWN) && jugador.getPosicion().getY() > pisoY) {
 	            velocidadY -= aceleracionCaidaRapida * delta;
-	        }
+	        }*/
 	        
 	        // GRAVEDAD
 	        velocidadY += gravedad * delta;
@@ -602,9 +669,9 @@ public class Main_game extends ApplicationAdapter {
 
 
     private boolean botonSaltoRecienPresionado() {
-
-    	return Gdx.input.isKeyPressed(Input.Keys.Z) ||
-        		Gdx.input.isKeyPressed(Input.Keys.UP);
+    	
+    	return Gdx.input.isKeyJustPressed(Input.Keys.Z) ||
+        		Gdx.input.isKeyJustPressed(Input.Keys.UP);
     }
     
     private boolean botonDashRecienPresionado() {
@@ -676,9 +743,10 @@ public class Main_game extends ApplicationAdapter {
 
         tiempoCooldownDash = cooldownDash;
 
-        // El dash detiene momentáneamente
-        // el movimiento vertical.
-        velocidadY = 0;
+	    // El dash toma control del movimiento,
+	    // por eso eliminamos impulsos anteriores.
+	    velocidadX = 0;
+	    velocidadY = 0;
 
 
         // --------------------------------------------------
@@ -1579,11 +1647,66 @@ public class Main_game extends ApplicationAdapter {
 		        ALTO_ENEMIGO
 		    );
 		}
+		
+		// --------------------------------------------------
+		// BUSCAR ENEMIGO GOLPEADO
+		// --------------------------------------------------
+
+		private Enemigo buscarEnemigoGolpeado(
+		        Sala sala,
+		        Rectangle hitboxAtaque) {
+
+		    for (Enemigo enemigo : sala.getEnemigos()) {
+
+		        Rectangle hitboxEnemigo =
+		            obtenerHitboxEnemigo(enemigo);
+
+
+		        if (hitboxAtaque.overlaps(hitboxEnemigo)) {
+
+		            return enemigo;
+		        }
+		    }
+
+
+		    return null;
+		}	
+		
+		// --------------------------------------------------
+		// HITBOX DEL POGO
+		// --------------------------------------------------
+
+		private Rectangle obtenerHitboxPogoJugador() {
+
+		    Rectangle hitboxJugador =
+		        obtenerHitboxJugador();
+
+
+		    // Centramos horizontalmente el pogo
+		    // respecto al cuerpo del jugador.
+		    float pogoX =
+		        hitboxJugador.x
+		        + (hitboxJugador.width - ANCHO_POGO_JUGADOR) / 2f;
+
+
+		    // Como en LibGDX Y crece hacia arriba,
+		    // restamos la altura para colocar el ataque debajo.
+		    float pogoY =
+		        hitboxJugador.y
+		        - ALTO_POGO_JUGADOR;
+
+
+		    return new Rectangle(
+		        pogoX,
+		        pogoY,
+		        ANCHO_POGO_JUGADOR,
+		        ALTO_POGO_JUGADOR
+		    );
+		}
 	 
 		private void comprobarAtaqueJugador() {
 
-		    // El ataque ocurre una sola vez
-		    // cuando Q acaba de ser presionada.
+		    // X ejecuta un ataque.
 		    if (!Gdx.input.isKeyJustPressed(Input.Keys.X)) {
 		        return;
 		    }
@@ -1593,56 +1716,118 @@ public class Main_game extends ApplicationAdapter {
 		        juego.getSalaActual();
 
 
-		    // Creamos la zona física del ataque
-		    // según dónde está mirando el jugador.
-		    Rectangle hitboxAtaque =
-		        obtenerHitboxAtaqueJugador();
-		    
-			// --------------------------------------------------
-			// GUARDAMOS LA HITBOX PARA PODER VERLA
-			// --------------------------------------------------
-	
-			hitboxAtaqueDebug.set(
-			    hitboxAtaque.x,
-			    hitboxAtaque.y,
-			    hitboxAtaque.width,
-			    hitboxAtaque.height
-			);
-	
-			// La mostramos brevemente aunque Q haya sido
-			// presionada solamente durante un frame.
-			tiempoHitboxAtaqueDebug = 0.15f;
-		 
-		 
-		    Enemigo objetivo = null;
-
-
 		    // --------------------------------------------------
-		    // BUSCAR ENEMIGO GOLPEADO
+		    // POGO
 		    // --------------------------------------------------
 
-		    for (Enemigo enemigo :
-		            salaActual.getEnemigos()) {
+		    // Si estamos en el aire y mantenemos DOWN,
+		    // X pasa a ser un ataque hacia abajo.
+		    if (jugador.getPosicion().getY() > pisoY
+		            && Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
 
-		        Rectangle hitboxEnemigo =
-		            obtenerHitboxEnemigo(enemigo);
+		        Rectangle hitboxPogo =
+		            obtenerHitboxPogoJugador();
 
 
-		        // Si ambas zonas se superponen,
-		        // el golpe alcanzó al enemigo.
-		        if (hitboxAtaque.overlaps(hitboxEnemigo)) {
+		        // Reutilizamos la visualización temporal
+		        // de la hitbox del ataque.
+		        hitboxAtaqueDebug.set(
+		            hitboxPogo.x,
+		            hitboxPogo.y,
+		            hitboxPogo.width,
+		            hitboxPogo.height
+		        );
 
-		            objetivo = enemigo;
+		        tiempoHitboxAtaqueDebug = 0.15f;
 
-		            // Por ahora el ataque golpea
-		            // solamente a un enemigo.
-		            break;
+
+		        Enemigo objetivo =
+		            buscarEnemigoGolpeado(
+		                salaActual,
+		                hitboxPogo
+		            );
+
+
+		        // Si el pogo golpeó un enemigo...
+		        if (objetivo != null) {
+		        	
+		        	saltosDisponibles = 1;
+		        	
+		        	dashDisponibleAire = 1;
+		        	
+		            // Aplicamos el daño normal del jugador.
+		            jugador.atacar(objetivo);
+
+
+		            // El retroceso del pogo es vertical:
+		            // nos impulsa nuevamente hacia arriba.
+		            velocidadY = fuerzaPogo;
+
+
+		            System.out.println(
+		                "POGO! Vida enemigo: "
+		                + objetivo.getVidaActual()
+		                + "/"
+		                + objetivo.getVidaMax()
+		            );
+
+
+		            // Si murió, manejamos el drop.
+		            if (!objetivo.estaVivo()) {
+
+		                int monedas =
+		                    objetivo.generarMonedasDrop();
+
+		                jugador.agarrarMonedas(
+		                    monedas
+		                );
+
+		                salaActual.eliminarEnemigo(
+		                    objetivo
+		                );
+
+		                System.out.println(
+		                    "Enemigo derrotado. Ganaste "
+		                    + monedas
+		                    + " monedas."
+		                );
+		            }
 		        }
+
+
+		        // IMPORTANTE:
+		        // DOWN + X en el aire significa pogo.
+		        // Aunque falle, NO queremos ejecutar después
+		        // un ataque horizontal.
+		        return;
 		    }
 
 
-		    // Si Q no alcanzó a nadie,
-		    // terminamos el ataque.
+		    // --------------------------------------------------
+		    // ATAQUE NORMAL
+		    // --------------------------------------------------
+
+		    Rectangle hitboxAtaque =
+		        obtenerHitboxAtaqueJugador();
+
+
+		    hitboxAtaqueDebug.set(
+		        hitboxAtaque.x,
+		        hitboxAtaque.y,
+		        hitboxAtaque.width,
+		        hitboxAtaque.height
+		    );
+
+		    tiempoHitboxAtaqueDebug = 0.15f;
+
+
+		    Enemigo objetivo =
+		        buscarEnemigoGolpeado(
+		            salaActual,
+		            hitboxAtaque
+		        );
+
+
 		    if (objetivo == null) {
 
 		        System.out.println(
@@ -1654,10 +1839,15 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // --------------------------------------------------
-		    // APLICAMOS DAÑO
+		    // DAÑO
 		    // --------------------------------------------------
 
 		    jugador.atacar(objetivo);
+
+
+		    // Solamente hay retroceso si realmente
+		    // conectamos el golpe.
+		    aplicarRetrocesoAtaque();
 
 
 		    System.out.println(
@@ -1669,15 +1859,10 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // --------------------------------------------------
-		    // MUERTE DEL ENEMIGO
+		    // MUERTE
 		    // --------------------------------------------------
 
 		    if (!objetivo.estaVivo()) {
-
-		        System.out.println(
-		            "Enemigo derrotado."
-		        );
-
 
 		        int monedas =
 		            objetivo.generarMonedasDrop();
@@ -1688,17 +1873,37 @@ public class Main_game extends ApplicationAdapter {
 		        );
 
 
-		        System.out.println(
-		            "Ganaste "
-		            + monedas
-		            + " monedas."
-		        );
-
-
-		        // Lo eliminamos de la habitación.
 		        salaActual.eliminarEnemigo(
 		            objetivo
 		        );
+
+
+		        System.out.println(
+		            "Enemigo derrotado. Ganaste "
+		            + monedas
+		            + " monedas."
+		        );
+		    }
+		}
+		
+		// --------------------------------------------------
+		// RETROCESO AL GOLPEAR
+		// --------------------------------------------------
+
+		private void aplicarRetrocesoAtaque() {
+
+		    // Si atacamos hacia la izquierda,
+		    // el retroceso empuja al jugador hacia la derecha.
+		    if (mirandoIzquierda) {
+
+		        velocidadX = FUERZA_RETROCESO_X;
+		    }
+
+		    // Si atacamos hacia la derecha,
+		    // el retroceso empuja al jugador hacia la izquierda.
+		    else {
+
+		        velocidadX = -FUERZA_RETROCESO_X;
 		    }
 		}
 		
@@ -2020,7 +2225,7 @@ public class Main_game extends ApplicationAdapter {
 		    Enemigo enemigoPrueba = new Enemigo(
 		        "Enemigo prueba",
 		        new Posicion(800, pisoY),
-		        30,
+		        300000,
 		        100,
 		        10,
 		        1,
@@ -2036,6 +2241,7 @@ public class Main_game extends ApplicationAdapter {
 		    // FÍSICA
 		    // --------------------------------------------------
 
+		    velocidadX = 0;
 		    velocidadY = 0;
 
 		    tiempoInvulnerable = 0;

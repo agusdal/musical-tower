@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
+import io.github.escuela_tecnica_n35.entidades.Ataque;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.juego.Juego;
 
@@ -181,9 +182,9 @@ public class Main_game extends ApplicationAdapter {
     	gameOver = false;
 
         batch = new SpriteBatch();
-
+        
         Posicion posicionInicial = new Posicion(140, 50);
-
+        
         jugador = new Jugador(
             "KMD",
             posicionInicial,
@@ -333,6 +334,10 @@ public class Main_game extends ApplicationAdapter {
     public void render() {
     	
         float delta = Gdx.graphics.getDeltaTime();
+        
+	    // Actualizamos el cooldown de todos
+	    // los ataques del jugador.
+	    jugador.actualizarCooldowns(delta);
         
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
         
@@ -1561,48 +1566,49 @@ public class Main_game extends ApplicationAdapter {
 	
 	 private Rectangle obtenerHitboxAtaqueJugador() {
 
+		    Ataque ataque =
+		        jugador.getAtaqueNormal();
+
+
 		    float ataqueX;
-		    
+
 		    float separacionCentral = 15;
 
-		    // Obtenemos la hitbox corporal real del jugador.
+
 		    Rectangle hitboxJugador =
 		        obtenerHitboxJugador();
 
 
-		    // Centro horizontal REAL de la hitbox corporal.
 		    float centroJugadorX =
 		        hitboxJugador.x
 		        + hitboxJugador.width / 2;
 
 
-		    // Por ahora hacemos que el ataque empiece
-		    // a la misma altura que la hitbox del jugador.
 		    float ataqueY =
 		        hitboxJugador.y;
 
 
-		    // Ataque hacia la izquierda.
 		    if (mirandoIzquierda) {
 
 		        ataqueX =
 		            centroJugadorX
-		            - ALCANCE_ATAQUE_JUGADOR - separacionCentral;
+		            - ataque.getAncho()
+		            - separacionCentral;
 		    }
 
-		    // Ataque hacia la derecha.
 		    else {
 
 		        ataqueX =
-		            centroJugadorX + separacionCentral;
+		            centroJugadorX
+		            + separacionCentral;
 		    }
 
 
 		    return new Rectangle(
 		        ataqueX,
 		        ataqueY,
-		        ALCANCE_ATAQUE_JUGADOR,
-		        ALTO_ATAQUE_JUGADOR
+		        ataque.getAncho(),
+		        ataque.getAlto()
 		    );
 		}
 		 
@@ -1678,34 +1684,34 @@ public class Main_game extends ApplicationAdapter {
 
 		private Rectangle obtenerHitboxPogoJugador() {
 
+		    Ataque pogo =
+		        jugador.getAtaquePogo();
+
+
 		    Rectangle hitboxJugador =
 		        obtenerHitboxJugador();
 
 
-		    // Centramos horizontalmente el pogo
-		    // respecto al cuerpo del jugador.
 		    float pogoX =
 		        hitboxJugador.x
-		        + (hitboxJugador.width - ANCHO_POGO_JUGADOR) / 2f;
+		        + (hitboxJugador.width - pogo.getAncho()) / 2f;
 
 
-		    // Como en LibGDX Y crece hacia arriba,
-		    // restamos la altura para colocar el ataque debajo.
 		    float pogoY =
 		        hitboxJugador.y
-		        - ALTO_POGO_JUGADOR;
+		        - pogo.getAlto();
 
 
 		    return new Rectangle(
 		        pogoX,
 		        pogoY,
-		        ANCHO_POGO_JUGADOR,
-		        ALTO_POGO_JUGADOR
+		        pogo.getAncho(),
+		        pogo.getAlto()
 		    );
 		}
 	 
 		private void comprobarAtaqueJugador() {
-
+			
 		    // X ejecuta un ataque.
 		    if (!Gdx.input.isKeyJustPressed(Input.Keys.X)) {
 		        return;
@@ -1724,7 +1730,18 @@ public class Main_game extends ApplicationAdapter {
 		    // X pasa a ser un ataque hacia abajo.
 		    if (jugador.getPosicion().getY() > pisoY
 		            && Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+		    	
 
+				Ataque pogo =
+					    jugador.getAtaquePogo();
+				
+				if (!pogo.estaDisponible()) {
+
+				    return;
+				}
+				
+				pogo.iniciarCooldown();
+		    	
 		        Rectangle hitboxPogo =
 		            obtenerHitboxPogoJugador();
 
@@ -1756,7 +1773,10 @@ public class Main_game extends ApplicationAdapter {
 		        	dashDisponibleAire = 1;
 		        	
 		            // Aplicamos el daño normal del jugador.
-		            jugador.atacar(objetivo);
+		        	jugador.atacar(
+		        		    objetivo,
+		        		    jugador.getAtaquePogo()
+		        		);
 
 
 		            // El retroceso del pogo es vertical:
@@ -1792,9 +1812,16 @@ public class Main_game extends ApplicationAdapter {
 		                    + " monedas."
 		                );
 		            }
-		        }
+		        } else if (objetivo == null) {
 
+			        System.out.println(
+			            "El ataque POGO no golpeó a ningún enemigo."
+			        );
 
+			        return;
+			    }
+		        
+		        
 		        // IMPORTANTE:
 		        // DOWN + X en el aire significa pogo.
 		        // Aunque falle, NO queremos ejecutar después
@@ -1806,7 +1833,22 @@ public class Main_game extends ApplicationAdapter {
 		    // --------------------------------------------------
 		    // ATAQUE NORMAL
 		    // --------------------------------------------------
+		    
+		    Ataque ataqueNormal =
+		    	    jugador.getAtaqueNormal();
 
+
+		   if (!ataqueNormal.estaDisponible()) {
+
+		       return;
+		   }
+
+
+		   // Comenzamos el cooldown desde
+		   // el momento en que ejecutamos el ataque.
+		   ataqueNormal.iniciarCooldown();
+		    	
+		    
 		    Rectangle hitboxAtaque =
 		        obtenerHitboxAtaqueJugador();
 
@@ -1842,7 +1884,10 @@ public class Main_game extends ApplicationAdapter {
 		    // DAÑO
 		    // --------------------------------------------------
 
-		    jugador.atacar(objetivo);
+		    jugador.atacar(
+		    	    objetivo,
+		    	    jugador.getAtaqueNormal()
+		    	);
 
 
 		    // Solamente hay retroceso si realmente

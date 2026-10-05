@@ -46,12 +46,43 @@ public class Jugador extends Entidad {
     private boolean enElPiso = true;
     private float velocidadY = 0f;
     
+    private Ataque ataqueNormal;
+    private Ataque ataquePogo;
     
 
     public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) { // CONSTRUCTOR
+    	
         super(nombre, posicion, vidaMax, velocidad, daño);
+        
         this.monedas = 0;
         this.inventario = new Inventario();
+        
+	    // --------------------------------------------------
+	    // ATAQUES DEL JUGADOR
+	    // --------------------------------------------------
+	
+	    ataqueNormal = new Ataque(
+	        "Ataque normal",
+	        daño,
+	        130f,
+	        140f,
+	        0.40f
+	    );
+	
+	
+	    ataquePogo = new Ataque(
+	        "Pogo",
+	        daño,
+	        100f,
+	        80f,
+	        0.25f
+	    );
+	
+	
+	     // Registramos ambos ataques también
+	     // en la lista general de Entidad.
+	    agregarAtaque(ataqueNormal);
+	    agregarAtaque(ataquePogo);
 
         Texture walkSheet = new Texture("frames.png");
         int FRAME_COLS = 17;
@@ -151,13 +182,20 @@ public class Jugador extends Entidad {
         	);
     }
 
-	//----------------------------\/EFECTOS A VIDA\/-----------------------------
-	
-	public void atacar(Entidad objetivo) {
-		objetivo.recibirDaño(getDaño());
+	//----------------------------\/EFECTOS ATAQUES\/-----------------------------
+    
+	public Ataque getAtaqueNormal() {
+
+	    return ataqueNormal;
+	}
+
+
+	public Ataque getAtaquePogo() {
+
+	    return ataquePogo;
 	}
 	
-	//----------------------------/\EFECTOS A VIDA/\-----------------------------
+	//----------------------------/\EFECTOS ATAQUES/\-----------------------------
 	
 	//----------------------------\/MONEDAS\/-----------------------------
 	

@@ -1,8 +1,11 @@
 package io.github.escuela_tecnica_n35.entidades;
 
 import java.util.Random;
+import java.util.ArrayList;
 
 public class Jefe extends Enemigo {
+	
+	private ArrayList<Ataque> ataques;
 	
 	private boolean velocidadAumentada;
 	private int monedasMinimas;
@@ -12,6 +15,9 @@ public class Jefe extends Enemigo {
 			, float velocidad, int daño, int monedasMinimas, int monedasMaximas) {
 		
         super(nombre, posicion, vidaMax, velocidad, daño, monedasMinimas, monedasMaximas);
+        
+        this.ataques = new ArrayList<Ataque>();
+        
         this.monedasMinimas = monedasMinimas;
         this.monedasMaximas = monedasMaximas;
         
@@ -34,6 +40,17 @@ public class Jefe extends Enemigo {
 	public void atacar(Entidad objetivo) {
         objetivo.recibirDaño(getDaño());
     }
+	
+	public void agregarAtaque(Ataque ataque) {
+
+	    ataques.add(ataque);
+	}
+
+
+	public ArrayList<Ataque> getAtaques() {
+
+	    return ataques;
+	}
 	
 	public int generarMonedasDrop() {
 

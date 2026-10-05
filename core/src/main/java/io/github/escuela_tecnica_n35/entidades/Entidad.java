@@ -1,5 +1,7 @@
 package io.github.escuela_tecnica_n35.entidades;
 
+import java.util.ArrayList;
+
 public class Entidad {
 
     private String nombre;
@@ -9,6 +11,8 @@ public class Entidad {
     private float velocidad;
     private int daño;
     
+    // Lista de ataques disponibles para esta entidad.
+    protected ArrayList<Ataque> ataques;
     
     
     public Entidad(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) {
@@ -19,6 +23,7 @@ public class Entidad {
         this.velocidad = velocidad;
         this.daño = daño;
         
+        this.ataques = new ArrayList<Ataque>();
     }
     
     public Posicion getPosicion() {
@@ -29,6 +34,19 @@ public class Entidad {
     	
         return daño;
     }
+	    
+	// --------------------------------------------------
+	// ATAQUE
+	// --------------------------------------------------
+	
+	public void atacar(
+	        Entidad objetivo,
+	        Ataque ataque) {
+	
+	    objetivo.recibirDaño(
+	        ataque.getDaño()
+	    );
+		}
     
     public int getVidaMax() {
     	
@@ -91,4 +109,34 @@ public class Entidad {
     public void setVelocidad(float velocidad) {
         this.velocidad = velocidad;
     }
+    
+	// --------------------------------------------------
+	// ATAQUES
+	// --------------------------------------------------
+	
+	public void agregarAtaque(Ataque ataque) {
+	
+	    ataques.add(ataque);
+	}
+	
+	
+	public ArrayList<Ataque> getAtaques() {
+	
+	    return ataques;
+	}
+	
+	
+	public Ataque getAtaque(int indice) {
+	
+	    return ataques.get(indice);
+	}
+	
+	
+	public void actualizarCooldowns(float delta) {
+
+	    for (Ataque ataque : ataques) {
+
+	        ataque.actualizarCooldown(delta);
+	    }
+	}
 }

@@ -10,6 +10,7 @@ import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
 import io.github.escuela_tecnica_n35.entidades.Ataque;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
+import io.github.escuela_tecnica_n35.entidades.Item;
 import io.github.escuela_tecnica_n35.juego.Juego;
 
 import com.badlogic.gdx.graphics.Color;
@@ -276,7 +277,7 @@ public class Main_game extends ApplicationAdapter {
 	        new Posicion(800, pisoY),
 	        300000,     // Vida máxima
 	        100,    // Velocidad
-	        10,     // Daño
+	        100,     // Daño
 	        1,      // Monedas mínimas
 	        3       // Monedas máximas
 	    );
@@ -582,7 +583,11 @@ public class Main_game extends ApplicationAdapter {
 	
 	     comprobarAtaqueJugador();
 	     
-	     
+	     // --------------------------------------------------
+	     // OBJETOS
+	     // --------------------------------------------------
+
+	     comprobarRecogerItem();
 	     
 	     
 
@@ -616,6 +621,10 @@ public class Main_game extends ApplicationAdapter {
 	     // DIBUJAMOS TODOS LOS ENEMIGOS DE LA HABITACIÓN ACTUAL
 	     
 	     dibujarEnemigos();
+	     
+	     // DIBUJAMOS EL ITEM DE LA HABITACIÒN
+
+	     dibujarItem();
 	     
 	     // --------------------------------------------------
 	     // DEBUG DEL ATAQUE
@@ -1655,6 +1664,20 @@ public class Main_game extends ApplicationAdapter {
 		}
 		
 		// --------------------------------------------------
+		// HITBOX DEL ITEM
+		// --------------------------------------------------
+		
+		private Rectangle obtenerHitboxItem(Item item) {
+
+			return new Rectangle(
+				item.getPosicion().getX(),
+				item.getPosicion().getY(),
+				40,
+				40
+			);
+		}
+		
+		// --------------------------------------------------
 		// BUSCAR ENEMIGO GOLPEADO
 		// --------------------------------------------------
 
@@ -2009,7 +2032,48 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    shapeRenderer.end();
-		}
+	}
+	 
+	// --------------------------------------------------
+	// DIBUJAR ITEM - PROVISIONAL
+	// --------------------------------------------------
+
+	private void dibujarItem() {
+
+	    Sala salaActual =
+	        juego.getSalaActual();
+
+
+	    if (!salaActual.tieneItem()) {
+	        return;
+	    }
+
+
+	    Item item =
+	        salaActual.getItem();
+
+	    Rectangle hitboxItem =
+	        obtenerHitboxItem(item);
+
+
+	    shapeRenderer.begin(
+	        ShapeRenderer.ShapeType.Filled
+	    );
+
+	    // Color provisional para reconocer el objeto.
+	    shapeRenderer.setColor(
+	        Color.YELLOW
+	    );
+
+	    shapeRenderer.rect(
+	        hitboxItem.x,
+	        hitboxItem.y,
+	        hitboxItem.width,
+	        hitboxItem.height
+	    );
+
+	    shapeRenderer.end();
+	}
 	 
 	 private void dibujarHitboxAtaque(float delta) {
 
@@ -2148,7 +2212,55 @@ public class Main_game extends ApplicationAdapter {
 		            break;
 		        }
 		    }
-		}
+	 }
+	 
+	 // --------------------------------------------------
+	 // RECOGER ITEM DE LA SALA
+	 // --------------------------------------------------
+
+	 private void comprobarRecogerItem() {
+
+	     Sala salaActual =
+	         juego.getSalaActual();
+
+
+	     // Si la sala no tiene ningún item,
+	     // no hay nada que comprobar.
+	     if (!salaActual.tieneItem()) {
+	         return;
+	     }
+
+
+	     Item item =
+	         salaActual.getItem();
+
+
+	     Rectangle hitboxJugador =
+	         obtenerHitboxJugador();
+
+	     Rectangle hitboxItem =
+	         obtenerHitboxItem(item);
+
+
+	     // Si el jugador toca el objeto...
+	     if (hitboxJugador.overlaps(hitboxItem)) {
+
+	         // Lo agregamos al inventario
+	         // y aplicamos su mejora.
+	         jugador.recogerItem(item);
+
+
+	         System.out.println(
+	             "Item obtenido: "
+	             + item.getNombre()
+	         );
+
+
+	         // Lo quitamos físicamente de la habitación
+	         // para que no pueda recogerse nuevamente.
+	         salaActual.eliminarItem();
+	     }
+	 }
 	 
 	 private void dibujarGameOver() {
 
@@ -2270,7 +2382,7 @@ public class Main_game extends ApplicationAdapter {
 		    Enemigo enemigoPrueba = new Enemigo(
 		        "Enemigo prueba",
 		        new Posicion(800, pisoY),
-		        300000,
+		        30,
 		        100,
 		        10,
 		        1,

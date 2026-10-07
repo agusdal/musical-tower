@@ -92,4 +92,12 @@ public class Ataque {
 	
 	    return cooldownRestante;
 	}
+	
+	public void aumentarDaño(int cantidad) {
+
+	    if (cantidad > 0) {
+
+	        daño += cantidad;
+	    }
+	}
 }

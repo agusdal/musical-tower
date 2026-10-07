@@ -3,6 +3,7 @@ package io.github.escuela_tecnica_n35.etapas;
 import java.util.ArrayList;
 
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
+import io.github.escuela_tecnica_n35.entidades.Item;
 
 public class Sala {
 
@@ -16,6 +17,8 @@ public class Sala {
     // Guarda cuántas salas hay que recorrer desde la sala inicial
     // para llegar hasta esta sala.
     private int distanciaInicial;
+    
+    private Item item;
 
     public Sala(int fila, int columna, TipoSala tipo) {
     	
@@ -26,6 +29,8 @@ public class Sala {
         this.enemigos = new ArrayList<Enemigo>();
         
         this.distanciaInicial = 0;
+        
+        this.item = null;
     }
 
     public int getFila() {
@@ -83,5 +88,24 @@ public class Sala {
         }
 
         return true;
+    }
+    
+    public Item getItem() {
+        return item;
+    }
+
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+
+    public void eliminarItem() {
+        this.item = null;
+    }
+
+
+    public boolean tieneItem() {
+        return item != null;
     }
 }

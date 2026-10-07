@@ -5,6 +5,10 @@ import java.util.ArrayList;
 
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
 import io.github.escuela_tecnica_n35.entidades.Jefe;
+import io.github.escuela_tecnica_n35.entidades.Item;
+import io.github.escuela_tecnica_n35.entidades.Posicion;
+import io.github.escuela_tecnica_n35.entidades.TipoItem;
+import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 public class GeneracionEtapa {
 
@@ -687,6 +691,24 @@ public class GeneracionEtapa {
 	    // La eliminamos de disponibles para que la TIENDA
 	    // no pueda elegir exactamente la misma habitación.
 	    disponibles.remove(salaItem);
+	    
+	    // --------------------------------------------------
+        // ITEM DE PRUEBA
+        // --------------------------------------------------
+
+        Item itemPrueba = new Item(
+            "Corazon Amplificado",
+            new Posicion(600, 100),
+            "Aumenta la vida maxima.",
+            1,
+            TipoItem.PASIVO,
+            TipoModificadorItem.VIDA_MAX,
+            20
+        );
+
+        // Colocamos el item dentro de la sala
+        // que acaba de ser elegida como sala ITEM.
+        salaItem.setItem(itemPrueba);
 
 
 	    // ---------------- TIENDA ----------------

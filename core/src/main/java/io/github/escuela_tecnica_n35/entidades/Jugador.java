@@ -287,4 +287,48 @@ public class Jugador extends Entidad {
 	}
 
 	//----------------------------/\MUERTE/\-----------------------------
+	
+    public void recogerItem(Item item) {
+
+        // Primero guardamos el objeto.
+        inventario.agregarItem(item);
+
+        // Después aplicamos su efecto.
+        aplicarEfectoItem(item);
+    }
+
+    private void aplicarEfectoItem(Item item) {
+
+	    switch (item.getModificador()) {
+	
+	        case VIDA_MAX:
+	
+	            aumentarVidaMax(
+	                (int) item.getValor()
+	            );
+	
+	            break;
+	
+	
+	        case VELOCIDAD:
+	
+	            setVelocidad(
+	                getVelocidad() + item.getValor()
+	            );
+	
+	            break;
+	        
+	        case DAÑO_ATAQUE:
+	
+	            getAtaqueNormal().aumentarDaño(
+	                (int) item.getValor()
+	            );
+	
+	            break;
+	
+	        default:
+	
+	            break;
+	    }
+	}
 }

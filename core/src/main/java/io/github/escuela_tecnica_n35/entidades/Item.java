@@ -6,16 +6,26 @@ public class Item {
     private Posicion posicion;
     private String descripcion;
     private int tier;
+
+    // Qué clase de objeto es.
     private TipoItem tipo;
 
+    // Qué estadística modifica.
+    private TipoModificadorItem modificador;
+
+    // Cuánto la modifica.
+    private float valor;
+
     public Item(String nombre, Posicion posicion, String descripcion,
-                int tier, TipoItem tipo) {
+            int tier, TipoItem tipo, TipoModificadorItem modificador, float valor) {
 
         this.nombre = nombre;
         this.posicion = posicion;
         this.descripcion = descripcion;
         this.tier = tier;
         this.tipo = tipo;
+        this.modificador = modificador;
+        this.valor = valor;
     }
     
     public String getNombre() {
@@ -36,6 +46,14 @@ public class Item {
 
     public TipoItem getTipo() {
         return tipo;
+    }
+
+    public TipoModificadorItem getModificador() {
+        return modificador;
+    }
+
+    public float getValor() {
+        return valor;
     }
     
 }

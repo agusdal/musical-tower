@@ -275,9 +275,9 @@ public class Main_game extends ApplicationAdapter {
 	    Enemigo enemigoPrueba = new Enemigo(
 	        "Enemigo prueba",
 	        new Posicion(800, pisoY),
-	        300000,     // Vida máxima
+	        30,     // Vida máxima
 	        100,    // Velocidad
-	        100,     // Daño
+	        10,     // Daño
 	        1,      // Monedas mínimas
 	        3       // Monedas máximas
 	    );

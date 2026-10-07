@@ -1,9 +1,16 @@
 package io.github.escuela_tecnica_n35.juego;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.etapas.Etapa;
 import io.github.escuela_tecnica_n35.etapas.GeneracionEtapa;
 import io.github.escuela_tecnica_n35.etapas.Sala;
+import io.github.escuela_tecnica_n35.entidades.Item;
+import io.github.escuela_tecnica_n35.entidades.Posicion;
+import io.github.escuela_tecnica_n35.entidades.TipoItem;
+import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 import io.github.escuela_tecnica_n35.etapas.TipoSala;
 
@@ -12,21 +19,41 @@ public class Juego {
     private Jugador jugador;
     private Etapa etapaActual;
     private GeneracionEtapa generador;
-
+    
     // NUEVO:
     // Guarda la habitación en la que estamos actualmente.
     private Sala salaActual;
+    
+    // Items que todavía pueden aparecer durante esta partida.
+    private ArrayList<Item> poolItems;
 
+    private Random random;
+    
     public Juego(Jugador jugador) {
 
         this.jugador = jugador;
         this.generador = new GeneracionEtapa();
+        
+        poolItems = new ArrayList<Item>();
+
+        random = new Random();
+
+        cargarPoolItems();
     }
 
 
     public void iniciarJuego() {
 
-        etapaActual = generador.generarEtapa(1);
+    	// Elegimos el item que aparecerá en la sala ITEM.
+    	// Al sacarlo también desaparece de la pool.
+    	Item itemSala =
+    	    sacarItemAleatorio();
+
+    	etapaActual =
+    	    generador.generarEtapa(
+    	        1,
+    	        itemSala
+    	    );
 
         // Cada piso siempre comienza en la sala INICIAL.
         salaActual = buscarSalaInicial(
@@ -46,8 +73,13 @@ public class Juego {
 
     public void avanzarEtapa(int numeroEtapa) {
 
-        etapaActual =
-            generador.generarEtapa(numeroEtapa);
+    	Item itemSala =
+    		    sacarItemAleatorio();
+
+    	generador.generarEtapa(
+    		    numeroEtapa,
+    		    itemSala
+    		);
 
         salaActual =
             buscarSalaInicial(etapaActual.getMapa());
@@ -250,5 +282,63 @@ public class Juego {
 
     public Sala getSalaActual() {
         return salaActual;
+    }
+    
+    private void cargarPoolItems() {
+
+        poolItems.add(
+            new Item(
+                "Corazon Amplificado",
+                new Posicion(600, 100),
+                "Aumenta la vida maxima.",
+                1,
+                TipoItem.PASIVO,
+                TipoModificadorItem.VIDA_MAX,
+                20
+            )
+        );
+
+
+        poolItems.add(
+            new Item(
+                "Botas Ligeras",
+                new Posicion(600, 100),
+                "Aumenta la velocidad de movimiento.",
+                1,
+                TipoItem.PASIVO,
+                TipoModificadorItem.VELOCIDAD,
+                30
+            )
+        );
+
+
+        poolItems.add(
+            new Item(
+                "Pua Afilada",
+                new Posicion(600, 100),
+                "Aumenta el daño del ataque normal.",
+                1,
+                TipoItem.ARMA,
+                TipoModificadorItem.DAÑO_ATAQUE,
+                2
+            )
+        );
+    }
+    
+    private Item sacarItemAleatorio() {
+
+        if (poolItems.isEmpty()) {
+
+            return null;
+        }
+
+
+        int indice =
+            random.nextInt(poolItems.size());
+
+
+        // Lo obtenemos y lo eliminamos de la pool
+        // al mismo tiempo.
+        return poolItems.remove(indice);
     }
 }

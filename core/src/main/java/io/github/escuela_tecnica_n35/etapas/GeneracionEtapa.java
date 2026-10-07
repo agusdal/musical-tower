@@ -11,8 +11,18 @@ import io.github.escuela_tecnica_n35.entidades.TipoItem;
 import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 public class GeneracionEtapa {
+	
+	// Items que todavía pueden aparecer durante la partida.
+	private ArrayList<Item> poolItems;
+	
+	public GeneracionEtapa() {
 
-    public Etapa generarEtapa(int numeroPiso) {
+	    poolItems = new ArrayList<Item>();
+
+	    cargarPoolItems();
+	}
+	
+	public Etapa generarEtapa(int numeroPiso, Item itemSala) {
 
         if (numeroPiso == 4) {
             return generarPisoFinal();
@@ -23,17 +33,27 @@ public class GeneracionEtapa {
         int variante = random.nextInt(2);
 
         if (variante == 0) {
-            return generarVarianteA(numeroPiso);
+        	return generarVarianteA(
+        		    numeroPiso,
+        		    itemSala
+        		);
         }
         else {
-            return generarVarianteB(numeroPiso);
+        	return generarVarianteB(
+        		    numeroPiso,
+        		    itemSala
+        		);
         }
     }
 
-    private Etapa generarVarianteA(int numeroPiso) {
+	private Etapa generarVarianteA(int numeroPiso, Item itemSala) {
 
         // Generamos la estructura completa del piso.
-        Sala[][] mapa = generarMapa(numeroPiso);
+		Sala[][] mapa =
+			    generarMapa(
+			        numeroPiso,
+			        itemSala
+			    );
 
         imprimirMapa(mapa);
 
@@ -57,10 +77,14 @@ public class GeneracionEtapa {
         );
     }
 
-    private Etapa generarVarianteB(int numeroPiso) {
+	private Etapa generarVarianteB(int numeroPiso, Item itemSala) {
 
     	// Generamos la estructura completa del piso.
-        Sala[][] mapa = generarMapa(numeroPiso);
+		Sala[][] mapa =
+			    generarMapa(
+			        numeroPiso,
+			        itemSala
+			    );
 
         imprimirMapa(mapa);
 
@@ -135,7 +159,7 @@ public class GeneracionEtapa {
 
     // -------------------- GENERACIÓN DEL MAPA --------------------
 
-    private Sala[][] generarMapa(int numeroPiso) {
+    private Sala[][] generarMapa(int numeroPiso, Item itemSala) {
 
         Sala[][] mapa;
 
@@ -151,7 +175,7 @@ public class GeneracionEtapa {
         // Recién cuando sabemos que la estructura sirve,
         // asignamos las salas especiales.
         asignarSalaJefe(mapa);
-        asignarSalasEspeciales(mapa);
+        asignarSalasEspeciales(mapa, itemSala);
 
         return mapa;
     }
@@ -660,9 +684,84 @@ public class GeneracionEtapa {
 	    return disponibles;
 	}
 	
+	// --------------------------------------------------
+	// POOL DE ITEMS
+	// --------------------------------------------------
+
+	private void cargarPoolItems() {
+
+	    // ITEM 1
+	    poolItems.add(
+	        new Item(
+	            "Corazon Amplificado",
+	            new Posicion(600, 100),
+	            "Aumenta la vida maxima.",
+	            1,
+	            TipoItem.PASIVO,
+	            TipoModificadorItem.VIDA_MAX,
+	            20/*,
+	            "items/corazon_amplificado.png"*/
+	        )
+	    );
+
+
+	    // ITEM 2
+	    poolItems.add(
+	        new Item(
+	            "Botas Ligeras",
+	            new Posicion(600, 100),
+	            "Aumenta la velocidad de movimiento.",
+	            1,
+	            TipoItem.PASIVO,
+	            TipoModificadorItem.VELOCIDAD,
+	            30/*,
+	            "items/botas_ligeras.png"*/
+	        )
+	    );
+
+
+	    // ITEM 3
+	    poolItems.add(
+	        new Item(
+	            "Pua Afilada",
+	            new Posicion(600, 100),
+	            "Aumenta el daño del ataque.",
+	            1,
+	            TipoItem.ARMA,
+	            TipoModificadorItem.DAÑO_ATAQUE,
+	            2/*,
+	            "items/pua_afilada.png"*/
+	        )
+	    );
+	}
+	
+	private Item sacarItemAleatorio() {
+
+	    // Si ya usamos todos los objetos,
+	    // no podemos generar otro.
+	    if (poolItems.isEmpty()) {
+
+	        return null;
+	    }
+
+
+	    Random random =
+	        new Random();
+
+
+	    int indice =
+	        random.nextInt(poolItems.size());
+
+
+	    // remove(indice) hace dos cosas:
+	    // devuelve el Item y además lo elimina
+	    // permanentemente de la pool.
+	    return poolItems.remove(indice);
+	}
+	
 	// NUEVO:
 	// Asigna exactamente una sala ITEM y una TIENDA.
-	private void asignarSalasEspeciales(Sala[][] mapa) {
+	private void asignarSalasEspeciales(Sala[][] mapa, Item itemSala) {
 
 	    ArrayList<Sala> disponibles =
 	        buscarSalasEspecialesDisponibles(mapa);
@@ -687,28 +786,27 @@ public class GeneracionEtapa {
 	    Sala salaItem = disponibles.get(indiceItem);
 
 	    salaItem.setTipo(TipoSala.ITEM);
+	    
+	    // El item ya fue seleccionado por Juego.
+	    if (itemSala != null) {
 
+	        salaItem.setItem(
+	            itemSala
+	        );
+
+	        System.out.println(
+	            "Item generado: "
+	            + itemSala.getNombre()
+	        );
+	    }
+	    
 	    // La eliminamos de disponibles para que la TIENDA
 	    // no pueda elegir exactamente la misma habitación.
 	    disponibles.remove(salaItem);
 	    
-	    // --------------------------------------------------
-        // ITEM DE PRUEBA
-        // --------------------------------------------------
-
-        Item itemPrueba = new Item(
-            "Corazon Amplificado",
-            new Posicion(600, 100),
-            "Aumenta la vida maxima.",
-            1,
-            TipoItem.PASIVO,
-            TipoModificadorItem.VIDA_MAX,
-            20
-        );
-
-        // Colocamos el item dentro de la sala
-        // que acaba de ser elegida como sala ITEM.
-        salaItem.setItem(itemPrueba);
+		// Sacamos un item aleatorio de la pool.
+		// Al hacerlo también queda eliminado de ella.
+		Item itemElegido = sacarItemAleatorio();
 
 
 	    // ---------------- TIENDA ----------------

@@ -1,4 +1,5 @@
 package io.github.escuela_tecnica_n35.etapas;
+import io.github.escuela_tecnica_n35.etapas.Plataforma;
 
 import java.util.Random;
 import java.util.ArrayList;
@@ -787,6 +788,26 @@ public class GeneracionEtapa {
 
 	    salaItem.setTipo(TipoSala.ITEM);
 	    
+	    // --------------------------------------------------
+	 	// PEDESTAL DEL ITEM
+	 	// --------------------------------------------------
+	 	
+	 	// El piso está actualmente en Y = 50.
+	 	// La plataforma mide 50 de alto,
+	 	// por lo que su parte superior queda en Y = 100,
+	 	// exactamente donde colocamos el item.
+	 	Plataforma pedestal =
+	 	    new Plataforma(
+	 	        400,// 560
+	 	        250,// 50
+	 	        480,// 120
+	 	        50
+	 	    );
+	 	
+	 	salaItem.agregarPlataforma(
+	 	    pedestal
+	 	);
+	    
 	    // El item ya fue seleccionado por Juego.
 	    if (itemSala != null) {
 
@@ -799,6 +820,8 @@ public class GeneracionEtapa {
 	            + itemSala.getNombre()
 	        );
 	    }
+	    
+		
 	    
 	    // La eliminamos de disponibles para que la TIENDA
 	    // no pueda elegir exactamente la misma habitación.

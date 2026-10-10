@@ -11,6 +11,7 @@ import io.github.escuela_tecnica_n35.entidades.Enemigo;
 import io.github.escuela_tecnica_n35.entidades.Ataque;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.entidades.Item;
+import io.github.escuela_tecnica_n35.etapas.Plataforma;
 import io.github.escuela_tecnica_n35.juego.Juego;
 
 import com.badlogic.gdx.graphics.Color;
@@ -402,6 +403,11 @@ public class Main_game extends ApplicationAdapter {
 	    // --------------------------------------------------
 	    // MOVIMIENTO HORIZONTAL
 	    // --------------------------------------------------
+		
+		// Guardamos la hitbox antes de realizar
+		// cualquier movimiento horizontal.
+		Rectangle hitboxJugadorAntesX =
+		    obtenerHitboxJugador();
 	
 	    if (haciendoDash) {
 	
@@ -502,6 +508,14 @@ public class Main_game extends ApplicationAdapter {
 		        }
 		    }
 		}
+		
+		
+		// Corregimos una posible colisión
+		// horizontal con las plataformas.
+		comprobarColisionHorizontalPlataformas(
+		    hitboxJugadorAntesX
+		);
+		
         
 	    // --------------------------------------------------
 	    // SALTO + DOBLE SALTO
@@ -524,14 +538,21 @@ public class Main_game extends ApplicationAdapter {
 	    
 	    float velocidadActualY = velocidadY;
 	    
+		// Indica si el jugador está apoyado
+		// sobre el piso o sobre una plataforma.
+		boolean enElPiso = false;
+	    
 	    // Si NO estamos haciendo el dash... (para que sea estatico durante el mismo)
 	    if (!haciendoDash) {
-	    
+	    	
+	    	Rectangle hitboxJugadorAnterior =
+				    obtenerHitboxJugador();
+	    	
 			// Si todavía estamos subiendo...
 			if (velocidadY > 0
-		
 			        // ...pero el jugador ya soltó Z/UP...
 			        && !botonSaltoPresionado()) {
+				
 		
 			    // ...aplicamos gravedad adicional.
 			    //
@@ -545,34 +566,61 @@ public class Main_game extends ApplicationAdapter {
 	            velocidadY -= aceleracionCaidaRapida * delta;
 	        }*/
 	        
-	        // GRAVEDAD
-	        velocidadY += gravedad * delta;
-	
-	        // MOVER POSICIÓN
-	        jugador.getPosicion().moverY(
-	            velocidadY * delta
-	        );
-        
+			
+
+
+				// GRAVEDAD
+				velocidadY += gravedad * delta;
+
+
+				// MOVIMIENTO VERTICAL
+				jugador.getPosicion().moverY(
+				    velocidadY * delta
+				);
+
+
+				// --------------------------------------------------
+				// COLISION PLATAFORMAS
+				// --------------------------------------------------
+
+				enElPiso =
+				    comprobarColisionPlataformas(
+				        hitboxJugadorAnterior
+				    );
+
+
+				if (enElPiso) {
+
+				    velocidadActualY = 0;
+				}
+	        
 	    }
 
-        // COLISIÓN CON EL PISO
-        boolean enElPiso = false;
-        if (jugador.getPosicion().getY() <= pisoY) {
-
-            jugador.getPosicion().setY(pisoY);
-
-            velocidadY = 0;
-            velocidadActualY = 0;
-
-            enElPiso = true;
-
-            // Recuperamos salto normal + doble salto
-            // al volver a tocar el piso.
-            saltosDisponibles = 2;
-            
-            //Recuperamos el dash en el aire
-            dashDisponibleAire = 1;
-        }
+		 // --------------------------------------------------
+		 // COLISION PISO REAL
+		 // --------------------------------------------------
+	
+		 if (jugador.getPosicion().getY() <= pisoY) {
+	
+		     jugador.getPosicion().setY(
+		         pisoY
+		     );
+	
+		     velocidadY = 0;
+		     velocidadActualY = 0;
+	
+		     enElPiso = true;
+		 }
+	
+	
+		 // Si estamos apoyados en piso O plataforma,
+		 // recuperamos las capacidades aéreas.
+		 if (enElPiso) {
+	
+		     saltosDisponibles = 2;
+	
+		     dashDisponibleAire = 1;
+		 }
 
         // EVALUAR Y ACTUALIZAR ESTADO
         jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
@@ -625,6 +673,10 @@ public class Main_game extends ApplicationAdapter {
 	     // DIBUJAMOS EL ITEM DE LA HABITACIÒN
 
 	     dibujarItem();
+	     
+	     // DIBUJAMOS LAS PLATAFORMAS
+	     
+	     dibujarPlataformas();
 	     
 	     // --------------------------------------------------
 	     // DEBUG DEL ATAQUE
@@ -1678,6 +1730,21 @@ public class Main_game extends ApplicationAdapter {
 		}
 		
 		// --------------------------------------------------
+		// HITBOX DE LA PLATAFORMA
+		// --------------------------------------------------
+		
+		private Rectangle obtenerHitboxPlataforma(
+		        Plataforma plataforma) {
+
+		    return new Rectangle(
+		        plataforma.getX(),
+		        plataforma.getY(),
+		        plataforma.getAncho(),
+		        plataforma.getAlto()
+		    );
+		}
+		
+		// --------------------------------------------------
 		// BUSCAR ENEMIGO GOLPEADO
 		// --------------------------------------------------
 
@@ -1975,6 +2042,231 @@ public class Main_game extends ApplicationAdapter {
 		    }
 		}
 		
+		private boolean comprobarColisionPlataformas(
+		        Rectangle hitboxAnterior) {
+
+		    Rectangle hitboxActual =
+		        obtenerHitboxJugador();
+
+
+		    for (Plataforma plataforma :
+		            juego.getSalaActual().getPlataformas()) {
+
+		        Rectangle hitboxPlataforma =
+		            obtenerHitboxPlataforma(
+		                plataforma
+		            );
+
+
+		        // --------------------------------------------------
+		        // SUPERPOSICIÓN EN X
+		        // --------------------------------------------------
+
+		        boolean coincideEnX =
+		            hitboxActual.x
+		            + hitboxActual.width
+		            > hitboxPlataforma.x
+
+		            &&
+
+		            hitboxActual.x
+		            < hitboxPlataforma.x
+		            + hitboxPlataforma.width;
+
+
+		        if (!coincideEnX) {
+
+		            continue;
+		        }
+
+
+		        // Bordes del jugador ANTES del movimiento.
+		        float piesAntes =
+		            hitboxAnterior.y;
+
+		        float cabezaAntes =
+		            hitboxAnterior.y
+		            + hitboxAnterior.height;
+
+
+		        // Bordes del jugador AHORA.
+		        float piesAhora =
+		            hitboxActual.y;
+
+		        float cabezaAhora =
+		            hitboxActual.y
+		            + hitboxActual.height;
+
+
+		        // Bordes de la plataforma.
+		        float arribaPlataforma =
+		            hitboxPlataforma.y
+		            + hitboxPlataforma.height;
+
+		        float abajoPlataforma =
+		            hitboxPlataforma.y;
+
+
+		        // --------------------------------------------------
+		        // CAEMOS SOBRE LA PLATAFORMA
+		        // --------------------------------------------------
+
+		        if (velocidadY <= 0
+		                && piesAntes >= arribaPlataforma
+		                && piesAhora <= arribaPlataforma) {
+
+		            float correccionY =
+		                arribaPlataforma
+		                - piesAhora;
+
+
+		            jugador.getPosicion().moverY(
+		                correccionY
+		            );
+
+
+		            velocidadY = 0;
+
+
+		            // Estamos apoyados sobre algo,
+		            // por eso cuenta como piso.
+		            return true;
+		        }
+
+
+		        // --------------------------------------------------
+		        // GOLPEAMOS LA PLATAFORMA DESDE ABAJO
+		        // --------------------------------------------------
+
+		        if (velocidadY > 0
+		                && cabezaAntes <= abajoPlataforma
+		                && cabezaAhora >= abajoPlataforma) {
+
+		            float correccionY =
+		                abajoPlataforma
+		                - cabezaAhora;
+
+
+		            jugador.getPosicion().moverY(
+		                correccionY
+		            );
+
+
+		            // Detenemos el movimiento ascendente.
+		            velocidadY = 0;
+
+
+		            // Golpear el techo NO significa
+		            // estar apoyado en el piso.
+		            return false;
+		        }
+		    }
+
+
+		    return false;
+		}
+		
+		private void comprobarColisionHorizontalPlataformas(
+		        Rectangle hitboxAnterior) {
+
+		    Rectangle hitboxActual =
+		        obtenerHitboxJugador();
+
+
+		    for (Plataforma plataforma :
+		            juego.getSalaActual().getPlataformas()) {
+
+		        Rectangle hitboxPlataforma =
+		            obtenerHitboxPlataforma(
+		                plataforma
+		            );
+
+
+		        // Si después de movernos no estamos
+		        // dentro de la plataforma, no hay nada
+		        // que corregir.
+		        if (!hitboxActual.overlaps(hitboxPlataforma)) {
+
+		            continue;
+		        }
+
+
+		        // --------------------------------------------------
+		        // VENÍAMOS DESDE LA IZQUIERDA
+		        // --------------------------------------------------
+
+		        boolean veniaDesdeIzquierda =
+		            hitboxAnterior.x
+		            + hitboxAnterior.width
+		            <= hitboxPlataforma.x;
+
+
+		        if (veniaDesdeIzquierda) {
+
+		            // Calculamos cuánto penetramos
+		            // dentro de la plataforma.
+		            float correccionX =
+		                hitboxPlataforma.x
+		                - (
+		                    hitboxActual.x
+		                    + hitboxActual.width
+		                );
+
+
+		            jugador.getPosicion().moverX(
+		                correccionX
+		            );
+
+
+		            // Si llegamos por un retroceso,
+		            // el choque lo detiene.
+		            velocidadX = 0;
+
+
+		            // Si estábamos haciendo dash,
+		            // el choque también detiene el dash.
+		            haciendoDash = false;
+		            tiempoDashRestante = 0;
+
+		            return;
+		        }
+
+
+		        // --------------------------------------------------
+		        // VENÍAMOS DESDE LA DERECHA
+		        // --------------------------------------------------
+
+		        boolean veniaDesdeDerecha =
+		            hitboxAnterior.x
+		            >= hitboxPlataforma.x
+		            + hitboxPlataforma.width;
+
+
+		        if (veniaDesdeDerecha) {
+
+		            float correccionX =
+		                (
+		                    hitboxPlataforma.x
+		                    + hitboxPlataforma.width
+		                )
+		                - hitboxActual.x;
+
+
+		            jugador.getPosicion().moverX(
+		                correccionX
+		            );
+
+
+		            velocidadX = 0;
+
+		            haciendoDash = false;
+		            tiempoDashRestante = 0;
+
+		            return;
+		        }
+		    }
+		}
+		
 		private void dibujarHitboxJugador() {
 
 		    Rectangle hitboxJugador =
@@ -2074,6 +2366,32 @@ public class Main_game extends ApplicationAdapter {
 
 	    shapeRenderer.end();
 	}
+	
+	 private void dibujarPlataformas() {
+
+	     shapeRenderer.begin(
+	         ShapeRenderer.ShapeType.Filled
+	     );
+
+	     shapeRenderer.setColor(
+	         Color.GRAY
+	     );
+
+
+	     for (Plataforma plataforma :
+	             juego.getSalaActual().getPlataformas()) {
+
+	         shapeRenderer.rect(
+	             plataforma.getX(),
+	             plataforma.getY(),
+	             plataforma.getAncho(),
+	             plataforma.getAlto()
+	         );
+	     }
+
+
+	     shapeRenderer.end();
+	 }
 	 
 	 private void dibujarHitboxAtaque(float delta) {
 
@@ -2241,25 +2559,30 @@ public class Main_game extends ApplicationAdapter {
 	     Rectangle hitboxItem =
 	         obtenerHitboxItem(item);
 
-
-	     // Si el jugador toca el objeto...
-	     if (hitboxJugador.overlaps(hitboxItem)) {
-
-	         // Lo agregamos al inventario
-	         // y aplicamos su mejora.
-	         jugador.recogerItem(item);
-
-
-	         System.out.println(
-	             "Item obtenido: "
-	             + item.getNombre()
-	         );
-
-
-	         // Lo quitamos físicamente de la habitación
-	         // para que no pueda recogerse nuevamente.
-	         salaActual.eliminarItem();
-	     }
+	     
+		 // Los pies del jugador tienen que haber llegado
+		 // como mínimo a la altura donde comienza el item.
+		 boolean jugadorALaAlturaDelItem =
+		     hitboxJugador.y
+		         >= hitboxItem.y - 5;
+	
+		 // Si el jugador toca el objeto...
+		 if (hitboxJugador.overlaps(hitboxItem)
+		         && jugadorALaAlturaDelItem) {
+	
+		     jugador.recogerItem(
+		         item
+		     );
+		     
+		     System.out.println(
+		             "Item obtenido: "
+		             + item.getNombre()
+		         );
+	
+		     salaActual.eliminarItem();
+		 }
+		 
+		 
 	 }
 	 
 	 private void dibujarGameOver() {

@@ -10,6 +10,9 @@ public class Sala {
     private int fila;
     private int columna;
     private TipoSala tipo;
+    
+    // Una sala puede tener varias plataformas
+    private ArrayList<Plataforma> plataformas;
 
     private ArrayList<Enemigo> enemigos;
 
@@ -25,6 +28,8 @@ public class Sala {
         this.fila = fila;
         this.columna = columna;
         this.tipo = tipo;
+        
+        this.plataformas = new ArrayList<Plataforma>();
         
         this.enemigos = new ArrayList<Enemigo>();
         
@@ -50,6 +55,20 @@ public class Sala {
     // en una sala JEFE.
     public void setTipo(TipoSala tipo) {
         this.tipo = tipo;
+    }
+    
+    public void agregarPlataforma(
+            Plataforma plataforma) {
+
+        plataformas.add(
+            plataforma
+        );
+    }
+
+
+    public ArrayList<Plataforma> getPlataformas() {
+
+        return plataformas;
     }
 
     public ArrayList<Enemigo> getEnemigos() {

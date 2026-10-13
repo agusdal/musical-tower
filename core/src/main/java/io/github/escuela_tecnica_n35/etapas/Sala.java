@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
 import io.github.escuela_tecnica_n35.entidades.Item;
+import io.github.escuela_tecnica_n35.entidades.OfertaTienda;
 
 public class Sala {
 
@@ -22,7 +23,9 @@ public class Sala {
     private int distanciaInicial;
     
     private Item item;
-
+    
+    private ArrayList<OfertaTienda> ofertasTienda;
+    
     public Sala(int fila, int columna, TipoSala tipo) {
     	
         this.fila = fila;
@@ -36,6 +39,9 @@ public class Sala {
         this.distanciaInicial = 0;
         
         this.item = null;
+        
+        this.ofertasTienda =
+        	    new ArrayList<OfertaTienda>();
     }
 
     public int getFila() {
@@ -126,5 +132,24 @@ public class Sala {
 
     public boolean tieneItem() {
         return item != null;
+    }
+    
+    public void agregarOfertaTienda(
+            OfertaTienda oferta) {
+
+        ofertasTienda.add(oferta);
+    }
+
+
+    public ArrayList<OfertaTienda> getOfertasTienda() {
+
+        return ofertasTienda;
+    }
+
+
+    public void eliminarOfertaTienda(
+            OfertaTienda oferta) {
+
+        ofertasTienda.remove(oferta);
     }
 }

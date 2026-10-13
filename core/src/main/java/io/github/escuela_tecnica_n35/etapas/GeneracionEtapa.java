@@ -9,6 +9,7 @@ import io.github.escuela_tecnica_n35.entidades.Jefe;
 import io.github.escuela_tecnica_n35.entidades.Item;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.entidades.TipoItem;
+import io.github.escuela_tecnica_n35.entidades.OfertaTienda;
 import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 public class GeneracionEtapa {
@@ -23,7 +24,10 @@ public class GeneracionEtapa {
 	    cargarPoolItems();
 	}
 	
-	public Etapa generarEtapa(int numeroPiso, Item itemSala) {
+	public Etapa generarEtapa(
+	        int numeroPiso,
+	        Item itemSala,
+	        ArrayList<OfertaTienda> ofertasTienda) {
 
         if (numeroPiso == 4) {
             return generarPisoFinal();
@@ -34,26 +38,34 @@ public class GeneracionEtapa {
         int variante = random.nextInt(2);
 
         if (variante == 0) {
-        	return generarVarianteA(
-        		    numeroPiso,
-        		    itemSala
-        		);
+
+            return generarVarianteA(
+                numeroPiso,
+                itemSala,
+                ofertasTienda
+            );
         }
         else {
-        	return generarVarianteB(
-        		    numeroPiso,
-        		    itemSala
-        		);
+
+            return generarVarianteB(
+                numeroPiso,
+                itemSala,
+                ofertasTienda
+            );
         }
     }
 
-	private Etapa generarVarianteA(int numeroPiso, Item itemSala) {
+	private Etapa generarVarianteA(
+	        int numeroPiso,
+	        Item itemSala,
+	        ArrayList<OfertaTienda> ofertasTienda) {
 
         // Generamos la estructura completa del piso.
 		Sala[][] mapa =
 			    generarMapa(
 			        numeroPiso,
-			        itemSala
+			        itemSala,
+			        ofertasTienda
 			    );
 
         imprimirMapa(mapa);
@@ -78,13 +90,17 @@ public class GeneracionEtapa {
         );
     }
 
-	private Etapa generarVarianteB(int numeroPiso, Item itemSala) {
+	private Etapa generarVarianteB(
+	        int numeroPiso,
+	        Item itemSala,
+	        ArrayList<OfertaTienda> ofertasTienda) {
 
     	// Generamos la estructura completa del piso.
 		Sala[][] mapa =
 			    generarMapa(
 			        numeroPiso,
-			        itemSala
+			        itemSala,
+			        ofertasTienda
 			    );
 
         imprimirMapa(mapa);
@@ -160,23 +176,40 @@ public class GeneracionEtapa {
 
     // -------------------- GENERACIÓN DEL MAPA --------------------
 
-    private Sala[][] generarMapa(int numeroPiso, Item itemSala) {
+    private Sala[][] generarMapa(
+            int numeroPiso,
+            Item itemSala,
+            ArrayList<OfertaTienda> ofertasTienda) {
 
         Sala[][] mapa;
 
-        do {
-            // Generamos un mapa nuevo desde cero.
-            mapa = generarEstructuraMapa(numeroPiso);
 
-            // Si no tiene suficientes salas con una sola conexión,
-            // el mapa se descarta y el do-while vuelve a intentarlo.
+        do {
+
+            mapa =
+                generarEstructuraMapa(
+                    numeroPiso
+                );
+
+            // Si el mapa no cumple las condiciones,
+            // se genera nuevamente.
         }
         while (!mapaEsValido(mapa));
 
-        // Recién cuando sabemos que la estructura sirve,
+
+        // Una vez que el mapa es válido,
         // asignamos las salas especiales.
-        asignarSalaJefe(mapa);
-        asignarSalasEspeciales(mapa, itemSala);
+        asignarSalaJefe(
+            mapa
+        );
+
+
+        asignarSalasEspeciales(
+            mapa,
+            itemSala,
+            ofertasTienda
+        );
+
 
         return mapa;
     }
@@ -762,7 +795,10 @@ public class GeneracionEtapa {
 	
 	// NUEVO:
 	// Asigna exactamente una sala ITEM y una TIENDA.
-	private void asignarSalasEspeciales(Sala[][] mapa, Item itemSala) {
+	private void asignarSalasEspeciales(
+	        Sala[][] mapa,
+	        Item itemSala,
+	        ArrayList<OfertaTienda> ofertasTienda) {
 
 	    ArrayList<Sala> disponibles =
 	        buscarSalasEspecialesDisponibles(mapa);
@@ -796,17 +832,52 @@ public class GeneracionEtapa {
 	 	// La plataforma mide 50 de alto,
 	 	// por lo que su parte superior queda en Y = 100,
 	 	// exactamente donde colocamos el item.
-	 	Plataforma pedestal =
-	 	    new Plataforma(
-	 	        400,// 560
-	 	        250,// 50
-	 	        480,// 120
-	 	        50
-	 	    );
+	    Plataforma pedestal =
+	        new Plataforma(
+	            560,
+	            50,
+	            120,
+	            50
+	        );
 	 	
 	 	salaItem.agregarPlataforma(
-	 	    pedestal
+	 		pedestal
 	 	);
+	 	
+	 	
+	 	if (itemSala != null) {
+
+	 	    float anchoItem = 40f;
+
+	 	    // Centramos el item horizontalmente
+	 	    // respecto del pedestal.
+	 	    float itemX =
+	 	    	pedestal.getX()
+	 	        + pedestal.getAncho() / 2
+	 	        - anchoItem / 2;
+
+
+	 	    // Lo colocamos justo sobre
+	 	    // la superficie del pedestal.
+	 	    float itemY =
+	 	    	pedestal.getY()
+	 	        + pedestal.getAlto();
+
+
+	 	    itemSala.getPosicion().setX(
+	 	        itemX
+	 	    );
+
+	 	    itemSala.getPosicion().setY(
+	 	        itemY
+	 	    );
+
+
+	 	    salaItem.setItem(
+	 	        itemSala
+	 	    );
+	 	}
+	 		
 	    
 	    // El item ya fue seleccionado por Juego.
 	    if (itemSala != null) {
@@ -839,5 +910,89 @@ public class GeneracionEtapa {
 	    Sala salaTienda = disponibles.get(indiceTienda);
 
 	    salaTienda.setTipo(TipoSala.TIENDA);
+	    
+	    Plataforma plataformaIzquierda =
+	    	    new Plataforma(
+	    	        200,
+	    	        140,
+	    	        250,
+	    	        30
+	    	    );
+
+
+	    	Plataforma plataformaDerecha =
+	    	    new Plataforma(
+	    	        830,
+	    	        140,
+	    	        250,
+	    	        30
+	    	    );
+
+
+	    	salaTienda.agregarPlataforma(
+	    	    plataformaIzquierda
+	    	);
+
+	    	salaTienda.agregarPlataforma(
+	    	    plataformaDerecha
+	    	);
+	    
+	    	if (ofertasTienda.size() >= 1) {
+
+	    	    OfertaTienda oferta =
+	    	        ofertasTienda.get(0);
+
+	    	    Item item =
+	    	        oferta.getItem();
+
+
+	    	    float itemX =
+	    	        plataformaIzquierda.getX()
+	    	        + plataformaIzquierda.getAncho() / 2
+	    	        - 40f / 2;
+
+
+	    	    float itemY =
+	    	        plataformaIzquierda.getY()
+	    	        + plataformaIzquierda.getAlto();
+
+
+	    	    item.getPosicion().setX(itemX);
+	    	    item.getPosicion().setY(itemY);
+
+
+	    	    salaTienda.agregarOfertaTienda(
+	    	        oferta
+	    	    );
+	    	}
+	    
+	    	if (ofertasTienda.size() >= 2) {
+
+	    	    OfertaTienda oferta =
+	    	        ofertasTienda.get(1);
+
+	    	    Item item =
+	    	        oferta.getItem();
+
+
+	    	    float itemX =
+	    	        plataformaDerecha.getX()
+	    	        + plataformaDerecha.getAncho() / 2
+	    	        - 40f / 2;
+
+
+	    	    float itemY =
+	    	        plataformaDerecha.getY()
+	    	        + plataformaDerecha.getAlto();
+
+
+	    	    item.getPosicion().setX(itemX);
+	    	    item.getPosicion().setY(itemY);
+
+
+	    	    salaTienda.agregarOfertaTienda(
+	    	        oferta
+	    	    );
+	    	}
 	}
 }

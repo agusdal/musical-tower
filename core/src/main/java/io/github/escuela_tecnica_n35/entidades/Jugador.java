@@ -203,15 +203,27 @@ public class Jugador extends Entidad {
 		return monedas += monedasGanadas;
 	}
 	
-	public int restarMonedas(int monedasPerdidas) {
-		if (monedas >= monedasPerdidas) {
-			monedas -= monedasPerdidas;
-		}
+	public int getMonedas() {
 		return monedas;
 	}
 	
-	public int getMonedas() {
-		return monedas;
+	public boolean gastarMonedas(int cantidad) {
+
+	    // Una compra inválida no se realiza.
+	    if (cantidad <= 0) {
+	        return false;
+	    }
+
+
+	    // No alcanza el dinero.
+	    if (monedas < cantidad) {
+	        return false;
+	    }
+
+
+	    monedas -= cantidad;
+
+	    return true;
 	}
 	
 	//----------------------------/\MONEDAS/\-----------------------------

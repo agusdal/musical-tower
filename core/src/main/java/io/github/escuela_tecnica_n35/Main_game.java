@@ -12,6 +12,7 @@ import io.github.escuela_tecnica_n35.entidades.Ataque;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.entidades.Item;
 import io.github.escuela_tecnica_n35.etapas.Plataforma;
+import io.github.escuela_tecnica_n35.entidades.OfertaTienda;
 import io.github.escuela_tecnica_n35.juego.Juego;
 
 import com.badlogic.gdx.graphics.Color;
@@ -29,6 +30,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
 import com.badlogic.gdx.graphics.Texture;
+
+import java.util.ArrayList;
 
 public class Main_game extends ApplicationAdapter {
     
@@ -280,7 +283,7 @@ public class Main_game extends ApplicationAdapter {
 	        100,    // Velocidad
 	        10,     // Daño
 	        1,      // Monedas mínimas
-	        3       // Monedas máximas
+	        300       // Monedas máximas
 	    );
 	
 	
@@ -637,7 +640,7 @@ public class Main_game extends ApplicationAdapter {
 
 	     comprobarRecogerItem();
 	     
-	     
+	     comprobarCompraTienda();
 
 	     // --------------------------------------------------
 	     // ACTUALIZAMOS LAS PUERTAS
@@ -672,7 +675,7 @@ public class Main_game extends ApplicationAdapter {
 	     
 	     // DIBUJAMOS EL ITEM DE LA HABITACIÒN
 
-	     dibujarItem();
+	     dibujarItems();
 	     
 	     // DIBUJAMOS LAS PLATAFORMAS
 	     
@@ -2330,42 +2333,68 @@ public class Main_game extends ApplicationAdapter {
 	// DIBUJAR ITEM - PROVISIONAL
 	// --------------------------------------------------
 
-	private void dibujarItem() {
+	 private void dibujarItems() {
 
-	    Sala salaActual =
-	        juego.getSalaActual();
-
-
-	    if (!salaActual.tieneItem()) {
-	        return;
-	    }
+		    Sala salaActual =
+		        juego.getSalaActual();
 
 
-	    Item item =
-	        salaActual.getItem();
+		    shapeRenderer.begin(
+		        ShapeRenderer.ShapeType.Filled
+		    );
 
-	    Rectangle hitboxItem =
-	        obtenerHitboxItem(item);
+		    shapeRenderer.setColor(
+		        Color.YELLOW
+		    );
 
 
-	    shapeRenderer.begin(
-	        ShapeRenderer.ShapeType.Filled
-	    );
+		    // --------------------------------------------------
+		    // ITEM NORMAL DE LA SALA
+		    // --------------------------------------------------
 
-	    // Color provisional para reconocer el objeto.
-	    shapeRenderer.setColor(
-	        Color.YELLOW
-	    );
+		    if (salaActual.tieneItem()) {
 
-	    shapeRenderer.rect(
-	        hitboxItem.x,
-	        hitboxItem.y,
-	        hitboxItem.width,
-	        hitboxItem.height
-	    );
+		        Item item =
+		            salaActual.getItem();
 
-	    shapeRenderer.end();
-	}
+		        Rectangle hitboxItem =
+		            obtenerHitboxItem(item);
+
+
+		        shapeRenderer.rect(
+		            hitboxItem.x,
+		            hitboxItem.y,
+		            hitboxItem.width,
+		            hitboxItem.height
+		        );
+		    }
+
+
+		    // --------------------------------------------------
+		    // ITEMS DE LA TIENDA
+		    // --------------------------------------------------
+
+		    for (OfertaTienda oferta :
+		            salaActual.getOfertasTienda()) {
+
+		        Item item =
+		            oferta.getItem();
+
+		        Rectangle hitboxItem =
+		            obtenerHitboxItem(item);
+
+
+		        shapeRenderer.rect(
+		            hitboxItem.x,
+		            hitboxItem.y,
+		            hitboxItem.width,
+		            hitboxItem.height
+		        );
+		    }
+
+
+		    shapeRenderer.end();
+		}
 	
 	 private void dibujarPlataformas() {
 
@@ -2584,6 +2613,84 @@ public class Main_game extends ApplicationAdapter {
 		 
 		 
 	 }
+	 
+	 // COMPRUEBA SI EL SALDO ES SUFICIENTE
+	 
+	 private void comprobarCompraTienda() {
+
+		    Sala salaActual =
+		        juego.getSalaActual();
+
+
+		    // Solamente hacemos estas comprobaciones
+		    // dentro de una tienda.
+		    if (salaActual.getTipo() != TipoSala.TIENDA) {
+		        return;
+		    }
+
+
+		    Rectangle hitboxJugador =
+		        obtenerHitboxJugador();
+
+
+		    ArrayList<OfertaTienda> ofertas =
+		        salaActual.getOfertasTienda();
+
+
+		    for (int i = 0; i < ofertas.size(); i++) {
+
+		        OfertaTienda oferta =
+		            ofertas.get(i);
+
+		        Item item =
+		            oferta.getItem();
+
+
+		        Rectangle hitboxItem =
+		            obtenerHitboxItem(item);
+
+
+		        // Todavía no tocamos este objeto.
+		        if (!hitboxJugador.overlaps(hitboxItem)) {
+		            continue;
+		        }
+
+
+		        // Intentamos pagar.
+		        boolean pudoComprar =
+		            jugador.gastarMonedas(
+		                oferta.getPrecio()
+		            );
+
+
+		        // No alcanza el dinero.
+		        if (!pudoComprar) {
+		            return;
+		        }
+
+
+		        // Pagó correctamente:
+		        // obtiene el objeto y se aplica su efecto.
+		        jugador.recogerItem(
+		            item
+		        );
+
+
+		        System.out.println(
+		            "Compraste "
+		            + item.getNombre()
+		            + " por "
+		            + oferta.getPrecio()
+		            + " monedas."
+		        );
+
+
+		        // El objeto desaparece de la tienda.
+		        ofertas.remove(i);
+
+		        return;
+		    }
+		}
 	 
 	 private void dibujarGameOver() {
 

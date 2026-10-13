@@ -10,6 +10,7 @@ import io.github.escuela_tecnica_n35.etapas.Sala;
 import io.github.escuela_tecnica_n35.entidades.Item;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.entidades.TipoItem;
+import io.github.escuela_tecnica_n35.entidades.OfertaTienda;
 import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 import io.github.escuela_tecnica_n35.etapas.TipoSala;
@@ -48,12 +49,16 @@ public class Juego {
     	// Al sacarlo también desaparece de la pool.
     	Item itemSala =
     	    sacarItemAleatorio();
+    	
+    	ArrayList<OfertaTienda> ofertasTienda =
+    		    generarOfertasTienda(2);
 
-    	etapaActual =
-    	    generador.generarEtapa(
-    	        1,
-    	        itemSala
-    	    );
+    		etapaActual =
+    		    generador.generarEtapa(
+    		        1,
+    		        itemSala,
+    		        ofertasTienda
+    		    );
 
         // Cada piso siempre comienza en la sala INICIAL.
         salaActual = buscarSalaInicial(
@@ -76,11 +81,16 @@ public class Juego {
     	Item itemSala =
     		    sacarItemAleatorio();
 
-    	generador.generarEtapa(
-    		    numeroEtapa,
-    		    itemSala
-    		);
+    	ArrayList<OfertaTienda> ofertasTienda =
+    		    generarOfertasTienda(2);
 
+
+    		etapaActual =
+    		    generador.generarEtapa(
+    		        numeroEtapa,
+    		        itemSala,
+    		        ofertasTienda
+    		    );
         salaActual =
             buscarSalaInicial(etapaActual.getMapa());
 
@@ -340,5 +350,43 @@ public class Juego {
         // Lo obtenemos y lo eliminamos de la pool
         // al mismo tiempo.
         return poolItems.remove(indice);
+    }
+    
+    private ArrayList<OfertaTienda> generarOfertasTienda(
+            int cantidad) {
+
+        ArrayList<OfertaTienda> ofertas =
+            new ArrayList<OfertaTienda>();
+
+
+        for (int i = 0; i < cantidad; i++) {
+
+            Item item =
+                sacarItemAleatorio();
+
+
+            // Si la pool quedó vacía,
+            // simplemente dejamos de generar ofertas.
+            if (item == null) {
+                break;
+            }
+
+
+            // PRECIO PROVISIONAL:
+            // por ahora todos cuestan 20.
+            OfertaTienda oferta =
+                new OfertaTienda(
+                    item,
+                    20
+                );
+
+
+            ofertas.add(
+                oferta
+            );
+        }
+
+
+        return ofertas;
     }
 }

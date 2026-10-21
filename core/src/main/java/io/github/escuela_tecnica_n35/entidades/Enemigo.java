@@ -6,6 +6,8 @@ public class Enemigo extends Entidad {
 	
     private int monedasMinimas;
     private int monedasMaximas;
+    
+    private EstadoEnemigo estado;
 
     public Enemigo(String nombre, Posicion posicion, int vidaMax, float velocidad, 
     		int daño, int monedasMinimas, int monedasMaximas) {
@@ -14,6 +16,8 @@ public class Enemigo extends Entidad {
         
         this.monedasMinimas = monedasMinimas;
         this.monedasMaximas = monedasMaximas;
+        
+        this.estado = EstadoEnemigo.QUIETO;
     }
 
     public int generarMonedasDrop() {
@@ -31,6 +35,14 @@ public class Enemigo extends Entidad {
 
     public int getMonedasMaximas() {
         return monedasMaximas;
+    }
+    
+    public EstadoEnemigo getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoEnemigo estado) {
+        this.estado = estado;
     }
     
 }

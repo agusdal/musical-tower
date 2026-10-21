@@ -13,6 +13,7 @@ import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.entidades.Item;
 import io.github.escuela_tecnica_n35.etapas.Plataforma;
 import io.github.escuela_tecnica_n35.entidades.OfertaTienda;
+import io.github.escuela_tecnica_n35.entidades.EstadoEnemigo;
 import io.github.escuela_tecnica_n35.juego.Juego;
 
 import com.badlogic.gdx.graphics.Color;
@@ -693,6 +694,10 @@ public class Main_game extends ApplicationAdapter {
 		 // --------------------------------------------------
 	
 		 comprobarDañoEnemigos(delta);
+		 
+		 // --------- ACTUALIZA EL MOVIMIENTO CADA FRAME ----------
+		 
+		 actualizarMovimientoEnemigos(delta);
 	     
 	     // --------------------------------------------------
 	     // DIBUJAMOS EL PERSONAJE ANIMADO
@@ -2560,6 +2565,113 @@ public class Main_game extends ApplicationAdapter {
 		        }
 		    }
 	 }
+	 
+	 private void actualizarMovimientoEnemigos(float delta) {
+
+		    Sala salaActual =
+		        juego.getSalaActual();
+
+
+		    for (Enemigo enemigo :
+		            salaActual.getEnemigos()) {
+
+		        if (!enemigo.estaVivo()) {
+		            continue;
+		        }
+
+
+		        float jugadorX =
+		            jugador.getPosicion().getX();
+
+		        float enemigoX =
+		            enemigo.getPosicion().getX();
+
+
+		        // Distancia horizontal entre
+		        // el jugador y el enemigo.
+		        float distanciaX =
+		            Math.abs(
+		                jugadorX - enemigoX
+		            );
+
+
+		        // PROVISIONAL:
+		        // El enemigo empieza a detectar
+		        // al jugador a 500 unidades.
+		        float rangoDeteccion = 500f;
+
+		        // PROVISIONAL:
+		        // A esta distancia deja de caminar
+		        // y considera que puede atacar.
+		        float rangoAtaque = 100f;
+
+
+		        // --------------------------------------------------
+		        // DECIDIR ESTADO
+		        // --------------------------------------------------
+
+		        if (distanciaX <= rangoAtaque) {
+
+		            enemigo.setEstado(
+		                EstadoEnemigo.ATACAR
+		            );
+		        }
+		        else if (distanciaX <= rangoDeteccion) {
+
+		            enemigo.setEstado(
+		                EstadoEnemigo.PERSEGUIR
+		            );
+		        }
+		        else {
+
+		            enemigo.setEstado(
+		                EstadoEnemigo.QUIETO
+		            );
+		        }
+
+
+		        // --------------------------------------------------
+		        // ACTUAR SEGÚN EL ESTADO
+		        // --------------------------------------------------
+
+		        switch (enemigo.getEstado()) {
+
+		            case QUIETO:
+
+		                // No hace nada.
+		                break;
+
+
+		            case PERSEGUIR:
+
+		                if (jugadorX > enemigoX) {
+
+		                    enemigo.getPosicion().moverX(
+		                        enemigo.getVelocidad()
+		                        * delta
+		                    );
+		                }
+		                else if (jugadorX < enemigoX) {
+
+		                    enemigo.getPosicion().moverX(
+		                        -enemigo.getVelocidad()
+		                        * delta
+		                    );
+		                }
+
+		                break;
+
+
+		            case ATACAR:
+
+		                // Por ahora simplemente deja
+		                // de avanzar hacia el jugador.
+		                //
+		                // Después ponemos acá el ataque.
+		                break;
+		        }
+		    }
+		}
 	 
 	 // --------------------------------------------------
 	 // RECOGER ITEM DE LA SALA

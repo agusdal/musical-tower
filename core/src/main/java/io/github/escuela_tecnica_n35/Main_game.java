@@ -1680,6 +1680,138 @@ public class Main_game extends ApplicationAdapter {
 		        ataque.getAlto()
 		    );
 		}
+	 
+	 private Rectangle obtenerHitboxAtaqueEnemigo(
+		        Enemigo enemigo) {
+
+		    Ataque ataque =
+		        enemigo.getAtaqueNormal();
+
+
+		    Rectangle hitboxEnemigo =
+		        obtenerHitboxEnemigo(enemigo);
+
+		    Rectangle hitboxJugador =
+		        obtenerHitboxJugador();
+
+
+		    float centroJugadorX =
+		        hitboxJugador.x
+		        + hitboxJugador.width / 2f;
+
+		    float centroEnemigoX =
+		        hitboxEnemigo.x
+		        + hitboxEnemigo.width / 2f;
+
+
+		    boolean jugadorALaDerecha =
+		        centroJugadorX >= centroEnemigoX;
+
+
+		    float ataqueX;
+
+
+		    // Ataque hacia la derecha.
+		    if (jugadorALaDerecha) {
+
+		        ataqueX =
+		            hitboxEnemigo.x
+		            + hitboxEnemigo.width;
+		    }
+
+		    // Ataque hacia la izquierda.
+		    else {
+
+		        ataqueX =
+		            hitboxEnemigo.x
+		            - ataque.getAncho();
+		    }
+
+
+		    // Centramos verticalmente el ataque
+		    // respecto del cuerpo del enemigo.
+		    float ataqueY =
+		        hitboxEnemigo.y
+		        + (
+		            hitboxEnemigo.height
+		            - ataque.getAlto()
+		        ) / 2f;
+
+
+		    return new Rectangle(
+		        ataqueX,
+		        ataqueY,
+		        ataque.getAncho(),
+		        ataque.getAlto()
+		    );
+		}
+	 
+	 	private void intentarAtaqueEnemigo(
+		        Enemigo enemigo) {
+
+		    Ataque ataque =
+		        enemigo.getAtaqueNormal();
+
+
+		    // Si todavía está en cooldown,
+		    // no puede volver a atacar.
+		    if (!ataque.estaDisponible()) {
+		        return;
+		    }
+
+
+		    Rectangle hitboxAtaque =
+		        obtenerHitboxAtaqueEnemigo(
+		            enemigo
+		        );
+
+		    Rectangle hitboxJugador =
+		        obtenerHitboxJugador();
+
+
+		    // El ataque se realizó, así que empieza
+		    // el cooldown aunque falle.
+		    ataque.iniciarCooldown();
+
+
+		    // El jugador no estaba dentro del ataque.
+		    if (!hitboxAtaque.overlaps(hitboxJugador)) {
+		        return;
+		    }
+
+
+		    // Si el jugador todavía está en sus frames
+		    // de invulnerabilidad, no recibe otro golpe.
+		    if (tiempoInvulnerable > 0) {
+		        return;
+		    }
+
+
+		    jugador.recibirDaño(
+		        ataque.getDaño()
+		    );
+
+
+		    tiempoInvulnerable =
+		        duracionInvulnerabilidad;
+
+
+		    System.out.println(
+		        "El enemigo ataco al jugador haciendole "
+		        + ataque.getDaño()
+		        + " de daño."
+		    );
+
+
+		    if (!jugador.estaVivo()) {
+
+		        gameOver = true;
+
+		        System.out.println(
+		            "GAME OVER"
+		        );
+		    }
+		}
 		 
 		// --------------------------------------------------
 		// HITBOX DEL CUERPO DEL JUGADOR
@@ -2574,38 +2706,82 @@ public class Main_game extends ApplicationAdapter {
 
 		    for (Enemigo enemigo :
 		            salaActual.getEnemigos()) {
+		    	
+		    	enemigo.actualizarCooldowns(
+		    		    delta
+		    		);
 
 		        if (!enemigo.estaVivo()) {
 		            continue;
 		        }
 
 
-		        float jugadorX =
-		            jugador.getPosicion().getX();
+		        Rectangle hitboxJugador =
+		        	    obtenerHitboxJugador();
 
-		        float enemigoX =
-		            enemigo.getPosicion().getX();
-
-
-		        // Distancia horizontal entre
-		        // el jugador y el enemigo.
-		        float distanciaX =
-		            Math.abs(
-		                jugadorX - enemigoX
-		            );
+		        Rectangle hitboxEnemigo =
+		        	    obtenerHitboxEnemigo(enemigo);
 
 
-		        // PROVISIONAL:
-		        // El enemigo empieza a detectar
-		        // al jugador a 500 unidades.
-		        float rangoDeteccion = 500f;
+		        	// Calculamos los centros reales.
+		        	float centroJugadorX =
+		        	    hitboxJugador.x
+		        	    + hitboxJugador.width / 2f;
 
-		        // PROVISIONAL:
-		        // A esta distancia deja de caminar
-		        // y considera que puede atacar.
-		        float rangoAtaque = 100f;
+		        	float centroEnemigoX =
+		        	    hitboxEnemigo.x
+		        	    + hitboxEnemigo.width / 2f;
 
 
+		        	// Determinamos de qué lado está el jugador.
+		        	boolean jugadorALaDerecha =
+		        	    centroJugadorX >= centroEnemigoX;
+
+
+		        	// Distancia REAL entre los bordes de ambos cuerpos.
+		        	float distanciaX;
+
+		        	if (jugadorALaDerecha) {
+
+		        	    distanciaX =
+		        	        hitboxJugador.x
+		        	        - (
+		        	            hitboxEnemigo.x
+		        	            + hitboxEnemigo.width
+		        	        );
+		        	}
+		        	else {
+
+		        	    distanciaX =
+		        	        hitboxEnemigo.x
+		        	        - (
+		        	            hitboxJugador.x
+		        	            + hitboxJugador.width
+		        	        );
+		        	}
+
+
+		        	// Si ya se están tocando o superponiendo,
+		        	// la distancia entre cuerpos es 0.
+		        	if (distanciaX < 0) {
+		        	    distanciaX = 0;
+		        	}
+
+		        	
+		        	// --------------------------------------------------
+		        	// RANGOS DEL ENEMIGO
+		        	// --------------------------------------------------
+
+		        	// PROVISIONAL:
+		        	// distancia máxima a la que detecta al jugador.
+		        	float rangoDeteccion = 500f;
+
+		        	// El rango de ataque depende directamente
+		        	// del ancho de la hitbox del ataque.
+		        	float rangoAtaque =
+		        	    enemigo.getAtaqueNormal().getAncho();
+		        	
+		        	
 		        // --------------------------------------------------
 		        // DECIDIR ESTADO
 		        // --------------------------------------------------
@@ -2644,14 +2820,14 @@ public class Main_game extends ApplicationAdapter {
 
 		            case PERSEGUIR:
 
-		                if (jugadorX > enemigoX) {
+		                if (jugadorALaDerecha) {
 
 		                    enemigo.getPosicion().moverX(
 		                        enemigo.getVelocidad()
 		                        * delta
 		                    );
 		                }
-		                else if (jugadorX < enemigoX) {
+		                else {
 
 		                    enemigo.getPosicion().moverX(
 		                        -enemigo.getVelocidad()
@@ -2664,10 +2840,10 @@ public class Main_game extends ApplicationAdapter {
 
 		            case ATACAR:
 
-		                // Por ahora simplemente deja
-		                // de avanzar hacia el jugador.
-		                //
-		                // Después ponemos acá el ataque.
+		            	intentarAtaqueEnemigo(
+		            	        enemigo
+		            	    );
+		            	
 		                break;
 		        }
 		    }

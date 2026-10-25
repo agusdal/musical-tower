@@ -80,6 +80,10 @@ public class Main_game extends ApplicationAdapter {
     private float gravedad;
     private float pisoY;
     
+    private Rectangle hitboxAtaqueEnemigoDebug;
+
+    private float tiempoHitboxAtaqueEnemigoDebug;
+    
 	// -----------------------------------------
 	// SALTO
 	// -----------------------------------------
@@ -200,9 +204,16 @@ public class Main_game extends ApplicationAdapter {
         );
         
         //-------------HITBOXES--------------
+        
         hitboxAtaqueDebug = new Rectangle();
 
         tiempoHitboxAtaqueDebug = 0;
+        
+        
+        hitboxAtaqueEnemigoDebug = new Rectangle();
+
+        tiempoHitboxAtaqueEnemigoDebug = 0;
+        
         //-------------HITBOXES--------------
         
         texturaMoneda = new Texture("moneda.png");
@@ -687,6 +698,9 @@ public class Main_game extends ApplicationAdapter {
 	     // --------------------------------------------------
 
 	     dibujarHitboxAtaque(delta);
+	     
+	     
+	     dibujarHitboxAtaqueEnemigo(delta);
 	     
 	     
 		 // --------------------------------------------------
@@ -1764,6 +1778,20 @@ public class Main_game extends ApplicationAdapter {
 		        obtenerHitboxAtaqueEnemigo(
 		            enemigo
 		        );
+		    
+			// Guardamos temporalmente la hitbox
+			// para poder verla en pantalla.
+			hitboxAtaqueEnemigoDebug.set(
+			    hitboxAtaque.x,
+			    hitboxAtaque.y,
+			    hitboxAtaque.width,
+			    hitboxAtaque.height
+			);
+	
+	
+			// La mostramos durante 0.15 segundos.
+			tiempoHitboxAtaqueEnemigoDebug =
+			    0.15f;
 
 		    Rectangle hitboxJugador =
 		        obtenerHitboxJugador();
@@ -2614,6 +2642,37 @@ public class Main_game extends ApplicationAdapter {
 		    Gdx.gl.glDisable(GL20.GL_BLEND);
 		}
 	 
+	 private void dibujarHitboxAtaqueEnemigo(
+		        float delta) {
+
+		    if (tiempoHitboxAtaqueEnemigoDebug <= 0) {
+		        return;
+		    }
+
+
+		    tiempoHitboxAtaqueEnemigoDebug -= delta;
+
+
+		    shapeRenderer.begin(
+		        ShapeRenderer.ShapeType.Line
+		    );
+
+		    shapeRenderer.setColor(
+		        Color.RED
+		    );
+
+
+		    shapeRenderer.rect(
+		        hitboxAtaqueEnemigoDebug.x,
+		        hitboxAtaqueEnemigoDebug.y,
+		        hitboxAtaqueEnemigoDebug.width,
+		        hitboxAtaqueEnemigoDebug.height
+		    );
+
+
+		    shapeRenderer.end();
+		}
+	 
 	 private boolean jugadorTocaEnemigo(
 		        Enemigo enemigo) {
 
@@ -2766,7 +2825,7 @@ public class Main_game extends ApplicationAdapter {
 		        	if (distanciaX < 0) {
 		        	    distanciaX = 0;
 		        	}
-
+		        	
 		        	
 		        	// --------------------------------------------------
 		        	// RANGOS DEL ENEMIGO
@@ -2776,34 +2835,55 @@ public class Main_game extends ApplicationAdapter {
 		        	// distancia máxima a la que detecta al jugador.
 		        	float rangoDeteccion = 500f;
 
-		        	// El rango de ataque depende directamente
-		        	// del ancho de la hitbox del ataque.
-		        	float rangoAtaque =
+
+		        	// La hitbox física mide, por ejemplo, 100.
+		        	float rangoPreparacion =
 		        	    enemigo.getAtaqueNormal().getAncho();
+
+
+		        	// PROVISIONAL:
+		        	// aunque la hitbox mida 100,
+		        	// recién decide atacar cuando está a 80.
+		        	float margenAtaque = 20f;
+
+		        	float rangoAtaqueEfectivo =
+		        	    Math.max(
+		        	        0f,
+		        	        rangoPreparacion - margenAtaque
+		        	    );
+		        	
+		        	boolean dentroDelRangoPreparacion =
+		        		    distanciaX <= rangoPreparacion;
+
+
+		        		enemigo.actualizarPreparacionAtaque(
+		        		    delta,
+		        		    dentroDelRangoPreparacion
+		        		);
 		        	
 		        	
 		        // --------------------------------------------------
 		        // DECIDIR ESTADO
 		        // --------------------------------------------------
 
-		        if (distanciaX <= rangoAtaque) {
+	        		if (distanciaX <= rangoAtaqueEfectivo) {
 
-		            enemigo.setEstado(
-		                EstadoEnemigo.ATACAR
-		            );
-		        }
-		        else if (distanciaX <= rangoDeteccion) {
+	        		    enemigo.setEstado(
+	        		        EstadoEnemigo.ATACAR
+	        		    );
+	        		}
+	        		else if (distanciaX <= rangoDeteccion) {
 
-		            enemigo.setEstado(
-		                EstadoEnemigo.PERSEGUIR
-		            );
-		        }
-		        else {
+	        		    enemigo.setEstado(
+	        		        EstadoEnemigo.PERSEGUIR
+	        		    );
+	        		}
+	        		else {
 
-		            enemigo.setEstado(
-		                EstadoEnemigo.QUIETO
-		            );
-		        }
+		        	    enemigo.setEstado(
+		        	        EstadoEnemigo.QUIETO
+		        	    );
+		        	}
 
 
 		        // --------------------------------------------------
@@ -2840,10 +2920,15 @@ public class Main_game extends ApplicationAdapter {
 
 		            case ATACAR:
 
-		            	intentarAtaqueEnemigo(
-		            	        enemigo
-		            	    );
-		            	
+		                // Ya llegó a la distancia correcta,
+		                // pero todavía puede estar preparando el ataque.
+		                if (enemigo.ataquePreparado()) {
+
+		                    intentarAtaqueEnemigo(
+		                        enemigo
+		                    );
+		                }
+
 		                break;
 		        }
 		    }

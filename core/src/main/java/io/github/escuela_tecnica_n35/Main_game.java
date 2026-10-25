@@ -751,15 +751,17 @@ public class Main_game extends ApplicationAdapter {
     
     private boolean botonSaltoPresionado() {
 
-        return Gdx.input.isKeyPressed(Input.Keys.Z) ||
-        		Gdx.input.isKeyPressed(Input.Keys.UP);
+        return Gdx.input.isKeyPressed(
+            Input.Keys.Z
+        );
     }
 
 
     private boolean botonSaltoRecienPresionado() {
-    	
-    	return Gdx.input.isKeyJustPressed(Input.Keys.Z) ||
-        		Gdx.input.isKeyJustPressed(Input.Keys.UP);
+
+        return Gdx.input.isKeyJustPressed(
+            Input.Keys.Z
+        );
     }
     
     private boolean botonDashRecienPresionado() {
@@ -1967,6 +1969,41 @@ public class Main_game extends ApplicationAdapter {
 		        pogo.getAlto()
 		    );
 		}
+		
+		// --------------------------------------------------
+		// HITBOX DEL ATAQUE HACIA ARRIBA
+		// --------------------------------------------------
+
+		private Rectangle obtenerHitboxAtaqueArribaJugador() {
+
+		    Ataque ataque =
+		        jugador.getAtaqueNormal();
+
+		    Rectangle hitboxJugador =
+		        obtenerHitboxJugador();
+
+
+		    // Centramos el ataque horizontalmente
+		    // respecto del cuerpo del jugador.
+		    float ataqueX =
+		        hitboxJugador.x
+		        + (hitboxJugador.width - ataque.getAncho()) / 2f;
+
+
+		    // La hitbox empieza exactamente
+		    // arriba del cuerpo del jugador.
+		    float ataqueY =
+		        hitboxJugador.y
+		        + hitboxJugador.height;
+
+
+		    return new Rectangle(
+		        ataqueX,
+		        ataqueY,
+		        ataque.getAncho(),
+		        ataque.getAlto()
+		    );
+		}
 	 
 		private void comprobarAtaqueJugador() {
 			
@@ -2086,8 +2123,103 @@ public class Main_game extends ApplicationAdapter {
 		        // un ataque horizontal.
 		        return;
 		    }
+		    
+		    // --------------------------------------------------
+		    // ATAQUE HACIA ARRIBA
+		    // --------------------------------------------------
+
+		 if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+
+		     Ataque ataqueArriba =
+		         jugador.getAtaqueNormal();
 
 
+		     // Comparte cooldown con el ataque horizontal.
+		     if (!ataqueArriba.estaDisponible()) {
+		         return;
+		     }
+
+
+		     ataqueArriba.iniciarCooldown();
+
+
+		     Rectangle hitboxAtaqueArriba =
+		         obtenerHitboxAtaqueArribaJugador();
+
+
+		     // Mostramos la hitbox usando el mismo
+		     // sistema de debug de los otros ataques.
+		     hitboxAtaqueDebug.set(
+		         hitboxAtaqueArriba.x,
+		         hitboxAtaqueArriba.y,
+		         hitboxAtaqueArriba.width,
+		         hitboxAtaqueArriba.height
+		     );
+
+		     tiempoHitboxAtaqueDebug = 0.15f;
+
+
+		     Enemigo objetivo =
+		         buscarEnemigoGolpeado(
+		             salaActual,
+		             hitboxAtaqueArriba
+		         );
+
+
+		     if (objetivo == null) {
+
+		         System.out.println(
+		             "El ataque hacia arriba no golpeó a ningún enemigo."
+		         );
+
+		         return;
+		     }
+
+
+		     // Aplicamos el mismo daño que el ataque normal.
+		     jugador.atacar(
+		         objetivo,
+		         ataqueArriba
+		     );
+
+
+		     System.out.println(
+		         "Golpe hacia arriba. Vida enemigo: "
+		         + objetivo.getVidaActual()
+		         + "/"
+		         + objetivo.getVidaMax()
+		     );
+
+
+		     // Si murió, manejamos el drop.
+		     if (!objetivo.estaVivo()) {
+
+		         int monedas =
+		             objetivo.generarMonedasDrop();
+
+		         jugador.agarrarMonedas(
+		             monedas
+		         );
+
+		         salaActual.eliminarEnemigo(
+		             objetivo
+		         );
+
+		         System.out.println(
+		             "Enemigo derrotado. Ganaste "
+		             + monedas
+		             + " monedas."
+		         );
+		     }
+
+
+		     // MUY IMPORTANTE:
+		     // UP + X ya fue procesado.
+		     // No queremos ejecutar después
+		     // el ataque horizontal.
+		     return;
+		 }
+		    
 		    // --------------------------------------------------
 		    // ATAQUE NORMAL
 		    // --------------------------------------------------

@@ -5,18 +5,24 @@ import java.util.ArrayList;
 
 public class Jefe extends Enemigo {
 	
-	private ArrayList<Ataque> ataques;
+	
+	private float anchoHitbox;
+    private float altoHitbox;
+    
+    int monedasMinimas;
+    int monedasMaximas;
 	
 	private boolean velocidadAumentada;
-	private int monedasMinimas;
-    private int monedasMaximas;
 	
-	public Jefe(String nombre, Posicion posicion, int vidaMax
-			, float velocidad, int daño, int monedasMinimas, int monedasMaximas) {
+	public Jefe(String nombre, Posicion posicion, int vidaMax,
+			float velocidad, int daño, int monedasMinimas, int monedasMaximas,
+			float anchoHitbox, float altoHitbox) {
 		
         super(nombre, posicion, vidaMax, velocidad, daño, monedasMinimas, monedasMaximas);
         
-        this.ataques = new ArrayList<Ataque>();
+        this.anchoHitbox = anchoHitbox;
+        this.altoHitbox = altoHitbox;
+        
         
         this.monedasMinimas = monedasMinimas;
         this.monedasMaximas = monedasMaximas;
@@ -25,32 +31,14 @@ public class Jefe extends Enemigo {
         
     }
 	
-	public void moverseDerecha() {
-	    getPosicion().moverX(8);
-	}
-	
-	public void moverseIzquierda() {
-	    getPosicion().moverX(-8);
-	}
-	
-	public void moverseArriba() {
-	    getPosicion().moverY(15);
-	}
-	
-	public void atacar(Entidad objetivo) {
-        objetivo.recibirDaño(getDaño());
+    public float getAnchoHitbox() {
+        return anchoHitbox;
     }
-	
-	public void agregarAtaque(Ataque ataque) {
-
-	    ataques.add(ataque);
-	}
 
 
-	public ArrayList<Ataque> getAtaques() {
-
-	    return ataques;
-	}
+    public float getAltoHitbox() {
+        return altoHitbox;
+    }
 	
 	public int generarMonedasDrop() {
 

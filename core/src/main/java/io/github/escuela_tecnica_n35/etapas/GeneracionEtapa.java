@@ -425,7 +425,34 @@ public class GeneracionEtapa {
         // "masLejana" contiene una de las salas que requiere
         // mayor cantidad de movimientos desde la inicial.
         if (masLejana != null) {
-            masLejana.setTipo(TipoSala.JEFE);
+
+            masLejana.setTipo(
+                TipoSala.JEFE
+            );
+
+
+            // PROVISIONAL:
+            // Primer jefe de prueba.
+            Jefe jefe =
+                new Jefe(
+                    "Jefe etapa",
+                    new Posicion(
+                        800,
+                        50
+                    ),
+                    300,    // vida
+                    80,     // velocidad
+                    20,     // daño
+                    15,     // monedas mínimas
+                    25,     // monedas máximas
+                    180f,   // ancho hitbox
+                    220f    // alto hitbox
+                );
+
+
+            masLejana.agregarEnemigo(
+                jefe
+            );
         }
     }
 
@@ -995,4 +1022,54 @@ public class GeneracionEtapa {
 	    	    );
 	    	}
 	}
+	
+	/*private void configurarSalasEnemigos(
+	        Sala[][] mapa) {
+
+	    Random random =
+	        new Random();
+
+
+	    for (int fila = 0;
+	            fila < mapa.length;
+	            fila++) {
+
+	        for (int columna = 0;
+	                columna < mapa[fila].length;
+	                columna++) {
+
+	            Sala sala =
+	                mapa[fila][columna];
+
+
+	            // Solo configuramos salas normales
+	            // destinadas al combate.
+	            if (sala == null ||
+	                sala.getTipo() != TipoSala.ENEMIGOS) {
+
+	                continue;
+	            }
+
+
+	            int molde =
+	                random.nextInt(3);
+
+
+	            switch (molde) {
+
+	                case 0:
+	                    aplicarMoldeEnemigos1(sala);
+	                    break;
+
+	                case 1:
+	                    aplicarMoldeEnemigos2(sala);
+	                    break;
+
+	                case 2:
+	                    aplicarMoldeEnemigos3(sala);
+	                    break;
+	            }
+	        }
+	    }
+	}*/
 }

@@ -3,6 +3,7 @@ package io.github.escuela_tecnica_n35.etapas;
 import java.util.ArrayList;
 
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
+import io.github.escuela_tecnica_n35.entidades.Proyectil;
 import io.github.escuela_tecnica_n35.entidades.Item;
 import io.github.escuela_tecnica_n35.entidades.OfertaTienda;
 
@@ -26,6 +27,8 @@ public class Sala {
     
     private ArrayList<OfertaTienda> ofertasTienda;
     
+    private ArrayList<Proyectil> proyectiles;
+    
     public Sala(int fila, int columna, TipoSala tipo) {
     	
         this.fila = fila;
@@ -42,6 +45,9 @@ public class Sala {
         
         this.ofertasTienda =
         	    new ArrayList<OfertaTienda>();
+        
+        this.proyectiles =
+        	    new ArrayList<Proyectil>();
     }
 
     public int getFila() {
@@ -151,5 +157,28 @@ public class Sala {
             OfertaTienda oferta) {
 
         ofertasTienda.remove(oferta);
+    }
+    
+    public void agregarProyectil(
+            Proyectil proyectil) {
+
+        proyectiles.add(
+            proyectil
+        );
+    }
+
+
+    public ArrayList<Proyectil> getProyectiles() {
+
+        return proyectiles;
+    }
+
+
+    public void eliminarProyectil(
+            Proyectil proyectil) {
+
+        proyectiles.remove(
+            proyectil
+        );
     }
 }

@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
+import io.github.escuela_tecnica_n35.entidades.Jefe;
 import io.github.escuela_tecnica_n35.entidades.Ataque;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.entidades.Item;
@@ -1874,16 +1875,38 @@ public class Main_game extends ApplicationAdapter {
 		// HITBOX DEL ENEMIGO
 		// --------------------------------------------------
 	
-		private Rectangle obtenerHitboxEnemigo(
-		        Enemigo enemigo) {
-	
-		    return new Rectangle(
-		        enemigo.getPosicion().getX(),
-		        enemigo.getPosicion().getY(),
-		        ANCHO_ENEMIGO,
-		        ALTO_ENEMIGO
-		    );
-		}
+	 	private Rectangle obtenerHitboxEnemigo(
+	 	        Enemigo enemigo) {
+
+	 	    float ancho =
+	 	        ANCHO_ENEMIGO;
+
+	 	    float alto =
+	 	        ALTO_ENEMIGO;
+
+
+	 	    // Los jefes pueden tener un tamaño
+	 	    // diferente al enemigo común.
+	 	    if (enemigo instanceof Jefe) {
+
+	 	        Jefe jefe =
+	 	            (Jefe) enemigo;
+
+	 	        ancho =
+	 	            jefe.getAnchoHitbox();
+
+	 	        alto =
+	 	            jefe.getAltoHitbox();
+	 	    }
+
+
+	 	    return new Rectangle(
+	 	        enemigo.getPosicion().getX(),
+	 	        enemigo.getPosicion().getY(),
+	 	        ancho,
+	 	        alto
+	 	    );
+	 	}
 		
 		// --------------------------------------------------
 		// HITBOX DEL ITEM
@@ -2612,15 +2635,20 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    for (Enemigo enemigo :
-		            salaActual.getEnemigos()) {
+		        salaActual.getEnemigos()) {
 
-		        shapeRenderer.rect(
-		            enemigo.getPosicion().getX(),
-		            enemigo.getPosicion().getY(),
-		            ANCHO_ENEMIGO,
-		            ALTO_ENEMIGO
-		        );
-		    }
+			    Rectangle hitbox =
+			        obtenerHitboxEnemigo(
+			            enemigo
+			        );
+	
+			    shapeRenderer.rect(
+			        hitbox.x,
+			        hitbox.y,
+			        hitbox.width,
+			        hitbox.height
+			    );
+			}
 
 
 		    shapeRenderer.end();
@@ -2905,6 +2933,12 @@ public class Main_game extends ApplicationAdapter {
 		        if (!enemigo.estaVivo()) {
 		            continue;
 		        }
+		        
+		        
+		        if (enemigo instanceof Jefe) {
+		            continue;
+		        }
+		        
 
 
 		        Rectangle hitboxJugador =

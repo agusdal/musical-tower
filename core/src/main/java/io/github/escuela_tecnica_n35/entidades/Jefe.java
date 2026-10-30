@@ -14,6 +14,8 @@ public class Jefe extends Enemigo {
 	
 	private boolean velocidadAumentada;
 	
+	private Ataque ataqueDistancia;
+	
 	public Jefe(String nombre, Posicion posicion, int vidaMax,
 			float velocidad, int daño, int monedasMinimas, int monedasMaximas,
 			float anchoHitbox, float altoHitbox) {
@@ -28,6 +30,33 @@ public class Jefe extends Enemigo {
         this.monedasMaximas = monedasMaximas;
         
         this.velocidadAumentada = false;
+        
+	    // --------------------------------------------------
+	    // ATAQUE A DISTANCIA
+	    // --------------------------------------------------
+	
+	    // PROVISIONAL:
+	    // Este ataque se utilizará para crear proyectiles.
+	    this.ataqueDistancia =
+	        new Ataque(
+	            "Disparo del jefe",
+	            15,     // daño
+	            30f,    // ancho del proyectil
+	            30f,    // alto del proyectil
+	            2f      // cooldown entre disparos
+	        );
+	
+	
+	    // Lo agregamos a la lista heredada de Entidad
+	    // para que actualizarCooldowns() también lo actualice.
+	    agregarAtaque(
+	        ataqueDistancia
+	    );
+	
+	
+	     // Evitamos que dispare instantáneamente
+	     // apenas entramos a la sala.
+	     ataqueDistancia.iniciarCooldown();
         
     }
 	
@@ -62,6 +91,11 @@ public class Jefe extends Enemigo {
 	        // Aumentamos la velocidad un 50%
 	        setVelocidad(getVelocidad() + (getVelocidad() / 2f));
 	    }
+	}
+	
+	public Ataque getAtaqueDistancia() {
+
+	    return ataqueDistancia;
 	}
 	
 }

@@ -10,6 +10,7 @@ import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
 import io.github.escuela_tecnica_n35.entidades.Jefe;
 import io.github.escuela_tecnica_n35.entidades.Ataque;
+import io.github.escuela_tecnica_n35.entidades.Proyectil;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.entidades.Item;
 import io.github.escuela_tecnica_n35.etapas.Plataforma;
@@ -296,7 +297,7 @@ public class Main_game extends ApplicationAdapter {
 	        100,    // Velocidad
 	        10,     // Daño
 	        1,      // Monedas mínimas
-	        300       // Monedas máximas
+	        50      // Monedas máximas
 	    );
 	
 	
@@ -713,6 +714,18 @@ public class Main_game extends ApplicationAdapter {
 		 // --------- ACTUALIZA EL MOVIMIENTO CADA FRAME ----------
 		 
 		 actualizarMovimientoEnemigos(delta);
+		 
+		 // --------------------------------------------------
+		 // JEFE Y PROYECTILES
+		 // --------------------------------------------------
+
+		 actualizarAtaqueJefe();
+
+		 actualizarProyectiles(
+		     delta
+		 );
+
+		 dibujarProyectiles();
 	     
 	     // --------------------------------------------------
 	     // DIBUJAMOS EL PERSONAJE ANIMADO
@@ -1762,6 +1775,21 @@ public class Main_game extends ApplicationAdapter {
 		        ataque.getAlto()
 		    );
 		}
+		 
+		// --------------------------------------------------
+		// HITBOX DEL PROYECTIL
+		// --------------------------------------------------
+	
+		private Rectangle obtenerHitboxProyectil(
+		        Proyectil proyectil) {
+	
+		    return new Rectangle(
+		        proyectil.getPosicion().getX(),
+		        proyectil.getPosicion().getY(),
+		        proyectil.getAncho(),
+		        proyectil.getAlto()
+		    );
+		}
 	 
 	 	private void intentarAtaqueEnemigo(
 		        Enemigo enemigo) {
@@ -1843,6 +1871,118 @@ public class Main_game extends ApplicationAdapter {
 		        );
 		    }
 		}
+	 	
+		// --------------------------------------------------
+		// ATAQUE A DISTANCIA DEL JEFE
+		// --------------------------------------------------
+	
+		private void actualizarAtaqueJefe() {
+	
+		    Sala salaActual =
+		        juego.getSalaActual();
+	
+	
+		    // Solo buscamos un jefe si estamos
+		    // realmente dentro de una sala JEFE.
+		    if (salaActual.getTipo() != TipoSala.JEFE) {
+		        return;
+		    }
+	
+	
+		    for (Enemigo enemigo :
+		            salaActual.getEnemigos()) {
+	
+		        if (!(enemigo instanceof Jefe)) {
+		            continue;
+		        }
+	
+	
+		        Jefe jefe =
+		            (Jefe) enemigo;
+	
+	
+		        if (!jefe.estaVivo()) {
+		            continue;
+		        }
+	
+	
+		        Ataque ataque =
+		            jefe.getAtaqueDistancia();
+	
+	
+		        // Todavía está esperando su cooldown.
+		        if (!ataque.estaDisponible()) {
+		            continue;
+		        }
+	
+	
+		        // --------------------------------------------------
+		        // POSICIÓN DEL JEFE
+		        // --------------------------------------------------
+	
+		        Rectangle hitboxJefe =
+		            obtenerHitboxEnemigo(
+		                jefe
+		            );
+	
+	
+		        // El disparo nace aproximadamente
+		        // desde el centro del jefe.
+		        float origenX =
+		            hitboxJefe.x
+		            + hitboxJefe.width / 2f
+		            - ataque.getAncho() / 2f;
+	
+		        float origenY =
+		            hitboxJefe.y
+		            + hitboxJefe.height / 2f
+		            - ataque.getAlto() / 2f;
+		
+		        // --------------------------------------------------
+		        // POSICIÓN DEL JUGADOR
+		        // --------------------------------------------------
+	
+		        Rectangle hitboxJugador =
+		            obtenerHitboxJugador();
+	
+	
+		        float objetivoX =
+		            hitboxJugador.x
+		            + hitboxJugador.width / 2f;
+	
+		        float objetivoY =
+		            hitboxJugador.y
+		            + hitboxJugador.height / 2f;
+	
+	
+		        // --------------------------------------------------
+		        // CREAMOS EL PROYECTIL
+		        // --------------------------------------------------
+	
+		        Proyectil proyectil =
+		            new Proyectil(
+		                new Posicion(
+		                    origenX,
+		                    origenY
+		                ),
+		                objetivoX,
+		                objetivoY,
+		                300f,               // velocidad PROVISIONAL
+		                ataque.getDaño(),
+		                ataque.getAncho(),
+		                ataque.getAlto()
+		            );
+	
+	
+		        salaActual.agregarProyectil(
+		            proyectil
+		        );
+	
+	
+		        // Comienza la espera para el siguiente disparo.
+		        ataque.iniciarCooldown();
+		     }
+		 }
 		 
 		// --------------------------------------------------
 		// HITBOX DEL CUERPO DEL JUGADOR
@@ -2832,90 +2972,138 @@ public class Main_game extends ApplicationAdapter {
 
 		    shapeRenderer.end();
 		}
-	 
-	 private boolean jugadorTocaEnemigo(
-		        Enemigo enemigo) {
-
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
-
-		    Rectangle hitboxEnemigo =
-		        obtenerHitboxEnemigo(enemigo);
-
-
-		    return hitboxJugador.overlaps(
-		        hitboxEnemigo
-		    );
-		}
-	 
-	 private void comprobarDañoEnemigos(
-		        float delta) {
-
-		    // Reducimos el tiempo de invulnerabilidad.
-		    if (tiempoInvulnerable > 0) {
-
-		        tiempoInvulnerable -= delta;
-		    }
-
-
-		    // Si todavía somos invulnerables,
-		    // no recibimos otro golpe.
-		    if (tiempoInvulnerable > 0) {
-
-		        return;
-		    }
-
-
+		 
+		// --------------------------------------------------
+		// DIBUJAR PROYECTILES
+		// --------------------------------------------------
+	
+		private void dibujarProyectiles() {
+	
 		    Sala salaActual =
 		        juego.getSalaActual();
-
-
-		    for (Enemigo enemigo :
-		            salaActual.getEnemigos()) {
-
-		        if (jugadorTocaEnemigo(enemigo)) {
-
-		            // El enemigo daña al jugador.
-		            jugador.recibirDaño(
-		                enemigo.getDaño()
-		            );
-		            
-			         // Si la vida llegó a 0,
-			         // activamos el Game Over.
-			         if (!jugador.estaVivo()) {
 	
-			             gameOver = true;
 	
-			             System.out.println("GAME OVER");
-			         }
-
-
-		            System.out.println(
-		                "El jugador recibió "
-		                + enemigo.getDaño()
-		                + " de daño."
-		            );
-
-
-		            System.out.println(
-		                "Vida jugador: "
-		                + jugador.getVidaActual()
-		                + "/"
-		                + jugador.getVidaMax()
-		            );
-
-
-		            // Comienza la invulnerabilidad.
-		            tiempoInvulnerable =
-		                duracionInvulnerabilidad;
-
-
-		            // Solamente permitimos un golpe
-		            // en este frame.
-		            break;
-		        }
+		    if (salaActual.getProyectiles().isEmpty()) {
+		        return;
 		    }
-	 }
+	
+	
+		    shapeRenderer.begin(
+		        ShapeRenderer.ShapeType.Filled
+		    );
+	
+	
+		    // PROVISIONAL:
+		    // solo para distinguir visualmente los proyectiles.
+		    shapeRenderer.setColor(
+		        Color.ORANGE
+		    );
+	
+	
+		    for (Proyectil proyectil :
+		            salaActual.getProyectiles()) {
+	
+		        Rectangle hitbox =
+		            obtenerHitboxProyectil(
+		                proyectil
+		            );
+	
+	
+		        shapeRenderer.rect(
+		            hitbox.x,
+		            hitbox.y,
+		            hitbox.width,
+		            hitbox.height
+		        );
+		    }
+	
+	
+		    shapeRenderer.end();
+		}
+		 
+		 private boolean jugadorTocaEnemigo(
+			        Enemigo enemigo) {
+	
+			    Rectangle hitboxJugador =
+			        obtenerHitboxJugador();
+	
+			    Rectangle hitboxEnemigo =
+			        obtenerHitboxEnemigo(enemigo);
+	
+	
+			    return hitboxJugador.overlaps(
+			        hitboxEnemigo
+			    );
+			}
+		 
+		 private void comprobarDañoEnemigos(
+			        float delta) {
+	
+			    // Reducimos el tiempo de invulnerabilidad.
+			    if (tiempoInvulnerable > 0) {
+	
+			        tiempoInvulnerable -= delta;
+			    }
+	
+	
+			    // Si todavía somos invulnerables,
+			    // no recibimos otro golpe.
+			    if (tiempoInvulnerable > 0) {
+	
+			        return;
+			    }
+	
+	
+			    Sala salaActual =
+			        juego.getSalaActual();
+	
+	
+			    for (Enemigo enemigo :
+			            salaActual.getEnemigos()) {
+	
+			        if (jugadorTocaEnemigo(enemigo)) {
+	
+			            // El enemigo daña al jugador.
+			            jugador.recibirDaño(
+			                enemigo.getDaño()
+			            );
+			            
+				         // Si la vida llegó a 0,
+				         // activamos el Game Over.
+				         if (!jugador.estaVivo()) {
+		
+				             gameOver = true;
+		
+				             System.out.println("GAME OVER");
+				         }
+	
+	
+			            System.out.println(
+			                "El jugador recibió "
+			                + enemigo.getDaño()
+			                + " de daño."
+			            );
+	
+	
+			            System.out.println(
+			                "Vida jugador: "
+			                + jugador.getVidaActual()
+			                + "/"
+			                + jugador.getVidaMax()
+			            );
+	
+	
+			            // Comienza la invulnerabilidad.
+			            tiempoInvulnerable =
+			                duracionInvulnerabilidad;
+	
+	
+			            // Solamente permitimos un golpe
+			            // en este frame.
+			            break;
+			        }
+			    }
+		 }
 	 
 	 private void actualizarMovimientoEnemigos(float delta) {
 
@@ -3096,6 +3284,122 @@ public class Main_game extends ApplicationAdapter {
 		                }
 
 		                break;
+		        }
+		    }
+		}
+		 
+		// --------------------------------------------------
+		// ACTUALIZACIÓN DE PROYECTILES
+		// --------------------------------------------------
+	
+		private void actualizarProyectiles(
+		        float delta) {
+	
+		    Sala salaActual =
+		        juego.getSalaActual();
+	
+	
+		    ArrayList<Proyectil> proyectiles =
+		        salaActual.getProyectiles();
+	
+	
+		    // Recorremos desde el final porque podemos
+		    // eliminar proyectiles durante el recorrido.
+		    for (int i = proyectiles.size() - 1;
+		            i >= 0;
+		            i--) {
+	
+		        Proyectil proyectil =
+		            proyectiles.get(i);
+	
+	
+		        // --------------------------------------------------
+		        // MOVIMIENTO
+		        // --------------------------------------------------
+	
+		        proyectil.actualizar(
+		            delta
+		        );
+	
+	
+		        Rectangle hitboxProyectil =
+		            obtenerHitboxProyectil(
+		                proyectil
+		            );
+	
+	
+		        // --------------------------------------------------
+		        // FUERA DE LA HABITACIÓN
+		        // --------------------------------------------------
+	
+		        boolean fueraDePantalla =
+		            hitboxProyectil.x + hitboxProyectil.width < 0
+		            || hitboxProyectil.x > ANCHO_MUNDO
+		            || hitboxProyectil.y + hitboxProyectil.height < 0
+		            || hitboxProyectil.y > ALTO_MUNDO;
+	
+	
+		        if (fueraDePantalla ||
+		                !proyectil.estaActivo()) {
+	
+		            proyectiles.remove(i);
+	
+		            continue;
+		        }
+	
+	
+		        // --------------------------------------------------
+		        // COLISIÓN CON EL JUGADOR
+		        // --------------------------------------------------
+	
+		        Rectangle hitboxJugador =
+		            obtenerHitboxJugador();
+	
+	
+		        if (!hitboxProyectil.overlaps(
+		                hitboxJugador)) {
+	
+		            continue;
+		        }
+	
+	
+		        // El proyectil desaparece al tocar al jugador,
+		        // incluso si está momentáneamente invulnerable.
+		        proyectil.destruir();
+	
+		        proyectiles.remove(i);
+	
+	
+		        // El jugador todavía está en sus frames
+		        // de invulnerabilidad.
+		        if (tiempoInvulnerable > 0) {
+		            continue;
+		        }
+	
+	
+		        jugador.recibirDaño(
+		            proyectil.getDaño()
+		        );
+	
+	
+		        tiempoInvulnerable =
+		            duracionInvulnerabilidad;
+	
+	
+		        System.out.println(
+		            "El proyectil del jefe hizo "
+		            + proyectil.getDaño()
+		            + " de daño."
+		        );
+	
+	
+		        if (!jugador.estaVivo()) {
+	
+		            gameOver = true;
+	
+		            System.out.println(
+		                "GAME OVER"
+		            );
 		        }
 		    }
 		}

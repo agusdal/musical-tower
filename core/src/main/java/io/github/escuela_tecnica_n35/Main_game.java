@@ -21,6 +21,7 @@ import io.github.escuela_tecnica_n35.juego.Juego;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Ellipse;
 import com.badlogic.gdx.graphics.GL20;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont; // IMPORTA MAPA
@@ -98,7 +99,7 @@ public class Main_game extends ApplicationAdapter {
 	private int saltosDisponibles;
 	
 	// Gravedad extra que se aplica cuando
-	// soltamos el botón antes de llegar al punto máximo.
+	// soltamos el botÃ³n antes de llegar al punto mÃ¡ximo.
 	private float gravedadSaltoCorto;
 	
 	
@@ -126,7 +127,7 @@ public class Main_game extends ApplicationAdapter {
     
     private ShapeRenderer shapeRenderer;
 
-	// Tamaño temporal del personaje.
+	// TamaÃ±o temporal del personaje.
 	private static final float ANCHO_JUGADOR = 80;
 	private static final float ALTO_JUGADOR = 80;
 	
@@ -136,17 +137,27 @@ public class Main_game extends ApplicationAdapter {
 
 	// PROVISIONAL:
 	// La imagen ocupa 80 px de ancho,
-	// pero el cuerpo real es bastante más angosto.
+	// pero el cuerpo real es bastante mÃ¡s angosto.
 	private static final float ANCHO_HITBOX_JUGADOR = 80f;
 
 	private static final float ALTO_HITBOX_JUGADOR = 150f;
 	
+	// --------------------------------------------------
+	// HURTBOX DEL JUGADOR
+	// --------------------------------------------------
+
+	// PROVISIONAL:
+	// Zona real en la que los ataques enemigos
+	// pueden hacerle daño al jugador.
+	private static final float ANCHO_HURTBOX_JUGADOR = 60f;
+	private static final float ALTO_HURTBOX_JUGADOR = 130f;
+	
 	 
-	// Tamaño temporal del enemigoPrueba.
+	// TamaÃ±o temporal del enemigoPrueba.
 	private static final float ANCHO_ENEMIGO = 80f;
 	private static final float ALTO_ENEMIGO = 120f;
 
-	// Alcance horizontal del ataque básico del jugador.
+	// Alcance horizontal del ataque bÃ¡sico del jugador.
 	private static final float ALCANCE_ATAQUE_JUGADOR = 130f;
 
 	// Altura de la zona de ataque.
@@ -156,7 +167,7 @@ public class Main_game extends ApplicationAdapter {
 	// POGO
 	// --------------------------------------------------
 
-	// Tamaño provisional de la hitbox hacia abajo.
+	// TamaÃ±o provisional de la hitbox hacia abajo.
 	private static final float ANCHO_POGO_JUGADOR = 100f;
 	private static final float ALTO_POGO_JUGADOR = 80f;
 
@@ -170,7 +181,7 @@ public class Main_game extends ApplicationAdapter {
 	// HITBOX VISUAL DEL ATAQUE - DEBUG
 	// --------------------------------------------------
 	 
-	// Guarda temporalmente dónde estuvo el último ataque.
+	// Guarda temporalmente dÃ³nde estuvo el Ãºltimo ataque.
 	private Rectangle hitboxAtaqueDebug;
 	 
 	// Tiempo durante el cual la mostramos en pantalla.
@@ -184,8 +195,8 @@ public class Main_game extends ApplicationAdapter {
 	private Rectangle puertaArriba;
 	private Rectangle puertaAbajo;
 	
-	// Evita que al entrar a una habitación
-	// volvamos instantáneamente a la anterior.
+	// Evita que al entrar a una habitaciÃ³n
+	// volvamos instantÃ¡neamente a la anterior.
 	private boolean transicionBloqueada;
     
     @Override
@@ -223,14 +234,14 @@ public class Main_game extends ApplicationAdapter {
         tiempoInvulnerable = 0;
 
 	    // PROVISIONAL:
-	    // después podemos ajustarlo.
+	    // despuÃ©s podemos ajustarlo.
 	    duracionInvulnerabilidad = 0.7f;
         
         juego = new Juego(jugador);
         juego.iniciarJuego();
         
         font = new BitmapFont();
-        font.getData().setScale(1.2f); // Hace el texto del mapa un poco más grande
+        font.getData().setScale(1.2f); // Hace el texto del mapa un poco mÃ¡s grande
         
         layout = new GlyphLayout();
         
@@ -238,7 +249,7 @@ public class Main_game extends ApplicationAdapter {
         shapeRenderer = new ShapeRenderer();
         
 	     // --------------------------------------------------
-	     // CÁMARA Y RESOLUCIÓN VIRTUAL
+	     // CÃ�MARA Y RESOLUCIÃ“N VIRTUAL
 	     // --------------------------------------------------
 	
 	     camara = new OrthographicCamera();
@@ -249,7 +260,7 @@ public class Main_game extends ApplicationAdapter {
 	         camara
 	     );
 	
-	     // Centramos la cámara en nuestro mundo.
+	     // Centramos la cÃ¡mara en nuestro mundo.
 	     camara.position.set(
 	         ANCHO_MUNDO / 2,
 	         ALTO_MUNDO / 2,
@@ -262,7 +273,7 @@ public class Main_game extends ApplicationAdapter {
 	     shapeRenderer.setProjectionMatrix(camara.combined);
 	     
 	     // --------------------------------------------------
-	     // CÁMARA Y RESOLUCIÓN VIRTUAL
+	     // CÃ�MARA Y RESOLUCIÃ“N VIRTUAL
 	     // --------------------------------------------------
 
         puertaIzquierda = new Rectangle(); // Cracion de la puerta izquierda
@@ -278,7 +289,7 @@ public class Main_game extends ApplicationAdapter {
         
         velocidadX = 0;
 
-        // Cuánto pierde de velocidad horizontal por segundo por cada golpe conectado.
+        // CuÃ¡nto pierde de velocidad horizontal por segundo por cada golpe conectado.
         desaceleracionX = 1800f;
      
         aceleracionCaidaRapida = 1400;
@@ -293,11 +304,11 @@ public class Main_game extends ApplicationAdapter {
 	    Enemigo enemigoPrueba = new Enemigo(
 	        "Enemigo prueba",
 	        new Posicion(800, pisoY),
-	        30,     // Vida máxima
+	        30,     // Vida mÃ¡xima
 	        100,    // Velocidad
-	        10,     // Daño
-	        1,      // Monedas mínimas
-	        50      // Monedas máximas
+	        10,     // DaÃ±o
+	        1,      // Monedas mÃ­nimas
+	        50      // Monedas mÃ¡ximas
 	    );
 	
 	
@@ -317,8 +328,8 @@ public class Main_game extends ApplicationAdapter {
 	    saltosDisponibles = 2;
 	
 	    // PROVISIONAL:
-	    // Hace que al soltar el botón durante la subida,
-	    // el personaje pierda velocidad vertical rápidamente.
+	    // Hace que al soltar el botÃ³n durante la subida,
+	    // el personaje pierda velocidad vertical rÃ¡pidamente.
 	    gravedadSaltoCorto = -1600;
 	    
 	    // -----------------------------------------
@@ -340,8 +351,8 @@ public class Main_game extends ApplicationAdapter {
 	    tiempoCooldownDash = 0;
 	
 	    // PROVISIONALES:
-	    // Después podemos ajustar estos valores
-	    // según cómo se sienta el movimiento.
+	    // DespuÃ©s podemos ajustar estos valores
+	    // segÃºn cÃ³mo se sienta el movimiento.
 	    velocidadDash = 900;
 	    duracionDash = 0.15f;
 	    cooldownDash = 0.45f;
@@ -360,7 +371,7 @@ public class Main_game extends ApplicationAdapter {
         
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
         
-        // Aplicamos la resolución virtual.
+        // Aplicamos la resoluciÃ³n virtual.
         viewport.apply();
 
         camara.update();
@@ -390,7 +401,7 @@ public class Main_game extends ApplicationAdapter {
 	        }
 	        
 	        // MUY IMPORTANTE:
-	        // terminamos este frame acá.
+	        // terminamos este frame acÃ¡.
 	        //
 	        // De esta manera, mientras estamos en Game Over,
 	        // no se ejecutan movimiento, salto, dash, ataques,
@@ -411,7 +422,7 @@ public class Main_game extends ApplicationAdapter {
 	    }
 	    
 		// Intentamos iniciar el dash.
-		// El propio método comprobará si está permitido.
+		// El propio mÃ©todo comprobarÃ¡ si estÃ¡ permitido.
 		if (botonDashRecienPresionado()) {
 	
 		    iniciarDash();
@@ -428,7 +439,7 @@ public class Main_game extends ApplicationAdapter {
 	
 	    if (haciendoDash) {
 	
-	        // Durante el dash ignoramos momentáneamente
+	        // Durante el dash ignoramos momentÃ¡neamente
 	        // la velocidad normal del jugador.
 	        jugador.getPosicion().moverX(
 	            velocidadDash
@@ -439,7 +450,7 @@ public class Main_game extends ApplicationAdapter {
 	        seMueve = true;
 	
 	
-	        // Actualizamos hacia dónde mira.
+	        // Actualizamos hacia dÃ³nde mira.
 	        if (direccionDash == -1) {
 	            mirandoIzquierda = true;
 	        }
@@ -506,7 +517,7 @@ public class Main_game extends ApplicationAdapter {
 	
 		        velocidadX -= desaceleracionX * delta;
 	
-		        // Evitamos que al frenar termine yéndose
+		        // Evitamos que al frenar termine yÃ©ndose
 		        // accidentalmente hacia el lado contrario.
 		        if (velocidadX < 0) {
 	
@@ -527,7 +538,7 @@ public class Main_game extends ApplicationAdapter {
 		}
 		
 		
-		// Corregimos una posible colisión
+		// Corregimos una posible colisiÃ³n
 		// horizontal con las plataformas.
 		comprobarColisionHorizontalPlataformas(
 		    hitboxJugadorAntesX
@@ -555,7 +566,7 @@ public class Main_game extends ApplicationAdapter {
 	    
 	    float velocidadActualY = velocidadY;
 	    
-		// Indica si el jugador está apoyado
+		// Indica si el jugador estÃ¡ apoyado
 		// sobre el piso o sobre una plataforma.
 		boolean enElPiso = false;
 	    
@@ -565,20 +576,20 @@ public class Main_game extends ApplicationAdapter {
 	    	Rectangle hitboxJugadorAnterior =
 				    obtenerHitboxJugador();
 	    	
-			// Si todavía estamos subiendo...
+			// Si todavÃ­a estamos subiendo...
 			if (velocidadY > 0
-			        // ...pero el jugador ya soltó Z/UP...
+			        // ...pero el jugador ya soltÃ³ Z/UP...
 			        && !botonSaltoPresionado()) {
 				
 		
 			    // ...aplicamos gravedad adicional.
 			    //
 			    // Esto corta antes la subida y genera
-			    // un salto más bajo.
+			    // un salto mÃ¡s bajo.
 			    velocidadY += gravedadSaltoCorto * delta;
 			}
 			
-	        // CAÍDA RÁPIDA
+	        // CAÃ�DA RÃ�PIDA
 	        /*if (Gdx.input.isKeyPressed(Input.Keys.DOWN) && jugador.getPosicion().getY() > pisoY) {
 	            velocidadY -= aceleracionCaidaRapida * delta;
 	        }*/
@@ -631,7 +642,7 @@ public class Main_game extends ApplicationAdapter {
 	
 	
 		 // Si estamos apoyados en piso O plataforma,
-		 // recuperamos las capacidades aéreas.
+		 // recuperamos las capacidades aÃ©reas.
 		 if (enElPiso) {
 	
 		     saltosDisponibles = 2;
@@ -664,7 +675,7 @@ public class Main_game extends ApplicationAdapter {
 	
 	
 	     // --------------------------------------------------
-	     // LIMITAMOS AL JUGADOR A LA HABITACIÓN
+	     // LIMITAMOS AL JUGADOR A LA HABITACIÃ“N
 	     // --------------------------------------------------
 	
 	     limitarJugadorAHabitacion();
@@ -678,16 +689,16 @@ public class Main_game extends ApplicationAdapter {
 	
 	
 	     // --------------------------------------------------
-	     // DIBUJAMOS LA HABITACIÓN PRIMERO
+	     // DIBUJAMOS LA HABITACIÃ“N PRIMERO
 	     // --------------------------------------------------
 	
 	     dibujarHabitacion();
 	     
-	     // DIBUJAMOS TODOS LOS ENEMIGOS DE LA HABITACIÓN ACTUAL
+	     // DIBUJAMOS TODOS LOS ENEMIGOS DE LA HABITACIÃ“N ACTUAL
 	     
 	     dibujarEnemigos();
 	     
-	     // DIBUJAMOS EL ITEM DE LA HABITACIÒN
+	     // DIBUJAMOS EL ITEM DE LA HABITACIÃ’N
 
 	     dibujarItems();
 	     
@@ -706,7 +717,7 @@ public class Main_game extends ApplicationAdapter {
 	     
 	     
 		 // --------------------------------------------------
-		 // DAÑO DE LOS ENEMIGOS
+		 // DAÃ‘O DE LOS ENEMIGOS
 		 // --------------------------------------------------
 	
 		 comprobarDañoEnemigos(delta);
@@ -789,7 +800,7 @@ public class Main_game extends ApplicationAdapter {
         // COMPROBACIONES
         // --------------------------------------------------
 
-        // Si todavía está en cooldown,
+        // Si todavÃ­a estÃ¡ en cooldown,
         // no podemos hacer otro dash.
         if (tiempoCooldownDash > 0) {
             return;
@@ -808,14 +819,14 @@ public class Main_game extends ApplicationAdapter {
 
 
         // Si estamos en el aire y ya usamos
-        // nuestro único dash aéreo, no hacemos nada.
+        // nuestro Ãºnico dash aÃ©reo, no hacemos nada.
         if (estaEnElAire && dashDisponibleAire <= 0) {
             return;
         }
 
 
         // --------------------------------------------------
-        // DIRECCIÓN DEL DASH
+        // DIRECCIÃ“N DEL DASH
         // --------------------------------------------------
 
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
@@ -854,10 +865,10 @@ public class Main_game extends ApplicationAdapter {
 
 
         // --------------------------------------------------
-        // CONSUMIMOS EL DASH AÉREO
+        // CONSUMIMOS EL DASH AÃ‰REO
         // --------------------------------------------------
 
-        // Solamente gastamos el dash aéreo
+        // Solamente gastamos el dash aÃ©reo
         // si realmente estamos en el aire.
         if (estaEnElAire) {
 
@@ -865,13 +876,13 @@ public class Main_game extends ApplicationAdapter {
         }
     }
     
-    // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
+    // ---------------------------------------- TAMAÃ‘O PANTALLA -----------------------------------------------
     
     @Override
     public void resize(int width, int height) {
 
         // Adapta nuestro mundo 1280x720
-        // al tamaño real de la ventana.
+        // al tamaÃ±o real de la ventana.
         viewport.update(
             width,
             height,
@@ -879,7 +890,7 @@ public class Main_game extends ApplicationAdapter {
         );
     }
     
-    // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
+    // ---------------------------------------- TAMAÃ‘O PANTALLA -----------------------------------------------
     
     // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
     
@@ -916,13 +927,13 @@ public class Main_game extends ApplicationAdapter {
         String nombreEtapa =
             juego.getEtapaActual().getNombre();
 
-        // Calculamos cuánto ocupa el texto.
+        // Calculamos cuÃ¡nto ocupa el texto.
         layout.setText(
             font,
             nombreEtapa
         );
 
-        // Calculamos la posición X necesaria
+        // Calculamos la posiciÃ³n X necesaria
         // para que quede perfectamente centrado.
         float posicionX =
             (ANCHO_MUNDO - layout.width) / 2;
@@ -991,11 +1002,11 @@ public class Main_game extends ApplicationAdapter {
     
     private void dibujarMonedas() {
 
-        // Posición del icono, debajo de la barra de vida.
+        // PosiciÃ³n del icono, debajo de la barra de vida.
         float monedaX = 20;
         float monedaY = ALTO_MUNDO - 80;
 
-        // Tamaño visual de la moneda en el HUD.
+        // TamaÃ±o visual de la moneda en el HUD.
         float tamañoMoneda = 40;
 
 
@@ -1061,7 +1072,7 @@ public class Main_game extends ApplicationAdapter {
                         inicioY - (fila + 1) * (tamañoCelda + separacion);
 
                     // Si es la sala actual del jugador,
-                    // la pintamos blanca para destacar su posición.
+                    // la pintamos blanca para destacar su posiciÃ³n.
                     if (sala == salaActual) {
                         shapeRenderer.setColor(Color.WHITE);
                     } else {
@@ -1120,7 +1131,7 @@ public class Main_game extends ApplicationAdapter {
 
         batch.begin();
 
-        // Vida numérica
+        // Vida numÃ©rica
         font.draw(
             batch,
             "Vida: " + jugador.getVidaActual() + "/" + jugador.getVidaMax(),
@@ -1136,7 +1147,7 @@ public class Main_game extends ApplicationAdapter {
             ALTO_MUNDO - 95
         );
 
-        // Posición en el mapa
+        // PosiciÃ³n en el mapa
         font.draw(
             batch,
             "Posicion: [" + salaActual.getFila() + "][" + salaActual.getColumna() + "]",
@@ -1144,7 +1155,7 @@ public class Main_game extends ApplicationAdapter {
             ALTO_MUNDO - 125
         );
 
-        // Título del minimapa
+        // TÃ­tulo del minimapa
         font.draw(
             batch,
             "Mapa",
@@ -1253,7 +1264,7 @@ public class Main_game extends ApplicationAdapter {
 	 // Comprueba solamente las puertas laterales.
 	 //
 	 // Se usa para evitar que al entrar por una puerta lateral
-	 // el jugador vuelva instantáneamente a la sala anterior.
+	 // el jugador vuelva instantÃ¡neamente a la sala anterior.
 	 private boolean estaEnPuertaLateralActiva() {
 
 	     // Puerta izquierda
@@ -1281,7 +1292,7 @@ public class Main_game extends ApplicationAdapter {
 
 		    // Si acabamos de cambiar por izquierda o derecha,
 		    // esperamos a que el jugador se aleje de esa puerta
-		    // antes de permitir otra transición lateral.
+		    // antes de permitir otra transiciÃ³n lateral.
 		    if (transicionBloqueada) {
 
 		        if (!estaEnPuertaLateralActiva()) {
@@ -1317,7 +1328,7 @@ public class Main_game extends ApplicationAdapter {
 
 		    // --------------------------------------------------
 		    // DERECHA
-		    // También funciona por contacto.
+		    // TambiÃ©n funciona por contacto.
 		    // --------------------------------------------------
 
 		    if (juego.haySalaEnDireccion(0, 1)
@@ -1391,7 +1402,7 @@ public class Main_game extends ApplicationAdapter {
 		    // --------------------------------------------------
 		    // SALIMOS POR IZQUIERDA
 		    //
-		    // Entramos a la siguiente habitación
+		    // Entramos a la siguiente habitaciÃ³n
 		    // desde su puerta DERECHA.
 		    // --------------------------------------------------
 
@@ -1449,10 +1460,10 @@ public class Main_game extends ApplicationAdapter {
 		    }
 
 
-		    // Por ahora todas las puertas están al nivel del piso.
+		    // Por ahora todas las puertas estÃ¡n al nivel del piso.
 		    jugador.getPosicion().setY(pisoY);
 
-		    // Cancelamos cualquier salto o caída
+		    // Cancelamos cualquier salto o caÃ­da
 		    // que tuviera el personaje.
 		    velocidadY = 0;
 	 }
@@ -1466,14 +1477,14 @@ public class Main_game extends ApplicationAdapter {
 		        anchoPantalla - ANCHO_JUGADOR;
 
 
-		    // Límite izquierdo
+		    // LÃ­mite izquierdo
 		    if (jugador.getPosicion().getX() < 0) {
 
 		        jugador.getPosicion().setX(0);
 		    }
 
 
-		    // Límite derecho
+		    // LÃ­mite derecho
 		    if (jugador.getPosicion().getX() > maximoX) {
 
 		        jugador.getPosicion().setX(maximoX);
@@ -1497,7 +1508,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // --------------------------------------------------
-		    // CONTORNO TEMPORAL DE LA HABITACIÓN
+		    // CONTORNO TEMPORAL DE LA HABITACIÃ“N
 		    // --------------------------------------------------
 
 		    shapeRenderer.rect(
@@ -1592,7 +1603,7 @@ public class Main_game extends ApplicationAdapter {
 		        puerta.y + puerta.height - 25;
 
 
-		    // Línea vertical
+		    // LÃ­nea vertical
 		    shapeRenderer.line(
 		        centroX,
 		        abajo,
@@ -1632,7 +1643,7 @@ public class Main_game extends ApplicationAdapter {
 		        puerta.y + 25;
 
 
-		    // Línea vertical
+		    // LÃ­nea vertical
 		    shapeRenderer.line(
 		        centroX,
 		        arriba,
@@ -1798,7 +1809,7 @@ public class Main_game extends ApplicationAdapter {
 		        enemigo.getAtaqueNormal();
 
 
-		    // Si todavía está en cooldown,
+		    // Si todavÃ­a estÃ¡ en cooldown,
 		    // no puede volver a atacar.
 		    if (!ataque.estaDisponible()) {
 		        return;
@@ -1828,18 +1839,20 @@ public class Main_game extends ApplicationAdapter {
 		        obtenerHitboxJugador();
 
 
-		    // El ataque se realizó, así que empieza
+		    // El ataque se realizÃ³, asÃ­ que empieza
 		    // el cooldown aunque falle.
 		    ataque.iniciarCooldown();
 
 
 		    // El jugador no estaba dentro del ataque.
-		    if (!hitboxAtaque.overlaps(hitboxJugador)) {
+		    if (!rectanguloTocaHurtboxJugador(
+		            hitboxAtaque)) {
+
 		        return;
 		    }
 
 
-		    // Si el jugador todavía está en sus frames
+		    // Si el jugador todavÃ­a estÃ¡ en sus frames
 		    // de invulnerabilidad, no recibe otro golpe.
 		    if (tiempoInvulnerable > 0) {
 		        return;
@@ -1858,7 +1871,7 @@ public class Main_game extends ApplicationAdapter {
 		    System.out.println(
 		        "El enemigo ataco al jugador haciendole "
 		        + ataque.getDaño()
-		        + " de daño."
+		        + " de daÃ±o."
 		    );
 
 
@@ -1910,14 +1923,14 @@ public class Main_game extends ApplicationAdapter {
 		            jefe.getAtaqueDistancia();
 	
 	
-		        // Todavía está esperando su cooldown.
+		        // TodavÃ­a estÃ¡ esperando su cooldown.
 		        if (!ataque.estaDisponible()) {
 		            continue;
 		        }
 	
 	
 		        // --------------------------------------------------
-		        // POSICIÓN DEL JEFE
+		        // POSICIÃ“N DEL JEFE
 		        // --------------------------------------------------
 	
 		        Rectangle hitboxJefe =
@@ -1939,7 +1952,7 @@ public class Main_game extends ApplicationAdapter {
 		            - ataque.getAlto() / 2f;
 		
 		        // --------------------------------------------------
-		        // POSICIÓN DEL JUGADOR
+		        // POSICIÃ“N DEL JUGADOR
 		        // --------------------------------------------------
 	
 		        Rectangle hitboxJugador =
@@ -2009,6 +2022,112 @@ public class Main_game extends ApplicationAdapter {
 		        ALTO_HITBOX_JUGADOR
 		    );
 		}
+		
+		// --------------------------------------------------
+		// HURTBOX OVALADA DEL JUGADOR
+		// --------------------------------------------------
+	
+		private Ellipse obtenerHurtboxJugador() {
+	
+		    Rectangle hitboxFisica =
+		        obtenerHitboxJugador();
+	
+	
+		    // Centramos la hurtbox dentro
+		    // de la hitbox física.
+		    float hurtboxX =
+		        hitboxFisica.x
+		        + (
+		            hitboxFisica.width
+		            - ANCHO_HURTBOX_JUGADOR
+		        ) / 2f;
+	
+	
+		    float hurtboxY =
+		        hitboxFisica.y
+		        + (
+		            hitboxFisica.height
+		            - ALTO_HURTBOX_JUGADOR
+		        ) / 2f;
+	
+	
+		    return new Ellipse(
+		        hurtboxX,
+		        hurtboxY,
+		        ANCHO_HURTBOX_JUGADOR,
+		        ALTO_HURTBOX_JUGADOR
+		    );
+		}
+		
+		// --------------------------------------------------
+		// COLISIÓN RECTÁNGULO VS HURTBOX OVALADA
+		// --------------------------------------------------
+
+		private boolean rectanguloTocaHurtboxJugador(
+		        Rectangle rectangulo) {
+
+		    Ellipse hurtbox =
+		        obtenerHurtboxJugador();
+
+
+		    float centroX =
+		        hurtbox.x
+		        + hurtbox.width / 2f;
+
+		    float centroY =
+		        hurtbox.y
+		        + hurtbox.height / 2f;
+
+
+		    float radioX =
+		        hurtbox.width / 2f;
+
+		    float radioY =
+		        hurtbox.height / 2f;
+
+
+		    // Buscamos el punto del rectángulo
+		    // más cercano al centro del óvalo.
+		    float puntoX =
+		        Math.max(
+		            rectangulo.x,
+		            Math.min(
+		                centroX,
+		                rectangulo.x
+		                + rectangulo.width
+		            )
+		        );
+
+
+		    float puntoY =
+		        Math.max(
+		            rectangulo.y,
+		            Math.min(
+		                centroY,
+		                rectangulo.y
+		                + rectangulo.height
+		            )
+		        );
+
+
+		    // Convertimos la distancia según
+		    // los radios horizontal y vertical.
+		    float distanciaX =
+		        (puntoX - centroX)
+		        / radioX;
+
+		    float distanciaY =
+		        (puntoY - centroY)
+		        / radioY;
+
+
+		    // Si está dentro de la ecuación
+		    // de la elipse, hubo colisión.
+		    return (
+		        distanciaX * distanciaX
+		        + distanciaY * distanciaY
+		    ) <= 1f;
+		}
 	
 	
 		// --------------------------------------------------
@@ -2025,8 +2144,8 @@ public class Main_game extends ApplicationAdapter {
 	 	        ALTO_ENEMIGO;
 
 
-	 	    // Los jefes pueden tener un tamaño
-	 	    // diferente al enemigo común.
+	 	    // Los jefes pueden tener un tamaÃ±o
+	 	    // diferente al enemigo comÃºn.
 	 	    if (enemigo instanceof Jefe) {
 
 	 	        Jefe jefe =
@@ -2204,7 +2323,7 @@ public class Main_game extends ApplicationAdapter {
 		            obtenerHitboxPogoJugador();
 
 
-		        // Reutilizamos la visualización temporal
+		        // Reutilizamos la visualizaciÃ³n temporal
 		        // de la hitbox del ataque.
 		        hitboxAtaqueDebug.set(
 		            hitboxPogo.x,
@@ -2223,14 +2342,14 @@ public class Main_game extends ApplicationAdapter {
 		            );
 
 
-		        // Si el pogo golpeó un enemigo...
+		        // Si el pogo golpeÃ³ un enemigo...
 		        if (objetivo != null) {
 		        	
 		        	saltosDisponibles = 1;
 		        	
 		        	dashDisponibleAire = 1;
 		        	
-		            // Aplicamos el daño normal del jugador.
+		            // Aplicamos el daÃ±o normal del jugador.
 		        	jugador.atacar(
 		        		    objetivo,
 		        		    jugador.getAtaquePogo()
@@ -2250,7 +2369,7 @@ public class Main_game extends ApplicationAdapter {
 		            );
 
 
-		            // Si murió, manejamos el drop.
+		            // Si muriÃ³, manejamos el drop.
 		            if (!objetivo.estaVivo()) {
 
 		                int monedas =
@@ -2273,7 +2392,7 @@ public class Main_game extends ApplicationAdapter {
 		        } else if (objetivo == null) {
 
 			        System.out.println(
-			            "El ataque POGO no golpeó a ningún enemigo."
+			            "El ataque POGO no golpeÃ³ a ningÃºn enemigo."
 			        );
 
 			        return;
@@ -2282,7 +2401,7 @@ public class Main_game extends ApplicationAdapter {
 		        
 		        // IMPORTANTE:
 		        // DOWN + X en el aire significa pogo.
-		        // Aunque falle, NO queremos ejecutar después
+		        // Aunque falle, NO queremos ejecutar despuÃ©s
 		        // un ataque horizontal.
 		        return;
 		    }
@@ -2332,14 +2451,14 @@ public class Main_game extends ApplicationAdapter {
 		     if (objetivo == null) {
 
 		         System.out.println(
-		             "El ataque hacia arriba no golpeó a ningún enemigo."
+		             "El ataque hacia arriba no golpeÃ³ a ningÃºn enemigo."
 		         );
 
 		         return;
 		     }
 
 
-		     // Aplicamos el mismo daño que el ataque normal.
+		     // Aplicamos el mismo daÃ±o que el ataque normal.
 		     jugador.atacar(
 		         objetivo,
 		         ataqueArriba
@@ -2354,7 +2473,7 @@ public class Main_game extends ApplicationAdapter {
 		     );
 
 
-		     // Si murió, manejamos el drop.
+		     // Si muriÃ³, manejamos el drop.
 		     if (!objetivo.estaVivo()) {
 
 		         int monedas =
@@ -2378,7 +2497,7 @@ public class Main_game extends ApplicationAdapter {
 
 		     // MUY IMPORTANTE:
 		     // UP + X ya fue procesado.
-		     // No queremos ejecutar después
+		     // No queremos ejecutar despuÃ©s
 		     // el ataque horizontal.
 		     return;
 		 }
@@ -2426,7 +2545,7 @@ public class Main_game extends ApplicationAdapter {
 		    if (objetivo == null) {
 
 		        System.out.println(
-		            "El ataque no golpeó a ningún enemigo."
+		            "El ataque no golpeÃ³ a ningÃºn enemigo."
 		        );
 
 		        return;
@@ -2434,7 +2553,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // --------------------------------------------------
-		    // DAÑO
+		    // DAÃ‘O
 		    // --------------------------------------------------
 
 		    jugador.atacar(
@@ -2522,7 +2641,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		        // --------------------------------------------------
-		        // SUPERPOSICIÓN EN X
+		        // SUPERPOSICIÃ“N EN X
 		        // --------------------------------------------------
 
 		        boolean coincideEnX =
@@ -2645,7 +2764,7 @@ public class Main_game extends ApplicationAdapter {
 		            );
 
 
-		        // Si después de movernos no estamos
+		        // Si despuÃ©s de movernos no estamos
 		        // dentro de la plataforma, no hay nada
 		        // que corregir.
 		        if (!hitboxActual.overlaps(hitboxPlataforma)) {
@@ -2655,7 +2774,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		        // --------------------------------------------------
-		        // VENÍAMOS DESDE LA IZQUIERDA
+		        // VENÃ�AMOS DESDE LA IZQUIERDA
 		        // --------------------------------------------------
 
 		        boolean veniaDesdeIzquierda =
@@ -2666,7 +2785,7 @@ public class Main_game extends ApplicationAdapter {
 
 		        if (veniaDesdeIzquierda) {
 
-		            // Calculamos cuánto penetramos
+		            // Calculamos cuÃ¡nto penetramos
 		            // dentro de la plataforma.
 		            float correccionX =
 		                hitboxPlataforma.x
@@ -2686,8 +2805,8 @@ public class Main_game extends ApplicationAdapter {
 		            velocidadX = 0;
 
 
-		            // Si estábamos haciendo dash,
-		            // el choque también detiene el dash.
+		            // Si estÃ¡bamos haciendo dash,
+		            // el choque tambiÃ©n detiene el dash.
 		            haciendoDash = false;
 		            tiempoDashRestante = 0;
 
@@ -2696,7 +2815,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		        // --------------------------------------------------
-		        // VENÍAMOS DESDE LA DERECHA
+		        // VENÃ�AMOS DESDE LA DERECHA
 		        // --------------------------------------------------
 
 		        boolean veniaDesdeDerecha =
@@ -2758,8 +2877,34 @@ public class Main_game extends ApplicationAdapter {
 
 		    shapeRenderer.end();
 		}
-	 
-	 private void dibujarEnemigos() {
+		
+		private void dibujarHurtboxJugador() {
+
+		    Ellipse hurtbox =
+		        obtenerHurtboxJugador();
+
+
+		    shapeRenderer.begin(
+		        ShapeRenderer.ShapeType.Line
+		    );
+
+		    shapeRenderer.setColor(
+		        Color.YELLOW
+		    );
+
+
+		    shapeRenderer.ellipse(
+		        hurtbox.x,
+		        hurtbox.y,
+		        hurtbox.width,
+		        hurtbox.height
+		    );
+
+
+		    shapeRenderer.end();
+		}
+		
+		private void dibujarEnemigos() {
 
 		    Sala salaActual =
 		        juego.getSalaActual();
@@ -2889,7 +3034,7 @@ public class Main_game extends ApplicationAdapter {
 	 
 	 private void dibujarHitboxAtaque(float delta) {
 
-		    // Si ya terminó el tiempo de visualización,
+		    // Si ya terminÃ³ el tiempo de visualizaciÃ³n,
 		    // no dibujamos nada.
 		    if (tiempoHitboxAtaqueDebug <= 0) {
 		        return;
@@ -2915,9 +3060,9 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // Celeste con poca opacidad.
-		    // El último valor es el alpha:
+		    // El Ãºltimo valor es el alpha:
 		    // 0 = invisible
-		    // 1 = totalmente sólido
+		    // 1 = totalmente sÃ³lido
 		    shapeRenderer.setColor(
 		        0.2f,
 		        0.7f,
@@ -2938,7 +3083,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // Desactivamos el blending porque solamente
-		    // lo necesitábamos para esta visualización.
+		    // lo necesitÃ¡bamos para esta visualizaciÃ³n.
 		    Gdx.gl.glDisable(GL20.GL_BLEND);
 		}
 	 
@@ -3021,23 +3166,22 @@ public class Main_game extends ApplicationAdapter {
 		    shapeRenderer.end();
 		}
 		 
-		 private boolean jugadorTocaEnemigo(
-			        Enemigo enemigo) {
-	
-			    Rectangle hitboxJugador =
-			        obtenerHitboxJugador();
-	
-			    Rectangle hitboxEnemigo =
-			        obtenerHitboxEnemigo(enemigo);
-	
-	
-			    return hitboxJugador.overlaps(
-			        hitboxEnemigo
-			    );
-			}
+		private boolean jugadorTocaEnemigo(
+		        Enemigo enemigo) {
+
+		    Rectangle hitboxEnemigo =
+		        obtenerHitboxEnemigo(
+		            enemigo
+		        );
+
+
+		    return rectanguloTocaHurtboxJugador(
+		        hitboxEnemigo
+		    );
+		}
 		 
-		 private void comprobarDañoEnemigos(
-			        float delta) {
+		private void comprobarDañoEnemigos(
+		        float delta) {
 	
 			    // Reducimos el tiempo de invulnerabilidad.
 			    if (tiempoInvulnerable > 0) {
@@ -3046,7 +3190,7 @@ public class Main_game extends ApplicationAdapter {
 			    }
 	
 	
-			    // Si todavía somos invulnerables,
+			    // Si todavÃ­a somos invulnerables,
 			    // no recibimos otro golpe.
 			    if (tiempoInvulnerable > 0) {
 	
@@ -3063,12 +3207,12 @@ public class Main_game extends ApplicationAdapter {
 	
 			        if (jugadorTocaEnemigo(enemigo)) {
 	
-			            // El enemigo daña al jugador.
+			            // El enemigo daÃ±a al jugador.
 			            jugador.recibirDaño(
 			                enemigo.getDaño()
 			            );
 			            
-				         // Si la vida llegó a 0,
+				         // Si la vida llegÃ³ a 0,
 				         // activamos el Game Over.
 				         if (!jugador.estaVivo()) {
 		
@@ -3079,9 +3223,9 @@ public class Main_game extends ApplicationAdapter {
 	
 	
 			            System.out.println(
-			                "El jugador recibió "
+			                "El jugador recibiÃ³ "
 			                + enemigo.getDaño()
-			                + " de daño."
+			                + " de daÃ±o."
 			            );
 	
 	
@@ -3146,7 +3290,7 @@ public class Main_game extends ApplicationAdapter {
 		        	    + hitboxEnemigo.width / 2f;
 
 
-		        	// Determinamos de qué lado está el jugador.
+		        	// Determinamos de quÃ© lado estÃ¡ el jugador.
 		        	boolean jugadorALaDerecha =
 		        	    centroJugadorX >= centroEnemigoX;
 
@@ -3174,7 +3318,7 @@ public class Main_game extends ApplicationAdapter {
 		        	}
 
 
-		        	// Si ya se están tocando o superponiendo,
+		        	// Si ya se estÃ¡n tocando o superponiendo,
 		        	// la distancia entre cuerpos es 0.
 		        	if (distanciaX < 0) {
 		        	    distanciaX = 0;
@@ -3186,18 +3330,18 @@ public class Main_game extends ApplicationAdapter {
 		        	// --------------------------------------------------
 
 		        	// PROVISIONAL:
-		        	// distancia máxima a la que detecta al jugador.
+		        	// distancia mÃ¡xima a la que detecta al jugador.
 		        	float rangoDeteccion = 500f;
 
 
-		        	// La hitbox física mide, por ejemplo, 100.
+		        	// La hitbox fÃ­sica mide, por ejemplo, 100.
 		        	float rangoPreparacion =
 		        	    enemigo.getAtaqueNormal().getAncho();
 
 
 		        	// PROVISIONAL:
 		        	// aunque la hitbox mida 100,
-		        	// recién decide atacar cuando está a 80.
+		        	// reciÃ©n decide atacar cuando estÃ¡ a 80.
 		        	float margenAtaque = 20f;
 
 		        	float rangoAtaqueEfectivo =
@@ -3241,7 +3385,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		        // --------------------------------------------------
-		        // ACTUAR SEGÚN EL ESTADO
+		        // ACTUAR SEGÃšN EL ESTADO
 		        // --------------------------------------------------
 
 		        switch (enemigo.getEstado()) {
@@ -3274,8 +3418,8 @@ public class Main_game extends ApplicationAdapter {
 
 		            case ATACAR:
 
-		                // Ya llegó a la distancia correcta,
-		                // pero todavía puede estar preparando el ataque.
+		                // Ya llegÃ³ a la distancia correcta,
+		                // pero todavÃ­a puede estar preparando el ataque.
 		                if (enemigo.ataquePreparado()) {
 
 		                    intentarAtaqueEnemigo(
@@ -3289,7 +3433,7 @@ public class Main_game extends ApplicationAdapter {
 		}
 		 
 		// --------------------------------------------------
-		// ACTUALIZACIÓN DE PROYECTILES
+		// ACTUALIZACIÃ“N DE PROYECTILES
 		// --------------------------------------------------
 	
 		private void actualizarProyectiles(
@@ -3329,7 +3473,7 @@ public class Main_game extends ApplicationAdapter {
 	
 	
 		        // --------------------------------------------------
-		        // FUERA DE LA HABITACIÓN
+		        // FUERA DE LA HABITACIÃ“N
 		        // --------------------------------------------------
 	
 		        boolean fueraDePantalla =
@@ -3349,28 +3493,28 @@ public class Main_game extends ApplicationAdapter {
 	
 	
 		        // --------------------------------------------------
-		        // COLISIÓN CON EL JUGADOR
+		        // COLISIÃ“N CON EL JUGADOR
 		        // --------------------------------------------------
 	
 		        Rectangle hitboxJugador =
 		            obtenerHitboxJugador();
 	
 	
-		        if (!hitboxProyectil.overlaps(
-		                hitboxJugador)) {
-	
+		        if (!rectanguloTocaHurtboxJugador(
+		                hitboxProyectil)) {
+
 		            continue;
 		        }
 	
 	
 		        // El proyectil desaparece al tocar al jugador,
-		        // incluso si está momentáneamente invulnerable.
+		        // incluso si estÃ¡ momentÃ¡neamente invulnerable.
 		        proyectil.destruir();
 	
 		        proyectiles.remove(i);
 	
 	
-		        // El jugador todavía está en sus frames
+		        // El jugador todavÃ­a estÃ¡ en sus frames
 		        // de invulnerabilidad.
 		        if (tiempoInvulnerable > 0) {
 		            continue;
@@ -3389,7 +3533,7 @@ public class Main_game extends ApplicationAdapter {
 		        System.out.println(
 		            "El proyectil del jefe hizo "
 		            + proyectil.getDaño()
-		            + " de daño."
+		            + " de daÃ±o."
 		        );
 	
 	
@@ -3414,7 +3558,7 @@ public class Main_game extends ApplicationAdapter {
 	         juego.getSalaActual();
 
 
-	     // Si la sala no tiene ningún item,
+	     // Si la sala no tiene ningÃºn item,
 	     // no hay nada que comprobar.
 	     if (!salaActual.tieneItem()) {
 	         return;
@@ -3433,7 +3577,7 @@ public class Main_game extends ApplicationAdapter {
 
 	     
 		 // Los pies del jugador tienen que haber llegado
-		 // como mínimo a la altura donde comienza el item.
+		 // como mÃ­nimo a la altura donde comienza el item.
 		 boolean jugadorALaAlturaDelItem =
 		     hitboxJugador.y
 		         >= hitboxItem.y - 5;
@@ -3493,7 +3637,7 @@ public class Main_game extends ApplicationAdapter {
 		            obtenerHitboxItem(item);
 
 
-		        // Todavía no tocamos este objeto.
+		        // TodavÃ­a no tocamos este objeto.
 		        if (!hitboxJugador.overlaps(hitboxItem)) {
 		            continue;
 		        }
@@ -3512,7 +3656,7 @@ public class Main_game extends ApplicationAdapter {
 		        }
 
 
-		        // Pagó correctamente:
+		        // PagÃ³ correctamente:
 		        // obtiene el objeto y se aplica su efecto.
 		        jugador.recogerItem(
 		            item
@@ -3564,7 +3708,7 @@ public class Main_game extends ApplicationAdapter {
 		    batch.begin();
 
 
-		    // Hacemos temporalmente la letra más grande.
+		    // Hacemos temporalmente la letra mÃ¡s grande.
 		    font.getData().setScale(3f);
 
 		    layout.setText(
@@ -3613,7 +3757,7 @@ public class Main_game extends ApplicationAdapter {
 		    );
 
 
-		    // Volvemos al tamaño normal que usás en el HUD.
+		    // Volvemos al tamaÃ±o normal que usÃ¡s en el HUD.
 		    font.getData().setScale(1.2f);
 
 
@@ -3637,7 +3781,7 @@ public class Main_game extends ApplicationAdapter {
 		    // NUEVA PARTIDA
 		    // --------------------------------------------------
 
-		    // Creamos nuevamente la lógica de la partida
+		    // Creamos nuevamente la lÃ³gica de la partida
 		    // utilizando el mismo jugador.
 		    juego = new Juego(jugador);
 
@@ -3649,8 +3793,8 @@ public class Main_game extends ApplicationAdapter {
 		    // --------------------------------------------------
 
 		    // IMPORTANTE:
-		    // Esto es temporal hasta que hagamos la generación
-		    // real de enemigos por habitación.
+		    // Esto es temporal hasta que hagamos la generaciÃ³n
+		    // real de enemigos por habitaciÃ³n.
 
 		    Enemigo enemigoPrueba = new Enemigo(
 		        "Enemigo prueba",
@@ -3668,7 +3812,7 @@ public class Main_game extends ApplicationAdapter {
 
 
 		    // --------------------------------------------------
-		    // FÍSICA
+		    // FÃ�SICA
 		    // --------------------------------------------------
 
 		    velocidadX = 0;

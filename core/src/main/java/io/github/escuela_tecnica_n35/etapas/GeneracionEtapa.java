@@ -36,26 +36,68 @@ public class GeneracionEtapa {
         Random random = new Random();
 
         int variante = random.nextInt(2);
-
-        if (variante == 0) {
-
-            return generarVarianteA(
-                numeroPiso,
-                itemSala,
-                ofertasTienda
-            );
+        
+        if(numeroPiso == 1) {
+	        if (variante == 0) {
+	
+	            return generarVarianteDisco(
+	                numeroPiso,
+	                itemSala,
+	                ofertasTienda
+	            );
+	        }
+	        else {
+	
+	            return generarVarianteRock(
+	                numeroPiso,
+	                itemSala,
+	                ofertasTienda
+	            );
+	        }
         }
-        else {
-
-            return generarVarianteB(
-                numeroPiso,
-                itemSala,
-                ofertasTienda
-            );
+        
+        if(numeroPiso == 2) {
+	        if (variante == 0) {
+	
+	            return generarVarianteElectro(
+	                numeroPiso,
+	                itemSala,
+	                ofertasTienda
+	            );
+	        }
+	        else {
+	
+	            return generarVarianteRegge(
+	                numeroPiso,
+	                itemSala,
+	                ofertasTienda
+	            );
+	        }
         }
+        
+        if(numeroPiso == 3) {
+	        if (variante == 0) {
+	
+	            return generarVarianteRap(
+	                numeroPiso,
+	                itemSala,
+	                ofertasTienda
+	            );
+	        }
+	        else {
+	
+	            return generarVarianteJazz(
+	                numeroPiso,
+	                itemSala,
+	                ofertasTienda
+	            );
+	        }
+        }
+        
+        return null;
     }
-
-	private Etapa generarVarianteA(
+	
+	private Etapa generarVarianteDisco(
 	        int numeroPiso,
 	        Item itemSala,
 	        ArrayList<OfertaTienda> ofertasTienda) {
@@ -90,7 +132,7 @@ public class GeneracionEtapa {
         );
     }
 
-	private Etapa generarVarianteB(
+	private Etapa generarVarianteRock(
 	        int numeroPiso,
 	        Item itemSala,
 	        ArrayList<OfertaTienda> ofertasTienda) {
@@ -124,6 +166,146 @@ public class GeneracionEtapa {
             mapa
         );
     }
+	
+	private Etapa generarVarianteElectro(
+	        int numeroPiso,
+	        Item itemSala,
+	        ArrayList<OfertaTienda> ofertasTienda) {
+
+        // Generamos la estructura completa del piso.
+		Sala[][] mapa =
+			    generarMapa(
+			        numeroPiso,
+			        itemSala,
+			        ofertasTienda
+			    );
+
+        imprimirMapa(mapa);
+
+        // Por ahora todavía no colocamos enemigos reales.
+        ArrayList<Enemigo> enemigos =
+            new ArrayList<Enemigo>();
+
+        // El jefe concreto lo agregaremos más adelante.
+        Jefe jefe = null;
+
+        // IMPORTANTE:
+        // Ahora devolvemos una Etapa real que contiene
+        // el mapa que acabamos de generar.
+        return new Etapa(
+            "FIESTA SHOCKEANTE",
+            numeroPiso,
+            numeroPiso,
+            enemigos,
+            jefe,
+            mapa
+        );
+    }
+	
+	private Etapa generarVarianteRegge(
+	        int numeroPiso,
+	        Item itemSala,
+	        ArrayList<OfertaTienda> ofertasTienda) {
+
+        // Generamos la estructura completa del piso.
+		Sala[][] mapa =
+			    generarMapa(
+			        numeroPiso,
+			        itemSala,
+			        ofertasTienda
+			    );
+
+        imprimirMapa(mapa);
+
+        // Por ahora todavía no colocamos enemigos reales.
+        ArrayList<Enemigo> enemigos =
+            new ArrayList<Enemigo>();
+
+        // El jefe concreto lo agregaremos más adelante.
+        Jefe jefe = null;
+
+        // IMPORTANTE:
+        // Ahora devolvemos una Etapa real que contiene
+        // el mapa que acabamos de generar.
+        return new Etapa(
+            "FLOTANDO EN NUBES",
+            numeroPiso,
+            numeroPiso,
+            enemigos,
+            jefe,
+            mapa
+        );
+    }
+	
+	private Etapa generarVarianteRap(
+	        int numeroPiso,
+	        Item itemSala,
+	        ArrayList<OfertaTienda> ofertasTienda) {
+
+        // Generamos la estructura completa del piso.
+		Sala[][] mapa =
+			    generarMapa(
+			        numeroPiso,
+			        itemSala,
+			        ofertasTienda
+			    );
+
+        imprimirMapa(mapa);
+
+        // Por ahora todavía no colocamos enemigos reales.
+        ArrayList<Enemigo> enemigos =
+            new ArrayList<Enemigo>();
+
+        // El jefe concreto lo agregaremos más adelante.
+        Jefe jefe = null;
+
+        // IMPORTANTE:
+        // Ahora devolvemos una Etapa real que contiene
+        // el mapa que acabamos de generar.
+        return new Etapa(
+            "BASE Y COMPÁS",
+            numeroPiso,
+            numeroPiso,
+            enemigos,
+            jefe,
+            mapa
+        );
+    }
+	
+	private Etapa generarVarianteJazz(
+	        int numeroPiso,
+	        Item itemSala,
+	        ArrayList<OfertaTienda> ofertasTienda) {
+
+        // Generamos la estructura completa del piso.
+		Sala[][] mapa =
+			    generarMapa(
+			        numeroPiso,
+			        itemSala,
+			        ofertasTienda
+			    );
+
+        imprimirMapa(mapa);
+
+        // Por ahora todavía no colocamos enemigos reales.
+        ArrayList<Enemigo> enemigos =
+            new ArrayList<Enemigo>();
+
+        // El jefe concreto lo agregaremos más adelante.
+        Jefe jefe = null;
+
+        // IMPORTANTE:
+        // Ahora devolvemos una Etapa real que contiene
+        // el mapa que acabamos de generar.
+        return new Etapa(
+            "WHIPLASH",
+            numeroPiso,
+            numeroPiso,
+            enemigos,
+            jefe,
+            mapa
+        );
+    }
 
     private Etapa generarPisoFinal() {
 
@@ -132,6 +314,8 @@ public class GeneracionEtapa {
 
         // Crear enemigos del piso 4
         // Crear jefe final
+    	
+    	System.out.println("Un hombre con un PORQUÉ para vivir, puede soportar casi que cualquier CÓMO...");
 
         return null;
     }

@@ -20,7 +20,21 @@ public class Jefe extends Enemigo {
 			float velocidad, int daño, int monedasMinimas, int monedasMaximas,
 			float anchoHitbox, float altoHitbox) {
 		
-        super(nombre, posicion, vidaMax, velocidad, daño, monedasMinimas, monedasMaximas);
+        super(
+        	nombre,
+        	posicion,
+        	vidaMax,
+        	velocidad,
+        	daño,
+        	monedasMinimas,
+        	monedasMaximas,
+        	new Hitbox(
+	            180f,
+	            220f,
+	            0f,
+	            0f
+        	)
+        );
         
         this.anchoHitbox = anchoHitbox;
         this.altoHitbox = altoHitbox;

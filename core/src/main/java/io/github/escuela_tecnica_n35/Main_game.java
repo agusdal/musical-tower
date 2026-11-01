@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
+import io.github.escuela_tecnica_n35.entidades.EnemigoVolador;
 import io.github.escuela_tecnica_n35.entidades.Jefe;
 import io.github.escuela_tecnica_n35.entidades.Ataque;
 import io.github.escuela_tecnica_n35.entidades.Proyectil;
@@ -316,6 +317,29 @@ public class Main_game extends ApplicationAdapter {
 	    juego.getSalaActual().agregarEnemigo(
 	        enemigoPrueba
 	    );
+		    
+		// --------------------------------------------------
+		// ENEMIGO VOLADOR DE PRUEBA
+		// --------------------------------------------------
+	
+		EnemigoVolador enemigoVoladorPrueba =
+		    new EnemigoVolador(
+		        "Enemigo volador",
+		        new Posicion(
+		            1000,
+		            450
+		        ),
+		        20,     // vida
+		        130,    // velocidad
+		        8,      // daño por contacto
+		        2,      // monedas mínimas
+		        5       // monedas máximas
+		    );
+	
+	
+		juego.getSalaActual().agregarEnemigo(
+		    enemigoVoladorPrueba
+		);
         
 	    // -----------------------------------------
 	    // SALTO
@@ -2134,38 +2158,15 @@ public class Main_game extends ApplicationAdapter {
 		// HITBOX DEL ENEMIGO
 		// --------------------------------------------------
 	
-	 	private Rectangle obtenerHitboxEnemigo(
-	 	        Enemigo enemigo) {
+		private Rectangle obtenerHitboxEnemigo(
+		        Enemigo enemigo) {
 
-	 	    float ancho =
-	 	        ANCHO_ENEMIGO;
-
-	 	    float alto =
-	 	        ALTO_ENEMIGO;
-
-
-	 	    // Los jefes pueden tener un tamaÃ±o
-	 	    // diferente al enemigo comÃºn.
-	 	    if (enemigo instanceof Jefe) {
-
-	 	        Jefe jefe =
-	 	            (Jefe) enemigo;
-
-	 	        ancho =
-	 	            jefe.getAnchoHitbox();
-
-	 	        alto =
-	 	            jefe.getAltoHitbox();
-	 	    }
-
-
-	 	    return new Rectangle(
-	 	        enemigo.getPosicion().getX(),
-	 	        enemigo.getPosicion().getY(),
-	 	        ancho,
-	 	        alto
-	 	    );
-	 	}
+		    return enemigo
+		        .getHitbox()
+		        .obtenerRectangulo(
+		            enemigo.getPosicion()
+		        );
+		}
 		
 		// --------------------------------------------------
 		// HITBOX DEL ITEM
@@ -3270,7 +3271,28 @@ public class Main_game extends ApplicationAdapter {
 		        if (enemigo instanceof Jefe) {
 		            continue;
 		        }
-		        
+			        
+			    // --------------------------------------------------
+			    // ENEMIGO VOLADOR
+			    // --------------------------------------------------
+	
+			    if (enemigo instanceof EnemigoVolador) {
+	
+			        EnemigoVolador enemigoVolador =
+			            (EnemigoVolador) enemigo;
+	
+	
+			        enemigoVolador.perseguir(
+			            jugador.getPosicion(),
+			            delta
+			        );
+	
+	
+			        // No ejecutamos la IA normal
+			        // QUIETO / PERSEGUIR / ATACAR.
+			        continue;
+			    }
+			        
 
 
 		        Rectangle hitboxJugador =
@@ -3809,8 +3831,23 @@ public class Main_game extends ApplicationAdapter {
 		    juego.getSalaActual().agregarEnemigo(
 		        enemigoPrueba
 		    );
+		    
+		    EnemigoVolador enemigoVoladorPrueba = new EnemigoVolador(
+		        "Enemigo volador",
+		        new Posicion(1000, 450),
+		        20,
+		        130,
+		        8,
+		        2,
+		        5
+		    );
 
 
+		    juego.getSalaActual().agregarEnemigo(
+		        enemigoVoladorPrueba
+		    );
+		    
+		    
 		    // --------------------------------------------------
 		    // FÃ�SICA
 		    // --------------------------------------------------

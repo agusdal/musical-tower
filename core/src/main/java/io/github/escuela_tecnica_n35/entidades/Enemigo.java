@@ -7,6 +7,8 @@ public class Enemigo extends Entidad {
     private int monedasMinimas;
     private int monedasMaximas;
     
+    private Hitbox hitbox;
+    
     private EstadoEnemigo estado;
     
     private Ataque ataqueNormal;
@@ -25,6 +27,14 @@ public class Enemigo extends Entidad {
         
         this.monedasMinimas = monedasMinimas;
         this.monedasMaximas = monedasMaximas;
+        
+        this.hitbox =
+        	    new Hitbox(
+        	        anchoHitbox,
+        	        altoHitbox,
+        	        0,
+        	        0
+        	    );
         
         this.estado = EstadoEnemigo.QUIETO;
         
@@ -66,6 +76,10 @@ public class Enemigo extends Entidad {
 
     public int getMonedasMaximas() {
         return monedasMaximas;
+    }
+    
+    public Hitbox getHitbox() {
+        return hitbox;
     }
     
     public EstadoEnemigo getEstado() {

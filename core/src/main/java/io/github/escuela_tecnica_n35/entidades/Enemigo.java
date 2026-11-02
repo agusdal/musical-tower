@@ -9,16 +9,17 @@ public class Enemigo extends Entidad {
     
     private Hitbox hitbox;
     
+    private float velocidadY = 0f;
+    
     private EstadoEnemigo estado;
     
     private Ataque ataqueNormal;
     
-	// Tiempo que necesita el enemigo para preparar
-	// su primer ataque al entrar en rango.
-	private float tiempoPreparacionAtaque;
-	
-	// Tiempo que todavía le falta esperar.
-	private float tiempoPreparacionRestante;
+    private float tiempoPreparacionAtaque = 0.5f;
+    private float tiempoRecuperacionAtaque = 0.25f;
+
+    private float tiempoFaseAtaque;
+    private boolean golpeEjecutado;
 	
 	public Enemigo(
 	        String nombre,
@@ -42,16 +43,13 @@ public class Enemigo extends Entidad {
 	    this.ataqueNormal = new AtaqueEnemigo(
 	        "Ataque enemigo",
 	        daño,
-	        100f,
+	        150f,
 	        100f,
 	        1f
 	    );
 
 	    agregarAtaque(ataqueNormal);
-
-	    this.tiempoPreparacionAtaque = 0.5f;
-	    this.tiempoPreparacionRestante =
-	        tiempoPreparacionAtaque;
+	    
 	}
 
     public int generarMonedasDrop() {
@@ -75,6 +73,25 @@ public class Enemigo extends Entidad {
         return hitbox;
     }
     
+    public void actualizarGravedad(
+            float delta,
+            float gravedad) {
+
+        velocidadY += gravedad * delta;
+
+        getPosicion().moverY(
+            velocidadY * delta
+        );
+    }
+
+    public float getVelocidadY() {
+        return velocidadY;
+    }
+
+    public void detenerCaida() {
+        velocidadY = 0f;
+    }
+    
     public EstadoEnemigo getEstado() {
         return estado;
     }
@@ -88,37 +105,50 @@ public class Enemigo extends Entidad {
     }
     
     
-    public void actualizarPreparacionAtaque(
-            float delta,
-            boolean dentroDelRango) {
+    public void iniciarAtaque() {
 
-        // Si el jugador salió de la zona de ataque,
-        // reiniciamos la preparación.
-        if (!dentroDelRango) {
-
-            tiempoPreparacionRestante =
-                tiempoPreparacionAtaque;
-
+        // No reiniciamos una secuencia que ya comenzó.
+        if (estado == EstadoEnemigo.ATACAR
+                || !ataqueNormal.estaDisponible()) {
             return;
         }
 
+        estado = EstadoEnemigo.ATACAR;
 
-        // Mientras permanezca dentro del rango,
-        // el tiempo va bajando.
-        if (tiempoPreparacionRestante > 0) {
-
-            tiempoPreparacionRestante -= delta;
-
-            if (tiempoPreparacionRestante < 0) {
-                tiempoPreparacionRestante = 0;
-            }
-        }
+        golpeEjecutado = false;
+        tiempoFaseAtaque = tiempoPreparacionAtaque;
     }
 
 
-    public boolean ataquePreparado() {
+    // Devuelve true solamente en el momento
+    // en que hay que ejecutar el golpe.
+    public boolean actualizarSecuenciaAtaque(float delta) {
 
-        return tiempoPreparacionRestante <= 0;
+        if (estado != EstadoEnemigo.ATACAR) {
+            return false;
+        }
+
+        tiempoFaseAtaque -= delta;
+
+        if (tiempoFaseAtaque > 0f) {
+            return false;
+        }
+
+        // Terminó la preparación: golpeamos una vez.
+        if (!golpeEjecutado) {
+
+            golpeEjecutado = true;
+
+            tiempoFaseAtaque =
+                tiempoRecuperacionAtaque;
+
+            return true;
+        }
+
+        // Terminó la recuperación.
+        estado = EstadoEnemigo.PERSEGUIR;
+
+        return false;
     }
     
 }

@@ -1426,33 +1426,21 @@ public class Main_game extends ApplicationAdapter {
 		 	float anchoPantalla = ANCHO_MUNDO;
 		 	
 		 	
-		    // --------------------------------------------------
-		    // SALIMOS POR IZQUIERDA
-		    //
-		    // Entramos a la siguiente habitaciÃ³n
-		    // desde su puerta DERECHA.
-		    // --------------------------------------------------
-
-		    if (cambioColumna == -1) {
-
-		        jugador.getPosicion().setX(
-		            anchoPantalla - ANCHO_JUGADOR
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // SALIMOS POR DERECHA
-		    //
-		    // Entramos desde la puerta IZQUIERDA.
-		    // --------------------------------------------------
-
-		    else if (cambioColumna == 1) {
-
-		    	jugador.getPosicion().setX(
-		    		    ANCHO_MUNDO - jugador.getAnchoSprite()
-		    		);
-		    }
+			// Salimos por izquierda:
+			// aparecemos a la derecha de la nueva sala.
+			if (cambioColumna == -1) {
+	
+			    jugador.getPosicion().setX(
+			        ANCHO_MUNDO - jugador.getAnchoSprite()
+			    );
+			}
+	
+			// Salimos por derecha:
+			// aparecemos a la izquierda de la nueva sala.
+			else if (cambioColumna == 1) {
+	
+			    jugador.getPosicion().setX(0f);
+			}
 
 
 		    // --------------------------------------------------
@@ -1745,6 +1733,73 @@ public class Main_game extends ApplicationAdapter {
 		        ataque.getAncho(),
 		        ataque.getAlto()
 		    );
+		}
+	 
+	 private void actualizarGravedadEnemigo(
+		        Enemigo enemigo,
+		        float delta) {
+
+		    Rectangle cuerpoAnterior =
+		        obtenerHitboxEnemigo(enemigo);
+
+		    enemigo.actualizarGravedad(
+		        delta,
+		        gravedad
+		    );
+
+		    // Solo buscamos superficies donde aterrizar
+		    // cuando el enemigo está cayendo.
+		    if (enemigo.getVelocidadY() > 0f) {
+		        return;
+		    }
+
+		    Rectangle cuerpoActual =
+		        obtenerHitboxEnemigo(enemigo);
+
+		    // El piso es la superficie más baja.
+		    float superficieApoyo = pisoY;
+
+		    for (Plataforma plataforma :
+		            juego.getSalaActual().getPlataformas()) {
+
+		        float superficiePlataforma =
+		            plataforma.getY()
+		            + plataforma.getAlto();
+
+		        boolean coincideEnX =
+		            cuerpoActual.x
+		                < plataforma.getX()
+		                    + plataforma.getAncho()
+		            && cuerpoActual.x + cuerpoActual.width
+		                > plataforma.getX();
+
+		        // Antes sus pies estaban sobre la superficie.
+		        // Después quedaron a su altura o por debajo.
+		        boolean cruzaSuperficie =
+		            cuerpoAnterior.y >= superficiePlataforma
+		            && cuerpoActual.y <= superficiePlataforma;
+
+		        if (coincideEnX && cruzaSuperficie) {
+
+		            // Si atravesó varias superficies,
+		            // aterriza en la más alta.
+		            superficieApoyo = Math.max(
+		                superficieApoyo,
+		                superficiePlataforma
+		            );
+		        }
+		    }
+
+		    if (cuerpoActual.y <= superficieApoyo) {
+
+		        // Corregimos usando los pies de la hitbox.
+		        // También funciona si tiene desplazamiento Y.
+		        enemigo.getPosicion().moverY(
+		            superficieApoyo - cuerpoActual.y
+		        );
+
+		        enemigo.detenerCaida();
+		    }
 		}
 	 
 	 private Rectangle obtenerHitboxAtaqueEnemigo(
@@ -3301,6 +3356,13 @@ public class Main_game extends ApplicationAdapter {
 
 		        Rectangle hitboxEnemigo =
 		        	    obtenerHitboxEnemigo(enemigo);
+		        
+		        // Diferencia vertical permitida para iniciar un ataque.
+		        float margenAlturaAtaque = 20f;
+
+		        boolean mismaAltura =
+		            Math.abs(hitboxJugador.y - hitboxEnemigo.y)
+		                <= margenAlturaAtaque;
 
 
 		        	// Calculamos los centros reales.
@@ -3353,7 +3415,7 @@ public class Main_game extends ApplicationAdapter {
 		        	// --------------------------------------------------
 
 		        	// PROVISIONAL:
-		        	// distancia mÃ¡xima a la que detecta al jugador.
+		        	// distancia maxima a la que detecta al jugador.
 		        	float rangoDeteccion = 500f;
 
 
@@ -3364,7 +3426,7 @@ public class Main_game extends ApplicationAdapter {
 
 		        	// PROVISIONAL:
 		        	// aunque la hitbox mida 100,
-		        	// reciÃ©n decide atacar cuando estÃ¡ a 80.
+		        	// recién decide atacar cuando está a 80.
 		        	float margenAtaque = 20f;
 
 		        	float rangoAtaqueEfectivo =
@@ -3373,37 +3435,42 @@ public class Main_game extends ApplicationAdapter {
 		        	        rangoPreparacion - margenAtaque
 		        	    );
 		        	
-		        	boolean dentroDelRangoPreparacion =
-		        		    distanciaX <= rangoPreparacion;
-
-
-		        		enemigo.actualizarPreparacionAtaque(
-		        		    delta,
-		        		    dentroDelRangoPreparacion
-		        		);
-		        	
 		        	
 		        // --------------------------------------------------
 		        // DECIDIR ESTADO
 		        // --------------------------------------------------
 
-	        		if (distanciaX <= rangoAtaqueEfectivo) {
+		        	// Mientras ataca, no cambiamos su estado
+		        	// aunque el jugador salga del rango.
+		        	if (enemigo.getEstado() != EstadoEnemigo.ATACAR) {
 
-	        		    enemigo.setEstado(
-	        		        EstadoEnemigo.ATACAR
-	        		    );
-	        		}
-	        		else if (distanciaX <= rangoDeteccion) {
+		        		if (mismaAltura
+		        		        && distanciaX <= rangoAtaqueEfectivo) {
 
-	        		    enemigo.setEstado(
-	        		        EstadoEnemigo.PERSEGUIR
-	        		    );
-	        		}
-	        		else {
+		        	        if (enemigo.getAtaqueNormal().estaDisponible()) {
 
-		        	    enemigo.setEstado(
-		        	        EstadoEnemigo.QUIETO
-		        	    );
+		        	            enemigo.iniciarAtaque();
+
+		        	        } else {
+
+		        	            // Ya está cerca: espera el cooldown.
+		        	            enemigo.setEstado(
+		        	                EstadoEnemigo.QUIETO
+		        	            );
+		        	        }
+
+		        	    } else if (distanciaX <= rangoDeteccion) {
+
+		        	        enemigo.setEstado(
+		        	            EstadoEnemigo.PERSEGUIR
+		        	        );
+
+		        	    } else {
+
+		        	        enemigo.setEstado(
+		        	            EstadoEnemigo.QUIETO
+		        	        );
+		        	    }
 		        	}
 
 
@@ -3441,17 +3508,18 @@ public class Main_game extends ApplicationAdapter {
 
 		            case ATACAR:
 
-		                // Ya llegÃ³ a la distancia correcta,
-		                // pero todavÃ­a puede estar preparando el ataque.
-		                if (enemigo.ataquePreparado()) {
+		                if (enemigo.actualizarSecuenciaAtaque(delta)) {
 
-		                    intentarAtaqueEnemigo(
-		                        enemigo
-		                    );
+		                    intentarAtaqueEnemigo(enemigo);
 		                }
 
 		                break;
 		        }
+		        
+		        actualizarGravedadEnemigo(
+		                enemigo,
+		                delta
+		            );
 		    }
 		}
 		 

@@ -1371,8 +1371,8 @@ public class GeneracionEtapa {
 	        Plataforma plataforma) {
 
 	    Hitbox hitbox = new Hitbox(
-	        80f,
-	        120f,
+	        80f, 	// Ancho
+	        140f,	// Alto
 	        0f,
 	        0f
 	    );

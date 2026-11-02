@@ -20,46 +20,39 @@ public class Enemigo extends Entidad {
 	// Tiempo que todavía le falta esperar.
 	private float tiempoPreparacionRestante;
 	
-    public Enemigo(String nombre, Posicion posicion, int vidaMax, float velocidad, 
-    		int daño, int monedasMinimas, int monedasMaximas) {
-    	
-        super(nombre, posicion, vidaMax, velocidad, daño);
-        
-        this.monedasMinimas = monedasMinimas;
-        this.monedasMaximas = monedasMaximas;
-        
-        this.hitbox =
-        	    new Hitbox(
-        	        anchoHitbox,
-        	        altoHitbox,
-        	        0,
-        	        0
-        	    );
-        
-        this.estado = EstadoEnemigo.QUIETO;
-        
-	    // PROVISIONAL:
-	    // Primer ataque básico del enemigo.
-	    this.ataqueNormal =
-	        new Ataque(
-	            "Ataque enemigo",
-	            daño,
-	            100f,   // ancho
-	            100f,   // alto
-	            1f      // cooldown en segundos
-	        );
-	
-	    agregarAtaque(
-	        ataqueNormal
+	public Enemigo(
+	        String nombre,
+	        Posicion posicion,
+	        int vidaMax,
+	        float velocidad,
+	        int daño,
+	        int monedasMinimas,
+	        int monedasMaximas,
+	        Hitbox hitbox) {
+
+	    super(nombre, posicion, vidaMax, velocidad, daño);
+
+	    this.monedasMinimas = monedasMinimas;
+	    this.monedasMaximas = monedasMaximas;
+
+	    this.hitbox = hitbox;
+
+	    this.estado = EstadoEnemigo.QUIETO;
+
+	    this.ataqueNormal = new AtaqueEnemigo(
+	        "Ataque enemigo",
+	        daño,
+	        100f,
+	        100f,
+	        1f
 	    );
-	    
-		 // PROVISIONAL:
-		 // tarda 0.5 segundos en preparar el primer ataque.
-		 this.tiempoPreparacionAtaque = 0.5f;
-	
-		 this.tiempoPreparacionRestante =
-		     tiempoPreparacionAtaque;
-    }
+
+	    agregarAtaque(ataqueNormal);
+
+	    this.tiempoPreparacionAtaque = 0.5f;
+	    this.tiempoPreparacionRestante =
+	        tiempoPreparacionAtaque;
+	}
 
     public int generarMonedasDrop() {
 

@@ -10,6 +10,7 @@ import io.github.escuela_tecnica_n35.entidades.Jugador;
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
 import io.github.escuela_tecnica_n35.entidades.EnemigoVolador;
 import io.github.escuela_tecnica_n35.entidades.Jefe;
+import io.github.escuela_tecnica_n35.entidades.Hitbox;
 import io.github.escuela_tecnica_n35.entidades.Ataque;
 import io.github.escuela_tecnica_n35.entidades.Proyectil;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
@@ -305,11 +306,12 @@ public class Main_game extends ApplicationAdapter {
 	    Enemigo enemigoPrueba = new Enemigo(
 	        "Enemigo prueba",
 	        new Posicion(800, pisoY),
-	        30,     // Vida mÃ¡xima
+	        30,     // Vida masxima
 	        100,    // Velocidad
-	        10,     // DaÃ±o
-	        1,      // Monedas mÃ­nimas
-	        50      // Monedas mÃ¡ximas
+	        10,     // Daño
+	        1,      // Monedas minimas
+	        50,     // Monedas maximas
+	        new Hitbox(80f, 120f, 0f, 0f)
 	    );
 	
 	
@@ -1265,25 +1267,25 @@ public class Main_game extends ApplicationAdapter {
             anchoPuertaCentral,
             altoPuerta
         );
-    }
+     }
     
 	 // Comprueba si el centro del jugador se encuentra
 	 // dentro de la zona de una puerta.
-	 private boolean jugadorEstaEnPuerta(Rectangle puerta) {
-	
-	     float centroJugadorX =
-	         jugador.getPosicion().getX()
-	         + ANCHO_JUGADOR / 2;
-	
-	     float centroJugadorY =
-	         jugador.getPosicion().getY()
-	         + ALTO_JUGADOR / 2;
-	
-	     return puerta.contains(
-	         centroJugadorX,
-	         centroJugadorY
-	     );
-	 }
+     private boolean jugadorEstaEnPuerta(Rectangle puerta) {
+
+         Rectangle cuerpo = obtenerHitboxJugador();
+
+         float centroJugadorX =
+             cuerpo.x + cuerpo.width / 2f;
+
+         float centroJugadorY =
+             cuerpo.y + cuerpo.height / 2f;
+
+         return puerta.contains(
+             centroJugadorX,
+             centroJugadorY
+         );
+     }
 	 
 	 // Comprueba solamente las puertas laterales.
 	 //
@@ -1446,7 +1448,9 @@ public class Main_game extends ApplicationAdapter {
 
 		    else if (cambioColumna == 1) {
 
-		        jugador.getPosicion().setX(0);
+		    	jugador.getPosicion().setX(
+		    		    ANCHO_MUNDO - jugador.getAnchoSprite()
+		    		);
 		    }
 
 
@@ -1459,11 +1463,11 @@ public class Main_game extends ApplicationAdapter {
 
 		    else if (cambioFila == -1) {
 
-		        jugador.getPosicion().setX(
-		            puertaAbajo.x
-		            + puertaAbajo.width / 2
-		            - ANCHO_JUGADOR / 2
-		        );
+		    	jugador.getPosicion().setX(
+		    		    puertaAbajo.x
+		    		    + puertaAbajo.width / 2f
+		    		    - jugador.getAnchoSprite() / 2f
+		    		);
 		    }
 
 
@@ -1476,11 +1480,11 @@ public class Main_game extends ApplicationAdapter {
 
 		    else if (cambioFila == 1) {
 
-		        jugador.getPosicion().setX(
-		            puertaArriba.x
-		            + puertaArriba.width / 2
-		            - ANCHO_JUGADOR / 2
-		        );
+		    	jugador.getPosicion().setX(
+		    		    puertaArriba.x
+		    		    + puertaArriba.width / 2f
+		    		    - jugador.getAnchoSprite() / 2f
+		    		);
 		    }
 
 
@@ -1494,26 +1498,22 @@ public class Main_game extends ApplicationAdapter {
 	 
 	 private void limitarJugadorAHabitacion() {
 
-		 	float anchoPantalla = ANCHO_MUNDO;
-		 	
-		 	
+		    float minimoX = 0f;
+
 		    float maximoX =
-		        anchoPantalla - ANCHO_JUGADOR;
+		        ANCHO_MUNDO - jugador.getAnchoSprite();
 
+		    float posicionX =
+		        jugador.getPosicion().getX();
 
-		    // LÃ­mite izquierdo
-		    if (jugador.getPosicion().getX() < 0) {
-
-		        jugador.getPosicion().setX(0);
-		    }
-
-
-		    // LÃ­mite derecho
-		    if (jugador.getPosicion().getX() > maximoX) {
-
+		    if (posicionX < minimoX) {
+		        jugador.getPosicion().setX(minimoX);
+		    } 
+		    
+		    else if (posicionX > maximoX) {
 		        jugador.getPosicion().setX(maximoX);
 		    }
-	}
+		}
 	 
 	 private void dibujarHabitacion() {
 
@@ -3825,7 +3825,8 @@ public class Main_game extends ApplicationAdapter {
 		        100,
 		        10,
 		        1,
-		        3
+		        3,
+		        new Hitbox(80f, 120f, 0f, 0f)
 		    );
 
 		    juego.getSalaActual().agregarEnemigo(

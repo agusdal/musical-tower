@@ -7,8 +7,7 @@ public class Ataque {
     private int daño;
 
     // Tamaño de la hitbox del ataque.
-    private float ancho;
-    private float alto;
+    private Hitbox hitbox;
 
     // Tiempo TOTAL de la
     // recuperación del ataque.
@@ -28,8 +27,7 @@ public class Ataque {
 
         this.nombre = nombre;
         this.daño = daño;
-        this.ancho = ancho;
-        this.alto = alto;
+        this.hitbox = new Hitbox(ancho, alto, 0f, 0f);
         this.cooldown = cooldown;
         
         // Al crearse, el ataque está disponible.
@@ -46,11 +44,15 @@ public class Ataque {
     }
 
     public float getAncho() {
-        return ancho;
+        return hitbox.getAncho();
     }
 
     public float getAlto() {
-        return alto;
+        return hitbox.getAlto();
+    }
+
+    public Hitbox getHitbox() {
+        return hitbox;
     }
 
     public float getCooldown() {

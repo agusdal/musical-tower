@@ -298,7 +298,7 @@ public class Main_game extends ApplicationAdapter {
         gravedad = -800;
 
         pisoY = 50;
-        
+        /*
 	    // --------------------------------------------------
 	    // ENEMIGO DE PRUEBA EN LA SALA INICIAL
 	    // --------------------------------------------------
@@ -341,7 +341,8 @@ public class Main_game extends ApplicationAdapter {
 	
 		juego.getSalaActual().agregarEnemigo(
 		    enemigoVoladorPrueba
-		);
+		);*/
+        
         
 	    // -----------------------------------------
 	    // SALTO
@@ -3808,46 +3809,6 @@ public class Main_game extends ApplicationAdapter {
 		    juego = new Juego(jugador);
 
 		    juego.iniciarJuego();
-
-
-		    // --------------------------------------------------
-		    // ENEMIGO DE PRUEBA
-		    // --------------------------------------------------
-
-		    // IMPORTANTE:
-		    // Esto es temporal hasta que hagamos la generaciÃ³n
-		    // real de enemigos por habitaciÃ³n.
-
-		    Enemigo enemigoPrueba = new Enemigo(
-		        "Enemigo prueba",
-		        new Posicion(800, pisoY),
-		        30,
-		        100,
-		        10,
-		        1,
-		        3,
-		        new Hitbox(80f, 120f, 0f, 0f)
-		    );
-
-		    juego.getSalaActual().agregarEnemigo(
-		        enemigoPrueba
-		    );
-		    
-		    EnemigoVolador enemigoVoladorPrueba = new EnemigoVolador(
-		        "Enemigo volador",
-		        new Posicion(1000, 450),
-		        20,
-		        130,
-		        8,
-		        2,
-		        5
-		    );
-
-
-		    juego.getSalaActual().agregarEnemigo(
-		        enemigoVoladorPrueba
-		    );
-		    
 		    
 		    // --------------------------------------------------
 		    // FÃ�SICA

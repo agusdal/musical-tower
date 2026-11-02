@@ -5,7 +5,9 @@ import java.util.Random;
 import java.util.ArrayList;
 
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
+import io.github.escuela_tecnica_n35.entidades.EnemigoVolador;
 import io.github.escuela_tecnica_n35.entidades.Jefe;
+import io.github.escuela_tecnica_n35.entidades.Hitbox;
 import io.github.escuela_tecnica_n35.entidades.Item;
 import io.github.escuela_tecnica_n35.entidades.Posicion;
 import io.github.escuela_tecnica_n35.entidades.TipoItem;
@@ -393,8 +395,9 @@ public class GeneracionEtapa {
             itemSala,
             ofertasTienda
         );
-
-
+        
+        configurarSalasEnemigos(mapa);
+        
         return mapa;
     }
     
@@ -1207,7 +1210,7 @@ public class GeneracionEtapa {
 	    	}
 	}
 	
-	/*private void configurarSalasEnemigos(
+	private void configurarSalasEnemigos(
 	        Sala[][] mapa) {
 
 	    Random random =
@@ -1255,5 +1258,168 @@ public class GeneracionEtapa {
 	            }
 	        }
 	    }
-	}*/
+	}
+	
+	// --------------------------------------------------
+	// MOLDE 1: TRES VOLADORES, SIN PLATAFORMAS
+	// --------------------------------------------------
+
+	private void aplicarMoldeEnemigos1(Sala sala) {
+
+	    agregarVolador(sala, 200f, 440f);
+	    agregarVolador(sala, 560f, 610f);
+	    agregarVolador(sala, 880f, 420f);
+	}
+
+
+	// --------------------------------------------------
+	// MOLDE 2: DOS PLATAFORMAS CON UN ENEMIGO CADA UNA
+	// --------------------------------------------------
+
+	private void aplicarMoldeEnemigos2(Sala sala) {
+
+	    Plataforma izquierda = new Plataforma(
+	        110f,   // X
+	        280f,   // Y
+	        360f,   // ancho
+	        30f     // alto
+	    );
+
+	    Plataforma derecha = new Plataforma(
+	        740f,
+	        280f,
+	        360f,
+	        30f
+	    );
+
+	    sala.agregarPlataforma(izquierda);
+	    sala.agregarPlataforma(derecha);
+
+	    agregarNormalSobrePlataforma(sala, izquierda);
+	    agregarNormalSobrePlataforma(sala, derecha);
+	}
+
+
+	// --------------------------------------------------
+	// MOLDE 3: CINCO PLATAFORMAS,
+	// DOS ENEMIGOS NORMALES Y UN VOLADOR
+	// --------------------------------------------------
+
+	private void aplicarMoldeEnemigos3(Sala sala) {
+
+	    Plataforma inferiorIzquierda = new Plataforma(
+	        200f,
+	        210f,
+	        170f,
+	        30f
+	    );
+
+	    Plataforma inferiorDerecha = new Plataforma(
+	        850f,
+	        225f,
+	        170f,
+	        30f
+	    );
+
+	    Plataforma central = new Plataforma(
+	        510f,
+	        330f,
+	        190f,
+	        30f
+	    );
+
+	    Plataforma superiorIzquierda = new Plataforma(
+	        100f,
+	        450f,
+	        200f,
+	        30f
+	    );
+
+	    Plataforma superiorDerecha = new Plataforma(
+	        960f,
+	        450f,
+	        210f,
+	        30f
+	    );
+
+	    sala.agregarPlataforma(inferiorIzquierda);
+	    sala.agregarPlataforma(inferiorDerecha);
+	    sala.agregarPlataforma(central);
+	    sala.agregarPlataforma(superiorIzquierda);
+	    sala.agregarPlataforma(superiorDerecha);
+
+	    agregarNormalSobrePlataforma(
+	        sala,
+	        superiorIzquierda
+	    );
+
+	    agregarNormalSobrePlataforma(
+	        sala,
+	        superiorDerecha
+	    );
+
+	    agregarVolador(sala, 570f, 590f);
+	}
+
+
+	// --------------------------------------------------
+	// CREAR UN ENEMIGO NORMAL SOBRE UNA PLATAFORMA
+	// --------------------------------------------------
+
+	private void agregarNormalSobrePlataforma(
+	        Sala sala,
+	        Plataforma plataforma) {
+
+	    Hitbox hitbox = new Hitbox(
+	        80f,
+	        120f,
+	        0f,
+	        0f
+	    );
+
+	    // Centramos el cuerpo sobre la plataforma.
+	    float enemigoX =
+	        plataforma.getX()
+	        + (plataforma.getAncho() - hitbox.getAncho()) / 2f;
+
+	    // Los pies quedan sobre la superficie.
+	    float enemigoY =
+	        plataforma.getY() + plataforma.getAlto();
+
+	    Enemigo enemigo = new Enemigo(
+	        "Enemigo normal",
+	        new Posicion(enemigoX, enemigoY),
+	        30,       // vida
+	        100f,     // velocidad
+	        10,       // daño
+	        1,        // monedas mínimas
+	        3,        // monedas máximas
+	        hitbox
+	    );
+
+	    sala.agregarEnemigo(enemigo);
+	}
+
+
+	// --------------------------------------------------
+	// CREAR UN VOLADOR
+	// --------------------------------------------------
+
+	private void agregarVolador(
+	        Sala sala,
+	        float x,
+	        float y) {
+
+	    EnemigoVolador enemigo = new EnemigoVolador(
+	        "Enemigo volador",
+	        new Posicion(x, y),
+	        20,       // vida
+	        130f,     // velocidad
+	        8,        // daño por contacto
+	        2,        // monedas mínimas
+	        5         // monedas máximas
+	    );
+
+	    sala.agregarEnemigo(enemigo);
+	}
 }

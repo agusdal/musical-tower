@@ -76,32 +76,43 @@ public class Juego {
     }
 
 
-    public void avanzarEtapa(int numeroEtapa) {
+    public boolean puedeAvanzarEtapa() {
+        return salaActual.getTipo() == TipoSala.JEFE
+            && salaActual.puedeSalir()
+            && etapaActual.getNumeroPiso() < GeneracionEtapa.ULTIMO_PISO;
+    }
 
-    	Item itemSala =
-    		    sacarItemAleatorio();
+    public boolean avanzarEtapa() {
+    	
+        if (!puedeAvanzarEtapa()) {
+            return false;
+        }
 
-    	ArrayList<OfertaTienda> ofertasTienda =
-    		    generarOfertasTienda(2);
+        int siguientePiso = etapaActual.getNumeroPiso() + 1;
 
+        Item itemSala = sacarItemAleatorio();
+        ArrayList<OfertaTienda> ofertasTienda = generarOfertasTienda(2);
 
-    		etapaActual =
-    		    generador.generarEtapa(
-    		        numeroEtapa,
-    		        itemSala,
-    		        ofertasTienda
-    		    );
-        salaActual =
-            buscarSalaInicial(etapaActual.getMapa());
+        Etapa nuevaEtapa = generador.generarEtapa(
+            siguientePiso,
+            itemSala,
+            ofertasTienda
+        );
 
-        if (salaActual == null) {
+        Sala nuevaSalaInicial = buscarSalaInicial(nuevaEtapa.getMapa());
 
+        if (nuevaSalaInicial == null) {
             throw new IllegalStateException(
                 "La etapa generada no contiene una sala INICIAL."
             );
         }
 
+        etapaActual = nuevaEtapa;
+        salaActual = nuevaSalaInicial;
+
         anunciarSalaActual();
+        
+        return true;
     }
 
 

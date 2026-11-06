@@ -215,7 +215,7 @@ public class Main_game extends ApplicationAdapter {
             posicionInicial,
             100,
             250,
-            7
+            999
         );
         
         //-------------HITBOXES--------------
@@ -434,6 +434,25 @@ public class Main_game extends ApplicationAdapter {
 	        // no se ejecutan movimiento, salto, dash, ataques,
 	        // enemigos, puertas, etc.
 	        return;
+	    }
+	    
+	    if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+	            && juego.avanzarEtapa()) {
+
+	        jugador.getPosicion().setX(140f);
+	        jugador.getPosicion().setY(pisoY);
+
+	        velocidadX = 0f;
+	        velocidadY = 0f;
+
+	        haciendoDash = false;
+	        tiempoDashRestante = 0f;
+	        dashDisponibleAire = 1;
+	        saltosDisponibles = 2;
+
+	        transicionBloqueada = false;
+	        tiempoHitboxAtaqueDebug = 0f;
+	        tiempoHitboxAtaqueEnemigoDebug = 0f;
 	    }
         
         boolean seMueve = false;
@@ -786,6 +805,8 @@ public class Main_game extends ApplicationAdapter {
 	     // --------------------------------------------------
 	
 	     dibujarHUD();
+	     
+	     dibujarAvisoAvanzarEtapa();
 	     
     }
 
@@ -1200,6 +1221,23 @@ public class Main_game extends ApplicationAdapter {
         dibujarMiniMapa();
         dibujarTextoHUD();
         dibujarNombreEtapa();
+    }
+    
+    private void dibujarAvisoAvanzarEtapa() {
+        if (gameOver || !juego.puedeAvanzarEtapa()) {
+            return;
+        }
+
+        String mensaje = "Presionar ENTER para avanzar de etapa";
+
+        font.setColor(Color.WHITE);
+
+        GlyphLayout layout = new GlyphLayout(font, mensaje);
+        float x = (ANCHO_MUNDO - layout.width) / 2f;
+
+        batch.begin();
+        font.draw(batch, layout, x, 40f);
+        batch.end();
     }
     
     // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------

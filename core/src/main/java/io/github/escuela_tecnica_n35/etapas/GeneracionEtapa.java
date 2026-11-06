@@ -16,6 +16,8 @@ import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 public class GeneracionEtapa {
 	
+	public static final int ULTIMO_PISO = 4;
+	
 	// Items que todavía pueden aparecer durante la partida.
 	private ArrayList<Item> poolItems;
 	
@@ -31,7 +33,7 @@ public class GeneracionEtapa {
 	        Item itemSala,
 	        ArrayList<OfertaTienda> ofertasTienda) {
 
-        if (numeroPiso == 4) {
+		if (numeroPiso == ULTIMO_PISO) {
             return generarPisoFinal();
         }
 
@@ -309,18 +311,38 @@ public class GeneracionEtapa {
         );
     }
 
-    private Etapa generarPisoFinal() {
+	private Etapa generarPisoFinal() {
+		
+	    Sala inicial = new Sala(0, 0, TipoSala.INICIAL);
+	    Sala salaJefe = new Sala(0, 1, TipoSala.JEFE);
 
-        // El piso 4 será especial:
-        // pasillo hasta la sala del jefe final.
+	    Jefe jefe = new Jefe(
+	        "Jefe final",
+	        new Posicion(800f, 50f),
+	        300,
+	        80f,
+	        20,
+	        15,
+	        25,
+	        180f,
+	        220f
+	    );
 
-        // Crear enemigos del piso 4
-        // Crear jefe final
-    	
-    	System.out.println("Un hombre con un PORQUÉ para vivir, puede soportar casi que cualquier CÓMO...");
+	    salaJefe.agregarEnemigo(jefe);
 
-        return null;
-    }
+	    Sala[][] mapa = {
+	        { inicial, salaJefe }
+	    };
+
+	    return new Etapa(
+	        "PISO FINAL",
+	        ULTIMO_PISO,
+	        ULTIMO_PISO,
+	        new ArrayList<Enemigo>(),
+	        jefe,
+	        mapa
+	    );
+	}
 
     // -------------------- TAMAÑO DEL MAPA --------------------
 

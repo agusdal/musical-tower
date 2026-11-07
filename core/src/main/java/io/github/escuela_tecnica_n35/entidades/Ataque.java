@@ -54,6 +54,10 @@ public class Ataque {
     public Hitbox getHitbox() {
         return hitbox;
     }
+    
+    public void setHitbox(Hitbox hitbox) {
+        this.hitbox = hitbox;
+    }
 
     public float getCooldown() {
         return cooldown;

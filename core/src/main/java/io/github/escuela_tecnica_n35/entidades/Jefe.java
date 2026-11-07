@@ -30,6 +30,15 @@ public class Jefe extends Enemigo {
 			    monedasMaximas,
 			    new Hitbox(anchoHitbox, altoHitbox, 0f, 0f)
 			);
+		
+		getAtaqueNormal().setHitbox(
+			    new Hitbox(
+			        220f,   // ancho del golpe del jefe
+			        180f,   // alto del golpe del jefe
+			        0f,     // desplazamiento horizontal
+			        0f      // desplazamiento vertical
+			    )
+			);
         
         this.anchoHitbox = anchoHitbox;
         this.altoHitbox = altoHitbox;

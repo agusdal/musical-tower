@@ -13,7 +13,8 @@ public class Enemigo extends Entidad {
     
     private EstadoEnemigo estado;
     
-    private Ataque ataqueNormal;
+    private AtaqueEnemigo ataqueNormal;
+    private boolean ataqueHaciaArriba;
     
     private float tiempoPreparacionAtaque = 0.5f;
     private float tiempoRecuperacionAtaque = 0.25f;
@@ -100,21 +101,24 @@ public class Enemigo extends Entidad {
         this.estado = estado;
     }
     
-    public Ataque getAtaqueNormal() {
+    public AtaqueEnemigo getAtaqueNormal() {
         return ataqueNormal;
+    }
+
+    public boolean esAtaqueHaciaArriba() {
+        return ataqueHaciaArriba;
     }
     
     
-    public void iniciarAtaque() {
+    public void iniciarAtaque(boolean haciaArriba) {
 
-        // No reiniciamos una secuencia que ya comenzó.
         if (estado == EstadoEnemigo.ATACAR
                 || !ataqueNormal.estaDisponible()) {
             return;
         }
 
         estado = EstadoEnemigo.ATACAR;
-
+        ataqueHaciaArriba = haciaArriba;	
         golpeEjecutado = false;
         tiempoFaseAtaque = tiempoPreparacionAtaque;
     }

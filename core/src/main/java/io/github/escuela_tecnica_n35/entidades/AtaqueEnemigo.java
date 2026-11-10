@@ -42,6 +42,14 @@ public class AtaqueEnemigo extends Ataque {
             new Posicion(origenX, origenY)
         );
     }
+    
+    public Rectangle obtenerHitboxHaciaArriba(Rectangle cuerpo) {
+
+        float x = cuerpo.x + (cuerpo.width - getAncho()) / 2f;
+        float y = cuerpo.y + cuerpo.height;
+
+        return getHitbox().obtenerRectangulo(new Posicion(x, y));
+    }
 
     public Proyectil crearProyectil(
             Rectangle cuerpo,

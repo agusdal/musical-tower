@@ -19,6 +19,7 @@ import io.github.escuela_tecnica_n35.etapas.Plataforma;
 import io.github.escuela_tecnica_n35.entidades.OfertaTienda;
 import io.github.escuela_tecnica_n35.entidades.EstadoEnemigo;
 import io.github.escuela_tecnica_n35.juego.Juego;
+import io.github.escuela_tecnica_n35.etapas.GeneracionEtapa;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -1840,68 +1841,17 @@ public class Main_game extends ApplicationAdapter {
 		    }
 		}
 	 
-	 private Rectangle obtenerHitboxAtaqueEnemigo(
-		        Enemigo enemigo) {
+	 private Rectangle obtenerHitboxAtaqueEnemigo(Enemigo enemigo) {
 
-		    Ataque ataque =
-		        enemigo.getAtaqueNormal();
+		    Rectangle cuerpo = obtenerHitboxEnemigo(enemigo);
 
-
-		    Rectangle hitboxEnemigo =
-		        obtenerHitboxEnemigo(enemigo);
-
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
-
-
-		    float centroJugadorX =
-		        hitboxJugador.x
-		        + hitboxJugador.width / 2f;
-
-		    float centroEnemigoX =
-		        hitboxEnemigo.x
-		        + hitboxEnemigo.width / 2f;
-
-
-		    boolean jugadorALaDerecha =
-		        centroJugadorX >= centroEnemigoX;
-
-
-		    float ataqueX;
-
-
-		    // Ataque hacia la derecha.
-		    if (jugadorALaDerecha) {
-
-		        ataqueX =
-		            hitboxEnemigo.x
-		            + hitboxEnemigo.width;
+		    if (enemigo.esAtaqueHaciaArriba()) {
+		        return enemigo.getAtaqueNormal().obtenerHitboxHaciaArriba(cuerpo);
 		    }
 
-		    // Ataque hacia la izquierda.
-		    else {
-
-		        ataqueX =
-		            hitboxEnemigo.x
-		            - ataque.getAncho();
-		    }
-
-
-		    // Centramos verticalmente el ataque
-		    // respecto del cuerpo del enemigo.
-		    float ataqueY =
-		        hitboxEnemigo.y
-		        + (
-		            hitboxEnemigo.height
-		            - ataque.getAlto()
-		        ) / 2f;
-
-
-		    return new Rectangle(
-		        ataqueX,
-		        ataqueY,
-		        ataque.getAncho(),
-		        ataque.getAlto()
+		    return enemigo.getAtaqueNormal().obtenerHitboxCuerpoACuerpo(
+		        cuerpo,
+		        obtenerHitboxJugador()
 		    );
 		}
 		 
@@ -3481,32 +3431,42 @@ public class Main_game extends ApplicationAdapter {
 		        	// aunque el jugador salga del rango.
 		        	if (enemigo.getEstado() != EstadoEnemigo.ATACAR) {
 
-		        		if (mismaAltura
-		        		        && distanciaX <= rangoAtaqueEfectivo) {
+		        	    boolean esJefeFinal =
+		        	        juego.getEtapaActual().getNumeroPiso()
+		        	            == GeneracionEtapa.ULTIMO_PISO
+		        	        && enemigo == juego.getEtapaActual().getJefe();
 
+		        	    boolean puedeAtacarHaciaArriba = false;
+
+		        	    if (esJefeFinal) {
+		        	        Rectangle golpeArriba = enemigo.getAtaqueNormal()
+		        	            .obtenerHitboxHaciaArriba(hitboxEnemigo);
+
+		        	        boolean encimaDelCuerpo =
+		        	            hitboxJugador.x < hitboxEnemigo.x + hitboxEnemigo.width
+		        	            && hitboxJugador.x + hitboxJugador.width > hitboxEnemigo.x;
+
+		        	        float alturaCabeza = hitboxEnemigo.y + hitboxEnemigo.height;
+
+		        	        puedeAtacarHaciaArriba =
+		        	            encimaDelCuerpo
+		        	            && hitboxJugador.y >= alturaCabeza - margenAlturaAtaque
+		        	            && golpeArriba.overlaps(hitboxJugador);
+		        	    }
+
+		        	    boolean puedeAtacarDeCostado =
+		        	        mismaAltura && distanciaX <= rangoAtaqueEfectivo;
+
+		        	    if (puedeAtacarHaciaArriba || puedeAtacarDeCostado) {
 		        	        if (enemigo.getAtaqueNormal().estaDisponible()) {
-
-		        	            enemigo.iniciarAtaque();
-
+		        	            enemigo.iniciarAtaque(puedeAtacarHaciaArriba);
 		        	        } else {
-
-		        	            // Ya está cerca: espera el cooldown.
-		        	            enemigo.setEstado(
-		        	                EstadoEnemigo.QUIETO
-		        	            );
+		        	            enemigo.setEstado(EstadoEnemigo.QUIETO);
 		        	        }
-
 		        	    } else if (distanciaX <= rangoDeteccion) {
-
-		        	        enemigo.setEstado(
-		        	            EstadoEnemigo.PERSEGUIR
-		        	        );
-
+		        	        enemigo.setEstado(EstadoEnemigo.PERSEGUIR);
 		        	    } else {
-
-		        	        enemigo.setEstado(
-		        	            EstadoEnemigo.QUIETO
-		        	        );
+		        	        enemigo.setEstado(EstadoEnemigo.QUIETO);
 		        	    }
 		        	}
 

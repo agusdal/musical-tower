@@ -72,12 +72,10 @@ public class Ataque {
 	    return cooldownRestante <= 0;
 	}
 	
-	
 	public void iniciarCooldown() {
 	
 	    cooldownRestante = cooldown;
 	}
-	
 	
 	public void actualizarCooldown(float delta) {
 	
@@ -91,6 +89,10 @@ public class Ataque {
 	            cooldownRestante = 0;
 	        }
 	    }
+	}
+	
+	void setCooldown(float cooldown) {
+	    this.cooldown = cooldown;
 	}
 	
 	

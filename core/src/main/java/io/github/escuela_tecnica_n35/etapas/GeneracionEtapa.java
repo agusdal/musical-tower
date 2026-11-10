@@ -1003,6 +1003,90 @@ public class GeneracionEtapa {
 	            "items/pua_afilada.png"*/
 	        )
 	    );
+	    
+	    // ITEM 4
+	    poolItems.add(
+	        new Item(
+	            "Botas Rebotadoras",
+	            new Posicion(600, 100),
+	            "Aumenta el daño del ataque.",
+	            1,
+	            TipoItem.ARMA,
+	            TipoModificadorItem.FUERZA_SALTO,
+	            2/*,
+	            "items/botas_rebotadoras.png"*/
+	        )
+	    );
+	    
+	    // ITEM 5
+	    poolItems.add(
+	        new Item(
+	            "Bombo de Rebote",
+	            new Posicion(600, 100),
+	            "Cada golpe hacia abajo te lanza más alto.",
+	            1,
+	            TipoItem.ARMA,
+	            TipoModificadorItem.FUERZA_SALTO,
+	            2/*,
+	            "items/bombo_rebote.png"*/
+	        )
+	    );
+	    
+	    // ITEM 6
+	    poolItems.add(
+	        new Item(
+	            "Pedal Turbo",
+	            new Posicion(600, 100),
+	            "Pisá el pedal y cruzá más distancia en el mismo tiempo.",
+	            1,
+	            TipoItem.ARMA,
+	            TipoModificadorItem.VELOCIDAD_DASH,
+	            2/*,
+	            "items/pedal_turbo.png"*/
+	        )
+	    );
+	    
+	    // ITEM 7
+	    poolItems.add(
+	        new Item(
+	            "Parlantes Estéreo",
+	            new Posicion(600, 100),
+	            "Tu golpe se expande hacia los lados.",
+	            1,
+	            TipoItem.ARMA,
+	            TipoModificadorItem.ANCHO_ATAQUE,
+	            2/*,
+	            "items/parlantes_estereo.png"*/
+	        )
+	    );
+	    
+	    // ITEM 7
+	    poolItems.add(
+	        new Item(
+	            "Torre de Amplis",
+	            new Posicion(600, 100),
+	            "Tus golpes alcanzan enemigos que vuelan más alto.",
+	            1,
+	            TipoItem.ARMA,
+	            TipoModificadorItem.ALTO_ATAQUE,
+	            2/*,
+	            "items/torre_amplis.png"*/
+	        )
+	    );
+	    
+	    // ITEM 8
+	    poolItems.add(
+	        new Item(
+	            "Metrónomo Acelerado",
+	            new Posicion(600, 100),
+	            "Acortá el silencio entre un golpe y el siguiente.",
+	            1,
+	            TipoItem.ARMA,
+	            TipoModificadorItem.COOLDOWN_ATAQUE,
+	            2/*,
+	            "items/metronomo_acelerado.png"*/
+	        )
+	    );
 	}
 	
 	private Item sacarItemAleatorio() {

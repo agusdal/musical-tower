@@ -120,7 +120,6 @@ public class Main_game extends ApplicationAdapter {
 	// Solo puede dashear una vez en el aire
 	private int dashDisponibleAire;
 	
-	private float velocidadDash;
 	private float duracionDash;
 	private float cooldownDash;
     
@@ -178,7 +177,6 @@ public class Main_game extends ApplicationAdapter {
 
 	// Fuerza vertical que recibe el jugador
 	// cuando conecta un pogo.
-	private float fuerzaPogo;
 	
 	// --------------------------------------------------
 	// HITBOX VISUAL DEL ATAQUE - DEBUG
@@ -359,12 +357,6 @@ public class Main_game extends ApplicationAdapter {
 	    // Hace que al soltar el botón durante la subida,
 	    // el personaje pierda velocidad vertical rápidamente.
 	    gravedadSaltoCorto = -1600;
-	    
-	    // -----------------------------------------
-	    // POGO
-	    // -----------------------------------------
-		// El pogo rebota un poco menos que un salto normal.
-		fuerzaPogo = 500f;
 	
 	
 	    // -----------------------------------------
@@ -377,11 +369,8 @@ public class Main_game extends ApplicationAdapter {
 	    
 	    tiempoDashRestante = 0;
 	    tiempoCooldownDash = 0;
-	
-	    // PROVISIONALES:
-	    // Después podemos ajustar estos valores
-	    // según cómo se sienta el movimiento.
-	    velocidadDash = 900;
+	    
+	    
 	    duracionDash = 0.15f;
 	    cooldownDash = 0.45f;
 	
@@ -488,11 +477,9 @@ public class Main_game extends ApplicationAdapter {
 	
 	        // Durante el dash ignoramos momentáneamente
 	        // la velocidad normal del jugador.
-	        jugador.getPosicion().moverX(
-	            velocidadDash
-	            * direccionDash
-	            * delta
-	        );
+	    	jugador.getPosicion().moverX(
+	    		    jugador.getVelocidadDash() * direccionDash * delta
+	    		);
 	
 	        seMueve = true;
 	
@@ -2410,7 +2397,7 @@ public class Main_game extends ApplicationAdapter {
 
 		            // El retroceso del pogo es vertical:
 		            // nos impulsa nuevamente hacia arriba.
-		            velocidadY = fuerzaPogo;
+		        	velocidadY = jugador.getFuerzaPogo();
 
 
 		            System.out.println(

@@ -49,6 +49,16 @@ public class Jugador extends Entidad {
     private Ataque ataqueNormal;
     private Ataque ataquePogo;
     
+    private static final float FUERZA_POGO_INICIAL = 500f;
+    private static final float VELOCIDAD_DASH_INICIAL = 900f;
+    private static final float ANCHO_ATAQUE_INICIAL = 130f;
+    private static final float ALTO_ATAQUE_INICIAL = 140f;
+    private static final float COOLDOWN_ATAQUE_INICIAL = 0.40f;
+    private static final float COOLDOWN_ATAQUE_MINIMO = 0.10f;
+
+    private float fuerzaPogo = FUERZA_POGO_INICIAL;
+    private float velocidadDash = VELOCIDAD_DASH_INICIAL;
+    
 
     public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) { // CONSTRUCTOR
     	
@@ -61,13 +71,13 @@ public class Jugador extends Entidad {
 	    // ATAQUES DEL JUGADOR
 	    // --------------------------------------------------
 	
-	    ataqueNormal = new Ataque(
-	        "Ataque normal",
-	        daño,
-	        130f,
-	        140f,
-	        0.40f
-	    );
+        ataqueNormal = new Ataque(
+        	    "Ataque normal",
+        	    daño,
+        	    ANCHO_ATAQUE_INICIAL,
+        	    ALTO_ATAQUE_INICIAL,
+        	    COOLDOWN_ATAQUE_INICIAL
+        	);
 	
 	
 	    ataquePogo = new Ataque(
@@ -195,6 +205,14 @@ public class Jugador extends Entidad {
 	    return ataquePogo;
 	}
 	
+	public float getFuerzaPogo() {
+	    return fuerzaPogo;
+	}
+
+	public float getVelocidadDash() {
+	    return velocidadDash;
+	}
+	
 	//----------------------------/\EFECTOS ATAQUES/\-----------------------------
 	
 	//----------------------------\/MONEDAS\/-----------------------------
@@ -286,6 +304,19 @@ public class Jugador extends Entidad {
 	    
 	    // Reiniciamos inventario y objeto activo.
 	    inventario = new Inventario();
+	    
+	    fuerzaPogo = FUERZA_POGO_INICIAL;
+	    velocidadDash = VELOCIDAD_DASH_INICIAL;
+
+	    ataqueNormal.setHitbox(new Hitbox(
+	        ANCHO_ATAQUE_INICIAL,
+	        ALTO_ATAQUE_INICIAL,
+	        0f,
+	        0f
+	    ));
+
+	    ataqueNormal.setCooldown(COOLDOWN_ATAQUE_INICIAL);
+	    
 	    objetoActivo = null;
 	    
 	    // Reiniciamos estados de animación.
@@ -336,6 +367,39 @@ public class Jugador extends Entidad {
 	                (int) item.getValor()
 	            );
 	
+	            break;
+	        
+	        case FUERZA_POGO:
+	        	
+	            fuerzaPogo += item.getValor();
+	            
+	            break;
+
+	        case VELOCIDAD_DASH:
+	        	
+	            velocidadDash += item.getValor();
+	            
+	            break;
+
+	        case ANCHO_ATAQUE:
+	        	
+	            ataqueNormal.getHitbox().ampliar(item.getValor(), 0f);
+	            
+	            break;
+
+	        case ALTO_ATAQUE:
+	        	
+	            ataqueNormal.getHitbox().ampliar(0f, item.getValor());
+	            
+	            break;
+
+	        case COOLDOWN_ATAQUE:
+	        	
+	            ataqueNormal.setCooldown(Math.max(
+	                COOLDOWN_ATAQUE_MINIMO,
+	                ataqueNormal.getCooldown() - Math.abs(item.getValor())
+	            ));
+	            
 	            break;
 	
 	        default:

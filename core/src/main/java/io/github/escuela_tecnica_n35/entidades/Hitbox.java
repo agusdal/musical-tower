@@ -52,4 +52,9 @@ public class Hitbox {
     public float getAlto() {
         return alto;
     }
+    
+    void ampliar(float anchoExtra, float altoExtra) {
+        ancho += anchoExtra;
+        alto += altoExtra;
+    }
 }

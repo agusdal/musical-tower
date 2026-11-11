@@ -51,8 +51,20 @@ public class Jugador extends Entidad {
     
     private static final float FUERZA_POGO_INICIAL = 500f;
     private static final float VELOCIDAD_DASH_INICIAL = 900f;
+    
     private static final float ANCHO_ATAQUE_INICIAL = 130f;
     private static final float ALTO_ATAQUE_INICIAL = 140f;
+    
+    private static final float ANCHO_ATAQUE_ARRIBA_INICIAL = 100f;
+    private static final float ALTO_ATAQUE_ARRIBA_INICIAL = 110f;
+    
+    private Hitbox hitboxAtaqueArriba = new Hitbox(
+    	    ANCHO_ATAQUE_ARRIBA_INICIAL,
+    	    ALTO_ATAQUE_ARRIBA_INICIAL,
+    	    0f,
+    	    0f
+    	);
+    
     private static final float COOLDOWN_ATAQUE_INICIAL = 0.40f;
     private static final float COOLDOWN_ATAQUE_MINIMO = 0.10f;
 
@@ -221,7 +233,10 @@ public class Jugador extends Entidad {
 
 	    return ataqueNormal;
 	}
-
+	
+	public Hitbox getHitboxAtaqueArriba() {
+	    return hitboxAtaqueArriba;
+	}
 
 	public Ataque getAtaquePogo() {
 
@@ -337,6 +352,13 @@ public class Jugador extends Entidad {
 	        0f,
 	        0f
 	    ));
+	    
+	    hitboxAtaqueArriba = new Hitbox(
+	        ANCHO_ATAQUE_ARRIBA_INICIAL,
+	        ALTO_ATAQUE_ARRIBA_INICIAL,
+	        0f,
+	        0f
+	    );
 
 	    ataqueNormal.setCooldown(COOLDOWN_ATAQUE_INICIAL);
 	    
@@ -407,12 +429,14 @@ public class Jugador extends Entidad {
 	        case ANCHO_ATAQUE:
 	        	
 	            ataqueNormal.getHitbox().ampliar(item.getValor(), 0f);
+	            hitboxAtaqueArriba.ampliar(item.getValor(), 0f);
 	            
 	            break;
 
 	        case ALTO_ATAQUE:
 	        	
 	            ataqueNormal.getHitbox().ampliar(0f, item.getValor());
+	            hitboxAtaqueArriba.ampliar(0f, item.getValor());
 	            
 	            break;
 

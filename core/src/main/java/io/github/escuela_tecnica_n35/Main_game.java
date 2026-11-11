@@ -224,7 +224,7 @@ public class Main_game extends ApplicationAdapter {
             posicionInicial,
             100,
             250,
-            999
+            7
         );
         
         //-------------HITBOXES--------------
@@ -2416,32 +2416,17 @@ public class Main_game extends ApplicationAdapter {
 
 		private Rectangle obtenerHitboxAtaqueArribaJugador() {
 
-		    Ataque ataque =
-		        jugador.getAtaqueNormal();
+		    Rectangle cuerpo = obtenerHitboxJugador();
+		    Hitbox golpe = jugador.getHitboxAtaqueArriba();
 
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
+		    float x =
+		        cuerpo.x + (cuerpo.width - golpe.getAncho()) / 2f;
 
+		    float y =
+		        cuerpo.y + cuerpo.height;
 
-		    // Centramos el ataque horizontalmente
-		    // respecto del cuerpo del jugador.
-		    float ataqueX =
-		        hitboxJugador.x
-		        + (hitboxJugador.width - ataque.getAncho()) / 2f;
-
-
-		    // La hitbox empieza exactamente
-		    // arriba del cuerpo del jugador.
-		    float ataqueY =
-		        hitboxJugador.y
-		        + hitboxJugador.height;
-
-
-		    return new Rectangle(
-		        ataqueX,
-		        ataqueY,
-		        ataque.getAncho(),
-		        ataque.getAlto()
+		    return golpe.obtenerRectangulo(
+		        new Posicion(x, y)
 		    );
 		}
 	 

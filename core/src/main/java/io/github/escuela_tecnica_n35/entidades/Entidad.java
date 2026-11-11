@@ -34,10 +34,6 @@ public class Entidad {
     	
         return daño;
     }
-	    
-	// --------------------------------------------------
-	// ATAQUE
-	// --------------------------------------------------
 	
 	public void atacar(
 	        Entidad objetivo,
@@ -138,5 +134,14 @@ public class Entidad {
 
 	        ataque.actualizarCooldown(delta);
 	    }
+	}
+	
+	protected boolean curar(int cantidad) {
+	    if (cantidad <= 0 || !estaVivo() || vidaActual >= vidaMax) {
+	        return false;
+	    }
+
+	    vidaActual += Math.min(cantidad, vidaMax - vidaActual);
+	    return true;
 	}
 }

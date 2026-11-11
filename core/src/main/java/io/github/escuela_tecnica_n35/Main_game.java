@@ -199,6 +199,16 @@ public class Main_game extends ApplicationAdapter {
 	// Evita que al entrar a una habitación
 	// volvamos instantáneamente a la anterior.
 	private boolean transicionBloqueada;
+	
+	private static final String[] OPCIONES_PAUSA = {
+		    "Continuar",
+		    "Ver controles",
+		    "Reiniciar partida"
+		};
+
+	private boolean pausado;
+	private boolean viendoControles;
+	private int opcionPausa;
     
     @Override
     public void create() {
@@ -297,50 +307,6 @@ public class Main_game extends ApplicationAdapter {
         gravedad = -800;
 
         pisoY = 50;
-        /*
-	    // --------------------------------------------------
-	    // ENEMIGO DE PRUEBA EN LA SALA INICIAL
-	    // --------------------------------------------------
-	
-	    Enemigo enemigoPrueba = new Enemigo(
-	        "Enemigo prueba",
-	        new Posicion(800, pisoY),
-	        30,     // Vida máxima
-	        100,    // Velocidad
-	        10,     // Daño
-	        1,      // Monedas mínimas
-	        50,     // Monedas máximas
-	        new Hitbox(80f, 120f, 0f, 0f)
-	    );
-	
-	
-	    // El enemigo pertenece a la sala inicial.
-	    juego.getSalaActual().agregarEnemigo(
-	        enemigoPrueba
-	    );
-		    
-		// --------------------------------------------------
-		// ENEMIGO VOLADOR DE PRUEBA
-		// --------------------------------------------------
-	
-		EnemigoVolador enemigoVoladorPrueba =
-		    new EnemigoVolador(
-		        "Enemigo volador",
-		        new Posicion(
-		            1000,
-		            450
-		        ),
-		        20,     // vida
-		        130,    // velocidad
-		        8,      // daño por contacto
-		        2,      // monedas mínimas
-		        5       // monedas máximas
-		    );
-	
-	
-		juego.getSalaActual().agregarEnemigo(
-		    enemigoVoladorPrueba
-		);*/
         
         
 	    // -----------------------------------------
@@ -382,10 +348,6 @@ public class Main_game extends ApplicationAdapter {
     	
         float delta = Gdx.graphics.getDeltaTime();
         
-	    // Actualizamos el cooldown de todos
-	    // los ataques del jugador.
-	    jugador.actualizarCooldowns(delta);
-        
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
         
         // Aplicamos la resolución virtual.
@@ -424,6 +386,23 @@ public class Main_game extends ApplicationAdapter {
 	        // no se ejecutan movimiento, salto, dash, ataques,
 	        // enemigos, puertas, etc.
 	        return;
+	    }
+	    
+	    if (pausado || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+	        actualizarMenuPausa();
+	        dibujarEscenaPausada();
+
+	        if (pausado) {
+	            dibujarMenuPausa();
+	        }
+
+	        return;
+	    }
+
+	    jugador.actualizarCooldowns(delta);
+
+	    if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+	        jugador.usarPocima();
 	    }
 	    
 	    if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
@@ -990,6 +969,21 @@ public class Main_game extends ApplicationAdapter {
         batch.end();
     }
     
+    private void dibujarPocimaHUD() {
+        int cargas = jugador.getCargasPocima();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.13f, 0.14f, 0.19f, 1f);
+        shapeRenderer.rect(20f, 8f, 250f, 34f);
+        shapeRenderer.end();
+
+        batch.begin();
+        font.setColor(cargas > 0 ? Color.ORANGE : Color.LIGHT_GRAY);
+        font.draw(batch, "[A] Pócima  " + cargas + "/3", 32f, 34f);
+        font.setColor(Color.WHITE);
+        batch.end();
+    }
+    
     private void dibujarBarraVida() {
 
         float barraX = 20;
@@ -1209,7 +1203,10 @@ public class Main_game extends ApplicationAdapter {
         dibujarMiniMapa();
         dibujarTextoHUD();
         dibujarNombreEtapa();
+        dibujarPocimaHUD();
     }
+    
+    // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
     
     private void dibujarAvisoAvanzarEtapa() {
         if (gameOver || !juego.puedeAvanzarEtapa()) {
@@ -1228,7 +1225,129 @@ public class Main_game extends ApplicationAdapter {
         batch.end();
     }
     
-    // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
+    //---------------------------------------- MENÚ ---------------------------------------
+    
+    private void actualizarMenuPausa() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            if (viendoControles) {
+                viendoControles = false;
+            } else {
+                pausado = !pausado;
+                opcionPausa = 0;
+            }
+            return;
+        }
+
+        if (viendoControles) {
+            return;
+        }
+
+        int cantidad = OPCIONES_PAUSA.length;
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+            opcionPausa = (opcionPausa + cantidad - 1) % cantidad;
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+            opcionPausa = (opcionPausa + 1) % cantidad;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            switch (opcionPausa) {
+                case 0:
+                    pausado = false;
+                    break;
+
+                case 1:
+                    viendoControles = true;
+                    break;
+
+                case 2:
+                    reiniciarPartida();
+                    break;
+            }
+        }
+    }
+
+    private void dibujarEscenaPausada() {
+        dibujarHabitacion();
+        dibujarEnemigos();
+        dibujarItems();
+        dibujarPlataformas();
+        dibujarProyectiles();
+
+        batch.begin();
+        jugador.render(batch, 0f);
+        batch.end();
+
+        dibujarHUD();
+    }
+
+    private void dibujarMenuPausa() {
+    	
+    	Gdx.gl.glEnable(GL20.GL_BLEND);
+    	Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+    	shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+    	shapeRenderer.setColor(0f, 0f, 0f, 0.55f);
+    	shapeRenderer.rect(0f, 0f, ANCHO_MUNDO, ALTO_MUNDO);
+    	shapeRenderer.end();
+
+    	Gdx.gl.glDisable(GL20.GL_BLEND);
+    	
+    	
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.08f, 0.09f, 0.13f, 1f);
+        shapeRenderer.rect(360f, 155f, 560f, 410f);
+        shapeRenderer.end();
+
+        batch.begin();
+
+        if (viendoControles) {
+            dibujarTextoCentrado("CONTROLES", 525f, Color.ORANGE);
+            dibujarTextoCentrado("Flechas izquierda y derecha: mover", 475f, Color.WHITE);
+            dibujarTextoCentrado("Z: saltar / doble salto", 445f, Color.WHITE);
+            dibujarTextoCentrado("C: dash", 415f, Color.WHITE);
+            dibujarTextoCentrado("X: ataque normal", 385f, Color.WHITE);
+            dibujarTextoCentrado("Arriba + X: ataque hacia arriba", 355f, Color.WHITE);
+            dibujarTextoCentrado("Abajo + X en el aire: pogo", 325f, Color.WHITE);
+            dibujarTextoCentrado("F: usar puertas verticales", 295f, Color.WHITE);
+            dibujarTextoCentrado("Q: usar la pócima", 265f, Color.WHITE);
+            dibujarTextoCentrado("ENTER: avanzar tras derrotar al jefe", 235f, Color.WHITE);
+            dibujarTextoCentrado("ESC: volver al menú", 185f, Color.LIGHT_GRAY);
+        } else {
+            dibujarTextoCentrado("PAUSA", 505f, Color.ORANGE);
+
+            for (int i = 0; i < OPCIONES_PAUSA.length; i++) {
+                boolean seleccionada = i == opcionPausa;
+                String texto = seleccionada
+                    ? "> " + OPCIONES_PAUSA[i]
+                    : OPCIONES_PAUSA[i];
+
+                dibujarTextoCentrado(
+                    texto,
+                    420f - i * 55f,
+                    seleccionada ? Color.ORANGE : Color.WHITE
+                );
+            }
+
+            dibujarTextoCentrado(
+                "Arriba / abajo para elegir - ENTER para aceptar",
+                205f,
+                Color.LIGHT_GRAY
+            );
+        }
+
+        font.setColor(Color.WHITE);
+        batch.end();
+    }
+
+    private void dibujarTextoCentrado(String texto, float y, Color color) {
+        font.setColor(color);
+        layout.setText(font, texto);
+        font.draw(batch, layout, (ANCHO_MUNDO - layout.width) / 2f, y);
+    }
+    
+    //---------------------------------------- MENÚ ---------------------------------------
+    
     
     private void actualizarPuertas() {
 
@@ -3905,5 +4024,9 @@ public class Main_game extends ApplicationAdapter {
 
 		    // Finalmente salimos del Game Over.
 		    gameOver = false;
+		    
+		    pausado = false;
+		    viendoControles = false;
+		    opcionPausa = 0;
 		}
 }

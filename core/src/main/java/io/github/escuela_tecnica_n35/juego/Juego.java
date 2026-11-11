@@ -71,7 +71,9 @@ public class Juego {
                 "La etapa generada no contiene una sala INICIAL."
             );
         }
-
+        
+        jugador.recargarPocima();
+        
         anunciarSalaActual();
     }
 
@@ -91,6 +93,7 @@ public class Juego {
         int siguientePiso = etapaActual.getNumeroPiso() + 1;
 
         Item itemSala = sacarItemAleatorio();
+        
         ArrayList<OfertaTienda> ofertasTienda = generarOfertasTienda(2);
 
         Etapa nuevaEtapa = generador.generarEtapa(
@@ -109,6 +112,8 @@ public class Juego {
 
         etapaActual = nuevaEtapa;
         salaActual = nuevaSalaInicial;
+        
+        jugador.recargarPocima();
 
         anunciarSalaActual();
         

@@ -59,6 +59,11 @@ public class Jugador extends Entidad {
     private float fuerzaPogo = FUERZA_POGO_INICIAL;
     private float velocidadDash = VELOCIDAD_DASH_INICIAL;
     
+    private static final int CARGAS_MAXIMAS_POCIMA = 3;
+    private static final int CURACION_POCIMA = 30;
+
+    private int cargasPocima = CARGAS_MAXIMAS_POCIMA;
+    
 
     public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) { // CONSTRUCTOR
     	
@@ -191,6 +196,24 @@ public class Jugador extends Entidad {
         	    ALTO_SPRITE
         	);
     }
+    
+    //----------------------------\/POCIMA CURATIVA\/-----------------------------
+    
+    public int getCargasPocima() {
+        return cargasPocima;
+    }
+
+    public void recargarPocima() {
+        cargasPocima = CARGAS_MAXIMAS_POCIMA;
+    }
+
+    public void usarPocima() {
+        if (cargasPocima > 0 && curar(CURACION_POCIMA)) {
+            cargasPocima--;
+        }
+    }
+    
+    //----------------------------/\POCIMA CURATIVA/\-----------------------------
 
 	//----------------------------\/EFECTOS ATAQUES\/-----------------------------
     

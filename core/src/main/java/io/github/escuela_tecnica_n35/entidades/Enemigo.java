@@ -23,14 +23,14 @@ public class Enemigo extends Entidad {
     private boolean golpeEjecutado;
 
     // --- VARIABLES DE ANIMACIÓN Y SPRITE SHEET ---
-    private float tiempoAnimacion = 0f;
-    private int frameActual = 1;
-    private boolean mirandoDerecha = false;
-    private float velocidadAnimacionCaminata = 0.1f;
+    protected float tiempoAnimacion = 0f;
+    protected int frameActual = 1;
+    protected boolean mirandoDerecha = false;
+    protected float velocidadAnimacionCaminata = 0.1f;
 
     // Configuración de la cuadrícula del sprite sheet (3 columnas y 9 filas para los 26 frames)
-    private int numColumnas = 3;
-    private int numFilas = 9;
+    protected int numColumnas = 3;
+    protected int numFilas = 9;
 
     public Enemigo(
         String nombre,
@@ -106,6 +106,15 @@ public class Enemigo extends Entidad {
 
     public boolean esAtaqueHaciaArriba() {
         return ataqueHaciaArriba;
+    }
+
+    // --- GETTERS Y SETTERS PARA LA ANIMACIÓN (NECESARIOS PARA EL ENEMIGO VOLADOR) ---
+    public boolean isMirandoDerecha() {
+        return mirandoDerecha;
+    }
+
+    public void setMirandoDerecha(boolean mirandoDerecha) {
+        this.mirandoDerecha = mirandoDerecha;
     }
 
     public void iniciarAtaque(boolean haciaArriba) {

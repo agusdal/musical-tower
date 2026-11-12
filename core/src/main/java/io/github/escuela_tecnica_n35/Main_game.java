@@ -45,6 +45,8 @@ public class Main_game extends ApplicationAdapter {
 	private MenuPrincipal menuPrincipal;
 	private boolean enMenuPrincipal = true;
 	
+	private MenuDerrota menuDerrota;
+	
 	private static final float ANCHO_MUNDO = 1280f;
 	private static final float ALTO_MUNDO = 720f;
 
@@ -128,10 +130,11 @@ public class Main_game extends ApplicationAdapter {
     private boolean transicionBloqueada;
 
     private static final String[] OPCIONES_PAUSA = {
-        "Continuar",
-        "Ver controles",
-        "Reiniciar partida"
-    };
+    	    "Continuar",
+    	    "Ver controles",
+    	    "Reiniciar partida",
+    	    "Volver al menú principal"
+    	};
 
     private boolean pausado;
     private boolean viendoControles;
@@ -165,8 +168,11 @@ public class Main_game extends ApplicationAdapter {
 
         layout = new GlyphLayout();
         
+        
         menuPrincipal = new MenuPrincipal(font);
-
+        
+        menuDerrota = new MenuDerrota(font);
+        
 
         shapeRenderer = new ShapeRenderer();
 
@@ -241,21 +247,42 @@ public class Main_game extends ApplicationAdapter {
 	    // GAME OVER
 	    // --------------------------------------------------
         if (gameOver) {
-            dibujarGameOver();
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                reiniciarPartida();
+            switch (menuDerrota.actualizar(viewport)) {
+
+                case REINICIAR:
+                    reiniciarPartida();
+                    return;
+
+                case MENU_PRINCIPAL:
+                    volverAlMenuPrincipal();
+                    return;
+
+                case SALIR:
+                    Gdx.app.exit();
+                    return;
+
+                default:
+                    menuDerrota.dibujar(batch, shapeRenderer);
+                    return;
             }
-            return;
         }
 
         if (pausado || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+
             actualizarMenuPausa();
+
+            if (enMenuPrincipal) {
+                menuPrincipal.dibujar(batch, shapeRenderer);
+                return;
+            }
+
             dibujarEscenaPausada();
 
             if (pausado) {
                 dibujarMenuPausa();
             }
+
             return;
         }
 
@@ -417,7 +444,8 @@ public class Main_game extends ApplicationAdapter {
         batch.dispose();
         
         menuPrincipal.dispose();
-
+        menuDerrota.dispose();
+        
         font.dispose();
         shapeRenderer.dispose();
         texturaMoneda.dispose();
@@ -650,8 +678,12 @@ public class Main_game extends ApplicationAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             switch (opcionPausa) {
                 case 0: pausado = false; break;
+                
                 case 1: viendoControles = true; break;
+                
                 case 2: reiniciarPartida(); break;
+                
+                case 3:volverAlMenuPrincipal(); break;
             }
         }
     }
@@ -1617,28 +1649,17 @@ public class Main_game extends ApplicationAdapter {
             return;
         }
     }
+    
+    private void volverAlMenuPrincipal() {
+        enMenuPrincipal = true;
+        gameOver = false;
 
-    private void dibujarGameOver() {
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.BLACK);
-        shapeRenderer.rect(0, 0, ANCHO_MUNDO, ALTO_MUNDO);
-        shapeRenderer.end();
+        pausado = false;
+        viendoControles = false;
+        opcionPausa = 0;
 
-        batch.begin();
-        font.getData().setScale(3f);
-        layout.setText(font, "GAME OVER");
-        float gameOverX = (ANCHO_MUNDO - layout.width) / 2;
-        float gameOverY = ALTO_MUNDO / 2 + 50;
-        font.draw(batch, layout, gameOverX, gameOverY);
-
-        font.getData().setScale(1.5f);
-        layout.setText(font, "Presiona ENTER para volver a jugar");
-        float reiniciarX = (ANCHO_MUNDO - layout.width) / 2;
-        float reiniciarY = ALTO_MUNDO / 2 - 30;
-        font.draw(batch, layout, reiniciarX, reiniciarY);
-
-        font.getData().setScale(1.2f);
-        batch.end();
+        menuPrincipal.restablecer();
+        menuDerrota.reiniciarSeleccion();
     }
 
     private void reiniciarPartida() {
@@ -1659,6 +1680,10 @@ public class Main_game extends ApplicationAdapter {
         mirandoIzquierda = false;
         transicionBloqueada = false;
         gameOver = false;
+        
+        enMenuPrincipal = false;
+        menuDerrota.reiniciarSeleccion();
+        
         pausado = false;
         viendoControles = false;
         opcionPausa = 0;

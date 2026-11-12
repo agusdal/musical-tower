@@ -376,4 +376,8 @@ public class MenuPrincipal implements Disposable {
             selector.dispose();
         }
     }
+    
+    public void restablecer() {
+        cambiarPantalla(Pantalla.PRINCIPAL);
+    }
 }

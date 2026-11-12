@@ -360,18 +360,6 @@ public class Main_game extends ApplicationAdapter {
         texAppetite = new Texture("appetite.png");
         texGreenDay = new Texture("green day.png");
 
-// --- CREAR Y ASIGNAR UN ÍTEM DE PRUEBA EN LA SALA ACTUAL ---
-        Item itemVida = new Item(
-            "Corazón de Acero",
-            new Posicion(300f, 150f), // Posición (X, Y) en el suelo de la sala
-            "Aumenta tu vida máxima",
-            1,
-            TipoItem.PASIVO,
-            TipoModificadorItem.VIDA_MAX,
-            20f,
-            "steelheart.png"
-        );
-        juego.getSalaActual().setItem(itemVida);
     }
 
     @Override
@@ -3146,9 +3134,10 @@ public class Main_game extends ApplicationAdapter {
             return;
         }
 
+        // El batch se abre y se cierra estrictamente aquí adentro
         batch.begin();
 
-        // Dibujar ítem normal de la sala
+        // 1. Dibujar ítem normal de la sala
         if (salaActual.tieneItem()) {
             Item item = salaActual.getItem();
             Rectangle hitboxItem = obtenerHitboxItem(item);
@@ -3159,7 +3148,7 @@ public class Main_game extends ApplicationAdapter {
             }
         }
 
-        // Dibujar ítems de la tienda
+        // 2. Dibujar ítems de la tienda
         for (OfertaTienda oferta : salaActual.getOfertasTienda()) {
             Item item = oferta.getItem();
             Rectangle hitboxItem = obtenerHitboxItem(item);
@@ -3170,7 +3159,40 @@ public class Main_game extends ApplicationAdapter {
             }
         }
 
-        batch.end();
+        batch.end(); // <-- IMPORTANTE: el batch se cierra aquí, antes de que termine el método
+    }private void dibujarItems() {
+        Sala salaActual = juego.getSalaActual();
+
+        if (!salaActual.tieneItem() && salaActual.getOfertasTienda().isEmpty()) {
+            return;
+        }
+
+        // El batch se abre y se cierra estrictamente aquí adentro
+        batch.begin();
+
+        // 1. Dibujar ítem normal de la sala
+        if (salaActual.tieneItem()) {
+            Item item = salaActual.getItem();
+            Rectangle hitboxItem = obtenerHitboxItem(item);
+            Texture texturaItem = obtenerTexturaItem(item.getImagen());
+
+            if (texturaItem != null) {
+                batch.draw(texturaItem, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+            }
+        }
+
+        // 2. Dibujar ítems de la tienda
+        for (OfertaTienda oferta : salaActual.getOfertasTienda()) {
+            Item item = oferta.getItem();
+            Rectangle hitboxItem = obtenerHitboxItem(item);
+            Texture texturaItem = obtenerTexturaItem(item.getImagen());
+
+            if (texturaItem != null) {
+                batch.draw(texturaItem, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+            }
+        }
+
+        batch.end(); // <-- IMPORTANTE: el batch se cierra aquí, antes de que termine el método
     }
 
     // Método auxiliar para asociar el nombre de archivo con su textura

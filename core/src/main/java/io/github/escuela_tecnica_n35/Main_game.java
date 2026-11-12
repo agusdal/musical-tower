@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.github.escuela_tecnica_n35.entidades.Jugador;
@@ -41,14 +42,14 @@ import com.badlogic.gdx.graphics.Texture;
 import java.util.ArrayList;
 
 public class Main_game extends ApplicationAdapter {
-	
-	private MenuPrincipal menuPrincipal;
-	private boolean enMenuPrincipal = true;
-	
-	private MenuDerrota menuDerrota;
-	
-	private static final float ANCHO_MUNDO = 1280f;
-	private static final float ALTO_MUNDO = 720f;
+
+    private MenuPrincipal menuPrincipal;
+    private boolean enMenuPrincipal = true;
+
+    private MenuDerrota menuDerrota;
+
+    private static final float ANCHO_MUNDO = 1280f;
+    private static final float ALTO_MUNDO = 720f;
 
     private boolean gameOver;
 
@@ -66,9 +67,15 @@ public class Main_game extends ApplicationAdapter {
     private GlyphLayout layout;
 
     private Texture texturaMoneda;
-    private Texture texturaBicho; // <--- TEXTURA DEL ENEMIGO (Bicho)
-
+    private Texture texturaBicho;
+    private Texture texturaMosca;
     private Texture texturaPlataforma;
+
+    // --- TEXTURAS Y REGIONES PARA LOS ASCENSORES ---
+    private Texture texturaAscensor;
+    private TextureRegion regionAscensorArriba;
+    private TextureRegion regionAscensorAbajo;
+
     private static final float ALTO_PLATAFORMA_VISUAL = 140f;
     private static final float ALTO_PLATAFORMA = 140f;
 
@@ -130,16 +137,16 @@ public class Main_game extends ApplicationAdapter {
     private boolean transicionBloqueada;
 
     private static final String[] OPCIONES_PAUSA = {
-    	    "Continuar",
-    	    "Ver controles",
-    	    "Reiniciar partida",
-    	    "Volver al menú principal"
-    	};
+        "Continuar",
+        "Ver controles",
+        "Reiniciar partida",
+        "Volver al menú principal"
+    };
 
     private boolean pausado;
     private boolean viendoControles;
     private int opcionPausa;
-    
+
     private final MouseMenu mousePausa = new MouseMenu();
 
     private final Rectangle[] botonesPausa =
@@ -154,7 +161,7 @@ public class Main_game extends ApplicationAdapter {
     @Override
     public void create() {
         gameOver = false;
-        
+
         for (int i = 0; i < botonesPausa.length; i++) {
             botonesPausa[i] = new Rectangle(
                 380f,
@@ -177,8 +184,14 @@ public class Main_game extends ApplicationAdapter {
         tiempoHitboxAtaqueEnemigoDebug = 0;
 
         texturaMoneda = new Texture("moneda.png");
-        texturaBicho = new Texture("bicho.jpg"); // <--- CARGAMOS LA IMAGEN DEL BICHO
+        texturaBicho = new Texture("bicho.jpg");
+        texturaMosca = new Texture("mosca.png");
         texturaPlataforma = new Texture("plataforma.jpg");
+
+        // --- CARGA DE LA TEXTURA DE ASCENSOR Y CORTE EN DOS REGIONES ---
+        texturaAscensor = new Texture("ascensor.png");
+        regionAscensorArriba = new TextureRegion(texturaAscensor, 0, 0, texturaAscensor.getWidth(), texturaAscensor.getHeight() / 2);
+        regionAscensorAbajo = new TextureRegion(texturaAscensor, 0, texturaAscensor.getHeight() / 2, texturaAscensor.getWidth(), texturaAscensor.getHeight() / 2);
 
         tiempoInvulnerable = 0;
         duracionInvulnerabilidad = 0.7f;
@@ -187,12 +200,9 @@ public class Main_game extends ApplicationAdapter {
         font.getData().setScale(1.2f);
 
         layout = new GlyphLayout();
-        
-        
+
         menuPrincipal = new MenuPrincipal(font);
-        
         menuDerrota = new MenuDerrota(font);
-        
 
         shapeRenderer = new ShapeRenderer();
 
@@ -245,13 +255,7 @@ public class Main_game extends ApplicationAdapter {
         batch.setProjectionMatrix(camara.combined);
         shapeRenderer.setProjectionMatrix(camara.combined);
 
-        shapeRenderer.setProjectionMatrix(
-            camara.combined
-        );
-        
-        
         if (enMenuPrincipal) {
-
             if (menuPrincipal.actualizar(viewport)) {
                 reiniciarPartida();
                 enMenuPrincipal = false;
@@ -261,27 +265,18 @@ public class Main_game extends ApplicationAdapter {
             menuPrincipal.dibujar(batch, shapeRenderer);
             return;
         }
-        
-        
-	    // --------------------------------------------------
-	    // GAME OVER
-	    // --------------------------------------------------
+
         if (gameOver) {
-
             switch (menuDerrota.actualizar(viewport)) {
-
                 case REINICIAR:
                     reiniciarPartida();
                     return;
-
                 case MENU_PRINCIPAL:
                     volverAlMenuPrincipal();
                     return;
-
                 case SALIR:
                     Gdx.app.exit();
                     return;
-
                 default:
                     menuDerrota.dibujar(batch, shapeRenderer);
                     return;
@@ -289,7 +284,6 @@ public class Main_game extends ApplicationAdapter {
         }
 
         if (pausado || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-
             actualizarMenuPausa();
 
             if (enMenuPrincipal) {
@@ -435,7 +429,7 @@ public class Main_game extends ApplicationAdapter {
         comprobarCambioSala();
 
         dibujarHabitacion();
-        dibujarEnemigos(); // <--- Dibuja los enemigos con la textura del bicho
+        dibujarEnemigos();
         dibujarItems();
         dibujarPlataformas();
 
@@ -462,15 +456,17 @@ public class Main_game extends ApplicationAdapter {
     @Override
     public void dispose() {
         batch.dispose();
-        
+
         menuPrincipal.dispose();
         menuDerrota.dispose();
-        
+
         font.dispose();
         shapeRenderer.dispose();
         texturaMoneda.dispose();
-        texturaBicho.dispose(); // <--- LIBERAMOS LA TEXTURA DEL BICHO
+        texturaBicho.dispose();
+        texturaMosca.dispose();
         texturaPlataforma.dispose();
+        texturaAscensor.dispose(); // <--- LIBERAMOS LA TEXTURA DEL ASCENSOR
     }
 
     private boolean botonSaltoPresionado() {
@@ -727,7 +723,7 @@ public class Main_game extends ApplicationAdapter {
 
         boolean aceptar =
             Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
-            || (clic && bajoMouse >= 0);
+                || (clic && bajoMouse >= 0);
 
         if (aceptar) {
             switch (opcionPausa) {
@@ -794,12 +790,12 @@ public class Main_game extends ApplicationAdapter {
             dibujarTextoCentrado("Q: usar la pócima", 265f, Color.WHITE);
             dibujarTextoCentrado("ENTER: avanzar tras derrotar al jefe", 235f, Color.WHITE);
             dibujarTextoCentrado(
-            	    sobreVolverControles ? "> VOLVER" : "VOLVER",
-            	    185f,
-            	    sobreVolverControles
-            	        ? Color.ORANGE
-            	        : Color.LIGHT_GRAY
-            	);
+                sobreVolverControles ? "> VOLVER" : "VOLVER",
+                185f,
+                sobreVolverControles
+                    ? Color.ORANGE
+                    : Color.LIGHT_GRAY
+            );
         } else {
             dibujarTextoCentrado("PAUSA", 505f, Color.ORANGE);
 
@@ -916,10 +912,14 @@ public class Main_game extends ApplicationAdapter {
         }
     }
 
+    // --- MÉTODO ACTUALIZADO PARA DIBUJAR LOS ASCENSORES CON TEXTURA EN VEZ DE LÍNEAS ---
+    // --- MÉTODO ACTUALIZADO CON ANCHO AJUSTADO PARA EL ASCENSOR ---
     private void dibujarHabitacion() {
         float anchoPantalla = ANCHO_MUNDO;
         float altoPantalla = ALTO_MUNDO;
 
+
+        // 1. Dibujamos las líneas de la habitación y las puertas laterales/centrales con ShapeRenderer
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.WHITE);
 
@@ -935,35 +935,47 @@ public class Main_game extends ApplicationAdapter {
 
         if (juego.haySalaEnDireccion(-1, 0)) {
             shapeRenderer.rect(puertaArriba.x, puertaArriba.y, puertaArriba.width, puertaArriba.height);
-            dibujarFlechaArriba(puertaArriba);
         }
 
         if (juego.haySalaEnDireccion(1, 0)) {
             shapeRenderer.rect(puertaAbajo.x, puertaAbajo.y, puertaAbajo.width, puertaAbajo.height);
-            dibujarFlechaAbajo(puertaAbajo);
         }
 
         shapeRenderer.end();
-    }
 
-    private void dibujarFlechaArriba(Rectangle puerta) {
-        float centroX = puerta.x + puerta.width / 2;
-        float abajo = puerta.y + 25;
-        float arriba = puerta.y + puerta.height - 25;
+        // 2. Dibujamos las texturas de los ascensores con un ancho mayor para que no se vean delgados
+        batch.begin();
 
-        shapeRenderer.line(centroX, abajo, centroX, arriba);
-        shapeRenderer.line(centroX, arriba, centroX - 10, arriba - 15);
-        shapeRenderer.line(centroX, arriba, centroX + 10, arriba - 15);
-    }
+        // Definimos un ancho mayor al de la hitbox de la puerta (por ejemplo, 140 píxeles en vez de 80)
 
-    private void dibujarFlechaAbajo(Rectangle puerta) {
-        float centroX = puerta.x + puerta.width / 2;
-        float arriba = puerta.y + puerta.height - 25;
-        float abajo = puerta.y + 25;
+// Cambia este número a mano para darle el ancho que quieras a la vista del ascensor:
+        float anchoAscensorVisual = 300f; // Puedes probar con 140f, 180f, 200f, etc.
 
-        shapeRenderer.line(centroX, arriba, centroX, abajo);
-        shapeRenderer.line(centroX, abajo, centroX - 10, abajo + 15);
-        shapeRenderer.line(centroX, abajo, centroX + 10, abajo + 15);
+        if (juego.haySalaEnDireccion(-1, 0)) {
+            // Centramos la textura visualmente respecto al centro de la puertaArriba
+            float centroX = puertaArriba.x + (puertaArriba.width / 2f) - (anchoAscensorVisual / 2f);
+            batch.draw(
+                regionAscensorArriba,
+                centroX,
+                puertaArriba.y,
+                anchoAscensorVisual,
+                puertaArriba.height
+            );
+        }
+
+        if (juego.haySalaEnDireccion(1, 0)) {
+            // Centramos la textura visualmente respecto al centro de la puertaAbajo
+            float centroX = puertaAbajo.x + (puertaAbajo.width / 2f) - (anchoAscensorVisual / 2f);
+            batch.draw(
+                regionAscensorAbajo,
+                centroX,
+                puertaAbajo.y,
+                anchoAscensorVisual,
+                puertaAbajo.height
+            );
+        }
+
+        batch.end();
     }
 
     private Rectangle obtenerHitboxAtaqueJugador() {
@@ -1134,8 +1146,6 @@ public class Main_game extends ApplicationAdapter {
     private Rectangle obtenerHitboxItem(Item item) {
         return new Rectangle(item.getPosicion().getX(), item.getPosicion().getY(), 40, 40);
     }
-
-
 
     private Enemigo buscarEnemigoGolpeado(Sala sala, Rectangle hitboxAtaque) {
         for (Enemigo enemigo : sala.getEnemigos()) {
@@ -1348,42 +1358,65 @@ public class Main_game extends ApplicationAdapter {
         shapeRenderer.end();
     }
 
-    // --- NUEVO MÉTODO PARA DIBUJAR AL BICHO USANDO SU SPRITE SHEET ---
     private void dibujarEnemigos() {
         Sala salaActual = juego.getSalaActual();
 
         batch.begin();
 
         for (Enemigo enemigo : salaActual.getEnemigos()) {
-            Rectangle hitboxEnemigo = obtenerHitboxEnemigo(enemigo);
-            Rectangle hitboxJugador = obtenerHitboxJugador();
+            if (!enemigo.estaVivo()) {
+                continue;
+            }
 
-            boolean jugadorDerecha = hitboxJugador.x >= hitboxEnemigo.x;
-            enemigo.actualizarAnimacionYFrame(Gdx.graphics.getDeltaTime(), jugadorDerecha);
+            Rectangle hitbox = obtenerHitboxEnemigo(enemigo);
 
-            int anchoImg = texturaBicho.getWidth();
-            int altoImg = texturaBicho.getHeight();
+            if (enemigo instanceof EnemigoVolador) {
+                EnemigoVolador volador = (EnemigoVolador) enemigo;
+                volador.actualizarAnimacionVoladora(Gdx.graphics.getDeltaTime());
 
-            // Centramos horizontalmente respecto a la hitbox
-            float offsetX = (ANCHO_ENEMIGO - hitboxEnemigo.width) / 2f;
+                batch.draw(
+                    texturaMosca,
+                    hitbox.x,
+                    hitbox.y,
+                    hitbox.width,
+                    hitbox.height,
+                    volador.getSourceX(texturaMosca.getWidth()),
+                    volador.getSourceY(texturaMosca.getHeight()),
+                    volador.getAnchoFrame(texturaMosca.getWidth()),
+                    volador.getAltoFrame(texturaMosca.getHeight()),
+                    false,
+                    false
+                );
+            } else {
+                Rectangle hitboxJugador = obtenerHitboxJugador();
+                boolean jugadorALaDerecha = (hitboxJugador.x + hitboxJugador.width / 2f) >= (hitbox.x + hitbox.width / 2f);
 
-            // Alineamos la parte inferior del sprite exactamente con los pies de la hitbox
-            float drawX = hitboxEnemigo.x - offsetX;
-            float drawY = hitboxEnemigo.y; // Los pies quedan apoyados en la base física
+                enemigo.actualizarAnimacionYFrame(Gdx.graphics.getDeltaTime(), jugadorALaDerecha);
 
-            batch.draw(
-                texturaBicho,
-                drawX,
-                drawY,
-                ANCHO_ENEMIGO,
-                ALTO_ENEMIGO,
-                enemigo.getSourceX(anchoImg),
-                enemigo.getSourceY(altoImg),
-                enemigo.getAnchoFrame(anchoImg),
-                enemigo.getAltoFrame(altoImg),
-                false,
-                false
-            );
+                // Obtenemos las medidas reales del frame del bicho
+                float anchoFrame = enemigo.getAnchoFrame(texturaBicho.getWidth());
+                float altoFrame = enemigo.getAltoFrame(texturaBicho.getHeight());
+
+                // Factor de escala (puedes ajustarlo si lo quieres un poco más chico o más grande)
+                float escala = 0.85f;
+                float anchoVisual = anchoFrame * escala;
+                float altoVisual = altoFrame * escala;
+
+                // Dibujamos el enemigo terrestre (bicho.jpg) escalado y centrado respecto a su hitbox
+                batch.draw(
+                    texturaBicho,
+                    hitbox.x + (hitbox.width - anchoVisual) / 2f, // Centrado horizontalmente con la hitbox
+                    hitbox.y,                                  // Alineado a la base de la hitbox
+                    anchoVisual,
+                    altoVisual,
+                    enemigo.getSourceX(texturaBicho.getWidth()),
+                    enemigo.getSourceY(texturaBicho.getHeight()),
+                    (int) anchoFrame, // Casteado a int
+                    (int) altoFrame,  // Casteado a int
+                    false,
+                    false
+                );
+            }
         }
 
         batch.end();
@@ -1413,12 +1446,7 @@ public class Main_game extends ApplicationAdapter {
     private Rectangle obtenerHitboxPlataforma(Plataforma plataforma) {
         float altoFisico = 15f;
         float ySuperficie = plataforma.getY() + plataforma.getAlto();
-
-        // --- OFFSET VERTICAL UNIFICADO ---
-        // Sube o baja este número para mover TODO (hitbox e imagen juntos)
-        // hasta que la superficie de la piedra toque los pies del personaje.
-        float offsetY = 60f; // <--- Sube o baja este valor según necesites
-
+        float offsetY = 60f;
         float yFisica = (ySuperficie - altoFisico) + offsetY;
 
         return new Rectangle(
@@ -1436,10 +1464,7 @@ public class Main_game extends ApplicationAdapter {
             float ySuperficie = plataforma.getY() + plataforma.getAlto();
             float altoVisual = 140f;
             float anchoVisual = plataforma.getAncho();
-
-            // Usamos EXACTAMENTE el mismo offsetY que la física para que vayan siempre pegadas
             float offsetY = 60f;
-
             float yVisual = (ySuperficie - altoVisual) + offsetY;
 
             batch.draw(
@@ -1717,7 +1742,7 @@ public class Main_game extends ApplicationAdapter {
             return;
         }
     }
-    
+
     private void volverAlMenuPrincipal() {
         enMenuPrincipal = true;
         gameOver = false;
@@ -1748,10 +1773,10 @@ public class Main_game extends ApplicationAdapter {
         mirandoIzquierda = false;
         transicionBloqueada = false;
         gameOver = false;
-        
+
         enMenuPrincipal = false;
         menuDerrota.reiniciarSeleccion();
-        
+
         pausado = false;
         viendoControles = false;
         opcionPausa = 0;

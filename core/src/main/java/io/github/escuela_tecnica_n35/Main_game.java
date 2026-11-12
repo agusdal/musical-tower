@@ -39,6 +39,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.Texture;
 
 import java.util.ArrayList;
+import io.github.escuela_tecnica_n35.entidades.TipoItem;
+import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 public class Main_game extends ApplicationAdapter {
 
@@ -76,6 +78,14 @@ public class Main_game extends ApplicationAdapter {
 
     // Imagen de la moneda para el HUD
     private Texture texturaMoneda;
+    // Texturas para los 7 ítems
+    private Texture texSteelheart;
+    private Texture texPinkFloyd;
+    private Texture texMfdoom;
+    private Texture texLaVida;
+    private Texture texAmeri;
+    private Texture texAppetite;
+    private Texture texGreenDay;
 
     private float velocidadX;
     private float velocidadY;
@@ -341,6 +351,27 @@ public class Main_game extends ApplicationAdapter {
 	    cooldownDash = 0.45f;
 
 	    direccionDash = 1;
+        // --- CARGAR TEXTURAS DE ÍTEMS ---
+        texSteelheart = new Texture("steelheart.png");
+        texPinkFloyd = new Texture("pink floyd.png");
+        texMfdoom = new Texture("mfdoom.png");
+        texLaVida = new Texture("la vida era mas corta.png");
+        texAmeri = new Texture("ameri.png");
+        texAppetite = new Texture("appetite.png");
+        texGreenDay = new Texture("green day.png");
+
+// --- CREAR Y ASIGNAR UN ÍTEM DE PRUEBA EN LA SALA ACTUAL ---
+        Item itemVida = new Item(
+            "Corazón de Acero",
+            new Posicion(300f, 150f), // Posición (X, Y) en el suelo de la sala
+            "Aumenta tu vida máxima",
+            1,
+            TipoItem.PASIVO,
+            TipoModificadorItem.VIDA_MAX,
+            20f,
+            "steelheart.png"
+        );
+        juego.getSalaActual().setItem(itemVida);
     }
 
     @Override
@@ -787,6 +818,13 @@ public class Main_game extends ApplicationAdapter {
         shapeRenderer.dispose();
 
         texturaMoneda.dispose();
+        texSteelheart.dispose();
+        texPinkFloyd.dispose();
+        texMfdoom.dispose();
+        texLaVida.dispose();
+        texAmeri.dispose();
+        texAppetite.dispose();
+        texGreenDay.dispose();
     }
 
     private boolean botonSaltoPresionado() {
@@ -3101,68 +3139,54 @@ public class Main_game extends ApplicationAdapter {
 	// DIBUJAR ITEM - PROVISIONAL
 	// --------------------------------------------------
 
-	 private void dibujarItems() {
+    private void dibujarItems() {
+        Sala salaActual = juego.getSalaActual();
 
-		    Sala salaActual =
-		        juego.getSalaActual();
+        if (!salaActual.tieneItem() && salaActual.getOfertasTienda().isEmpty()) {
+            return;
+        }
 
+        batch.begin();
 
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Filled
-		    );
+        // Dibujar ítem normal de la sala
+        if (salaActual.tieneItem()) {
+            Item item = salaActual.getItem();
+            Rectangle hitboxItem = obtenerHitboxItem(item);
+            Texture texturaItem = obtenerTexturaItem(item.getImagen());
 
-		    shapeRenderer.setColor(
-		        Color.YELLOW
-		    );
+            if (texturaItem != null) {
+                batch.draw(texturaItem, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+            }
+        }
 
+        // Dibujar ítems de la tienda
+        for (OfertaTienda oferta : salaActual.getOfertasTienda()) {
+            Item item = oferta.getItem();
+            Rectangle hitboxItem = obtenerHitboxItem(item);
+            Texture texturaItem = obtenerTexturaItem(item.getImagen());
 
-		    // --------------------------------------------------
-		    // ITEM NORMAL DE LA SALA
-		    // --------------------------------------------------
+            if (texturaItem != null) {
+                batch.draw(texturaItem, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+            }
+        }
 
-		    if (salaActual.tieneItem()) {
+        batch.end();
+    }
 
-		        Item item =
-		            salaActual.getItem();
-
-		        Rectangle hitboxItem =
-		            obtenerHitboxItem(item);
-
-
-		        shapeRenderer.rect(
-		            hitboxItem.x,
-		            hitboxItem.y,
-		            hitboxItem.width,
-		            hitboxItem.height
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // ITEMS DE LA TIENDA
-		    // --------------------------------------------------
-
-		    for (OfertaTienda oferta :
-		            salaActual.getOfertasTienda()) {
-
-		        Item item =
-		            oferta.getItem();
-
-		        Rectangle hitboxItem =
-		            obtenerHitboxItem(item);
-
-
-		        shapeRenderer.rect(
-		            hitboxItem.x,
-		            hitboxItem.y,
-		            hitboxItem.width,
-		            hitboxItem.height
-		        );
-		    }
-
-
-		    shapeRenderer.end();
-		}
+    // Método auxiliar para asociar el nombre de archivo con su textura
+    private Texture obtenerTexturaItem(String nombreImagen) {
+        if (nombreImagen == null) return null;
+        switch (nombreImagen) {
+            case "steelheart.png": return texSteelheart;
+            case "pink floyd.png": return texPinkFloyd;
+            case "mfdoom.png": return texMfdoom;
+            case "la vida era mas corta.png": return texLaVida;
+            case "ameri.png": return texAmeri;
+            case "appetite-for-destruction-album-cover-pixel-art-follow-my.png": return texAppetite;
+            case "green day.png": return texGreenDay;
+            default: return null;
+        }
+    }
 
 	 private void dibujarPlataformas() {
 

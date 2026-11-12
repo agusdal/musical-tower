@@ -43,7 +43,10 @@ import io.github.escuela_tecnica_n35.entidades.TipoItem;
 import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 public class Main_game extends ApplicationAdapter {
-
+	
+	private MenuPrincipal menuPrincipal;
+	private boolean enMenuPrincipal = true;
+	
 	private static final float ANCHO_MUNDO = 1280f;
 	private static final float ALTO_MUNDO = 720f;
 
@@ -258,13 +261,12 @@ public class Main_game extends ApplicationAdapter {
 	    // después podemos ajustarlo.
 	    duracionInvulnerabilidad = 0.7f;
 
-        juego = new Juego(jugador);
-        juego.iniciarJuego();
-
         font = new BitmapFont();
         font.getData().setScale(1.2f); // Hace el texto del mapa un poco más grande
 
         layout = new GlyphLayout();
+        
+        menuPrincipal = new MenuPrincipal(font);
 
 
         shapeRenderer = new ShapeRenderer();
@@ -381,7 +383,21 @@ public class Main_game extends ApplicationAdapter {
         shapeRenderer.setProjectionMatrix(
             camara.combined
         );
+        
+        
+        if (enMenuPrincipal) {
 
+            if (menuPrincipal.actualizar(viewport)) {
+                reiniciarPartida();
+                enMenuPrincipal = false;
+                return;
+            }
+
+            menuPrincipal.dibujar(batch, shapeRenderer);
+            return;
+        }
+        
+        
 	    // --------------------------------------------------
 	    // GAME OVER
 	    // --------------------------------------------------
@@ -800,6 +816,8 @@ public class Main_game extends ApplicationAdapter {
     public void dispose() {
 
         batch.dispose();
+        
+        menuPrincipal.dispose();
 
         font.dispose();
 
@@ -3128,39 +3146,6 @@ public class Main_game extends ApplicationAdapter {
 	// --------------------------------------------------
 
     private void dibujarItems() {
-        Sala salaActual = juego.getSalaActual();
-
-        if (!salaActual.tieneItem() && salaActual.getOfertasTienda().isEmpty()) {
-            return;
-        }
-
-        // El batch se abre y se cierra estrictamente aquí adentro
-        batch.begin();
-
-        // 1. Dibujar ítem normal de la sala
-        if (salaActual.tieneItem()) {
-            Item item = salaActual.getItem();
-            Rectangle hitboxItem = obtenerHitboxItem(item);
-            Texture texturaItem = obtenerTexturaItem(item.getImagen());
-
-            if (texturaItem != null) {
-                batch.draw(texturaItem, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
-            }
-        }
-
-        // 2. Dibujar ítems de la tienda
-        for (OfertaTienda oferta : salaActual.getOfertasTienda()) {
-            Item item = oferta.getItem();
-            Rectangle hitboxItem = obtenerHitboxItem(item);
-            Texture texturaItem = obtenerTexturaItem(item.getImagen());
-
-            if (texturaItem != null) {
-                batch.draw(texturaItem, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
-            }
-        }
-
-        batch.end(); // <-- IMPORTANTE: el batch se cierra aquí, antes de que termine el método
-    }private void dibujarItems() {
         Sala salaActual = juego.getSalaActual();
 
         if (!salaActual.tieneItem() && salaActual.getOfertasTienda().isEmpty()) {

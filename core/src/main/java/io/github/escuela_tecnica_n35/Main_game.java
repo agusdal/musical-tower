@@ -27,12 +27,12 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Ellipse;
 import com.badlogic.gdx.graphics.GL20;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont; // Fuente de texto para el HUD.
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import io.github.escuela_tecnica_n35.etapas.Sala;
-import io.github.escuela_tecnica_n35.etapas.TipoSala; // Tipos de sala del mapa.
+import io.github.escuela_tecnica_n35.etapas.TipoSala;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.utils.viewport.FitViewport; // Viewport con proporciones fijas.
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
@@ -41,42 +41,32 @@ import com.badlogic.gdx.graphics.Texture;
 import java.util.ArrayList;
 
 public class Main_game extends ApplicationAdapter {
-    
-	private static final float ANCHO_MUNDO = 1280f;
-	private static final float ALTO_MUNDO = 720f;
-	
-	// --------------------------------------------------
-	// GAME OVER
-	// --------------------------------------------------
 
-	private boolean gameOver;
-	
-	private OrthographicCamera camara;
-	private Viewport viewport;
-	
-	
+    private static final float ANCHO_MUNDO = 1280f;
+    private static final float ALTO_MUNDO = 720f;
+
+    private boolean gameOver;
+
+    private OrthographicCamera camara;
+    private Viewport viewport;
+
     private SpriteBatch batch;
-    
     private Jugador jugador;
     private Juego juego;
-    
-	// --------------------------------------------------
-	// DAÑO POR CONTACTO
-	// --------------------------------------------------
-	
-	private float tiempoInvulnerable;
-	private float duracionInvulnerabilidad;
-    
-	// --------------------------------------------------
-	// ENEMIGO DE PRUEBA EN LA SALA INICIAL
-	// --------------------------------------------------
-    
-    private BitmapFont font; // MAPA
+
+    private float tiempoInvulnerable;
+    private float duracionInvulnerabilidad;
+
+    private BitmapFont font;
     private GlyphLayout layout;
-    
-    // Imagen de la moneda para el HUD
+
     private Texture texturaMoneda;
-    
+    private Texture texturaBicho; // <--- TEXTURA DEL ENEMIGO (Bicho)
+
+    private Texture texturaPlataforma;
+    private static final float ALTO_PLATAFORMA_VISUAL = 140f;
+    private static final float ALTO_PLATAFORMA = 140f;
+
     private float velocidadX;
     private float velocidadY;
 
@@ -85,890 +75,402 @@ public class Main_game extends ApplicationAdapter {
     private float aceleracionCaidaRapida;
     private float gravedad;
     private float pisoY;
-    
-    private Rectangle hitboxAtaqueEnemigoDebug;
 
+    private Rectangle hitboxAtaqueEnemigoDebug;
     private float tiempoHitboxAtaqueEnemigoDebug;
-    
-	// -----------------------------------------
-	// SALTO
-	// -----------------------------------------
-	
-	// Velocidad inicial de cada salto.
-	private float fuerzaSalto;
-	
-	// Cantidad de saltos disponibles.
-	// 2 = salto normal + doble salto.
-	private int saltosDisponibles;
-	
-	// Gravedad extra que se aplica cuando
-	// soltamos el botón antes de llegar al punto máximo.
-	private float gravedadSaltoCorto;
-	
-	
-	// -----------------------------------------
-	// DASH
-	// -----------------------------------------
-	
-	private boolean haciendoDash;
-	
-	private float tiempoDashRestante;
-	private float tiempoCooldownDash;
-	
-	private int direccionDash;
-	
-	// Solo puede dashear una vez en el aire
-	private int dashDisponibleAire;
-	
-	private float duracionDash;
-	private float cooldownDash;
-    
-    
+
+    private float fuerzaSalto;
+    private int saltosDisponibles;
+    private float gravedadSaltoCorto;
+
+    private boolean haciendoDash;
+    private float tiempoDashRestante;
+    private float tiempoCooldownDash;
+    private int direccionDash;
+    private int dashDisponibleAire;
+    private float duracionDash;
+    private float cooldownDash;
+
     private boolean mirandoIzquierda = false;
-    
-    
     private ShapeRenderer shapeRenderer;
 
-	// Tamaño temporal del personaje.
-	private static final float ANCHO_JUGADOR = 80;
-	private static final float ALTO_JUGADOR = 80;
-	
-	// --------------------------------------------------
-	// HITBOX CORPORAL DEL JUGADOR
-	// --------------------------------------------------
+    private static final float ANCHO_JUGADOR = 80;
+    private static final float ALTO_JUGADOR = 80;
 
-	// PROVISIONAL:
-	// Dimensiones del cuerpo usadas para las colisiones.
-	// La hitbox se centra respecto del sprite del jugador.
-	private static final float ANCHO_HITBOX_JUGADOR = 80f;
+    private static final float ANCHO_HITBOX_JUGADOR = 80f;
+    private static final float ALTO_HITBOX_JUGADOR = 150f;
 
-	private static final float ALTO_HITBOX_JUGADOR = 150f;
-	
-	// --------------------------------------------------
-	// HURTBOX DEL JUGADOR
-	// --------------------------------------------------
+    private static final float ANCHO_HURTBOX_JUGADOR = 60f;
+    private static final float ALTO_HURTBOX_JUGADOR = 130f;
 
-	// PROVISIONAL:
-	// Zona real en la que los ataques enemigos
-	// pueden hacerle daño al jugador.
-	private static final float ANCHO_HURTBOX_JUGADOR = 60f;
-	private static final float ALTO_HURTBOX_JUGADOR = 130f;
-	
-	 
-	// Dimensiones provisionales del enemigo de prueba.
-	private static final float ANCHO_ENEMIGO = 80f;
-	private static final float ALTO_ENEMIGO = 120f;
+    private static final float ANCHO_ENEMIGO = 500f;
+    private static final float ALTO_ENEMIGO = 200f;
 
-	// Alcance horizontal del ataque básico del jugador.
-	private static final float ALCANCE_ATAQUE_JUGADOR = 130f;
+    private static final float ALCANCE_ATAQUE_JUGADOR = 130f;
+    private static final float ALTO_ATAQUE_JUGADOR = 140f;
 
-	// Altura de la zona de ataque.
-	private static final float ALTO_ATAQUE_JUGADOR = 140f;
-	
-	// --------------------------------------------------
-	// POGO
-	// --------------------------------------------------
+    private static final float ANCHO_POGO_JUGADOR = 100f;
+    private static final float ALTO_POGO_JUGADOR = 80f;
 
-	// Tamaño provisional de la hitbox hacia abajo.
-	private static final float ANCHO_POGO_JUGADOR = 100f;
-	private static final float ALTO_POGO_JUGADOR = 80f;
+    private static final float FUERZA_RETROCESO_X = 400f;
 
-	private static final float FUERZA_RETROCESO_X = 400f;
+    private Rectangle hitboxAtaqueDebug;
+    private float tiempoHitboxAtaqueDebug;
 
-	// Fuerza vertical que recibe el jugador
-	// cuando conecta un pogo.
-	
-	// --------------------------------------------------
-	// HITBOX VISUAL DEL ATAQUE - DEBUG
-	// --------------------------------------------------
-	 
-	// Guarda temporalmente dónde estuvo el último ataque.
-	private Rectangle hitboxAtaqueDebug;
-	 
-	// Tiempo durante el cual la mostramos en pantalla.
-	private float tiempoHitboxAtaqueDebug;
-	
-	// Puertas laterales.
-	private Rectangle puertaIzquierda;
-	private Rectangle puertaDerecha;
-	
-	// Las dos puertas centrales de tu dibujo.
-	private Rectangle puertaArriba;
-	private Rectangle puertaAbajo;
-	
-	// Evita que al entrar a una habitación
-	// volvamos instantáneamente a la anterior.
-	private boolean transicionBloqueada;
-	
-	private static final String[] OPCIONES_PAUSA = {
-		    "Continuar",
-		    "Ver controles",
-		    "Reiniciar partida"
-		};
+    private Rectangle puertaIzquierda;
+    private Rectangle puertaDerecha;
+    private Rectangle puertaArriba;
+    private Rectangle puertaAbajo;
 
-	private boolean pausado;
-	private boolean viendoControles;
-	private int opcionPausa;
-    
+    private boolean transicionBloqueada;
+
+    private static final String[] OPCIONES_PAUSA = {
+        "Continuar",
+        "Ver controles",
+        "Reiniciar partida"
+    };
+
+    private boolean pausado;
+    private boolean viendoControles;
+    private int opcionPausa;
+
     @Override
     public void create() {
-    	
-    	gameOver = false;
+        gameOver = false;
 
         batch = new SpriteBatch();
-        
+
         Posicion posicionInicial = new Posicion(140, 50);
-        
-        jugador = new Jugador(
-            "KMD",
-            posicionInicial,
-            100,
-            250,
-            999
-        );
-        
-        //-------------HITBOXES--------------
-        
+
+        jugador = new Jugador("KMD", posicionInicial, 100, 250, 999);
+
         hitboxAtaqueDebug = new Rectangle();
-
         tiempoHitboxAtaqueDebug = 0;
-        
-        
+
         hitboxAtaqueEnemigoDebug = new Rectangle();
-
         tiempoHitboxAtaqueEnemigoDebug = 0;
-        
-        //-------------HITBOXES--------------
-        
-        texturaMoneda = new Texture("moneda.png");
-        
-        tiempoInvulnerable = 0;
 
-	    // PROVISIONAL:
-	    // después podemos ajustarlo.
-	    duracionInvulnerabilidad = 0.7f;
-        
+        texturaMoneda = new Texture("moneda.png");
+        texturaBicho = new Texture("bicho.jpg"); // <--- CARGAMOS LA IMAGEN DEL BICHO
+        texturaPlataforma = new Texture("plataforma.jpg");
+
+        tiempoInvulnerable = 0;
+        duracionInvulnerabilidad = 0.7f;
+
         juego = new Juego(jugador);
         juego.iniciarJuego();
-        
+
         font = new BitmapFont();
-        font.getData().setScale(1.2f); // Hace el texto del mapa un poco más grande
-        
+        font.getData().setScale(1.2f);
+
         layout = new GlyphLayout();
-        
-        
         shapeRenderer = new ShapeRenderer();
-        
-	     // --------------------------------------------------
-	     // CÁMARA Y RESOLUCIÓN VIRTUAL
-	     // --------------------------------------------------
-	
-	     camara = new OrthographicCamera();
-	
-	     viewport = new FitViewport(
-	         ANCHO_MUNDO,
-	         ALTO_MUNDO,
-	         camara
-	     );
-	
-	     // Centramos la cámara en nuestro mundo.
-	     camara.position.set(
-	         ANCHO_MUNDO / 2,
-	         ALTO_MUNDO / 2,
-	         0
-	     );
-	
-	     camara.update();
-	
-	     batch.setProjectionMatrix(camara.combined);
-	     shapeRenderer.setProjectionMatrix(camara.combined);
-	     
-	     // --------------------------------------------------
-	     // CÁMARA Y RESOLUCIÓN VIRTUAL
-	     // --------------------------------------------------
 
-        puertaIzquierda = new Rectangle(); // Creación de la puerta izquierda
-        puertaDerecha = new Rectangle(); // Creación de la puerta derecha
+        camara = new OrthographicCamera();
+        viewport = new FitViewport(ANCHO_MUNDO, ALTO_MUNDO, camara);
 
-        puertaArriba = new Rectangle(); // Creación de la puerta que sube
-        puertaAbajo = new Rectangle(); // Creación de la puerta que baja
-        
+        camara.position.set(ANCHO_MUNDO / 2, ALTO_MUNDO / 2, 0);
+        camara.update();
+
+        batch.setProjectionMatrix(camara.combined);
+        shapeRenderer.setProjectionMatrix(camara.combined);
+
+        puertaIzquierda = new Rectangle();
+        puertaDerecha = new Rectangle();
+        puertaArriba = new Rectangle();
+        puertaAbajo = new Rectangle();
+
         transicionBloqueada = false;
-        
-        
-        velocidadY = 0;
-        
-        velocidadX = 0;
 
-        // Cuánto pierde de velocidad horizontal por segundo por cada golpe conectado.
+        velocidadY = 0;
+        velocidadX = 0;
         desaceleracionX = 1800f;
-     
+
         aceleracionCaidaRapida = 1400;
         gravedad = -800;
-
         pisoY = 50;
-        
-        
-	    // -----------------------------------------
-	    // SALTO
-	    // -----------------------------------------
-	
-	    fuerzaSalto = 500;
-	
-	    // Al comenzar tenemos salto normal
-	    // y doble salto disponibles.
-	    saltosDisponibles = 2;
-	
-	    // PROVISIONAL:
-	    // Hace que al soltar el botón durante la subida,
-	    // el personaje pierda velocidad vertical rápidamente.
-	    gravedadSaltoCorto = -1600;
-	
-	
-	    // -----------------------------------------
-	    // DASH
-	    // -----------------------------------------
-	
-	    haciendoDash = false;
-	    
-	    dashDisponibleAire = 1;
-	    
-	    tiempoDashRestante = 0;
-	    tiempoCooldownDash = 0;
-	    
-	    
-	    duracionDash = 0.15f;
-	    cooldownDash = 0.45f;
-	
-	    direccionDash = 1;
+
+        fuerzaSalto = 500;
+        saltosDisponibles = 2;
+        gravedadSaltoCorto = -1600;
+
+        haciendoDash = false;
+        dashDisponibleAire = 1;
+        tiempoDashRestante = 0;
+        tiempoCooldownDash = 0;
+        duracionDash = 0.15f;
+        cooldownDash = 0.45f;
+        direccionDash = 1;
     }
 
     @Override
     public void render() {
-    	
         float delta = Gdx.graphics.getDeltaTime();
-        
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
-        
-        // Aplicamos la resolución virtual.
-        viewport.apply();
 
+        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+
+        viewport.apply();
         camara.update();
 
-        batch.setProjectionMatrix(
-            camara.combined
-        );
+        batch.setProjectionMatrix(camara.combined);
+        shapeRenderer.setProjectionMatrix(camara.combined);
 
-        shapeRenderer.setProjectionMatrix(
-            camara.combined
-        );
-        
-	    // --------------------------------------------------
-	    // GAME OVER
-	    // --------------------------------------------------
-	
-	    if (gameOver) {
-	
-	        // Mostramos la pantalla de derrota.
-	        dibujarGameOver();
-	
-	
-	        // ENTER comienza una partida nueva.
-	        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-	
-	            reiniciarPartida();
-	        }
-	        
-	        // MUY IMPORTANTE:
-	        // terminamos este frame acá.
-	        //
-	        // De esta manera, mientras estamos en Game Over,
-	        // no se ejecutan movimiento, salto, dash, ataques,
-	        // enemigos, puertas, etc.
-	        return;
-	    }
-	    
-	    if (pausado || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-	        actualizarMenuPausa();
-	        dibujarEscenaPausada();
+        if (gameOver) {
+            dibujarGameOver();
 
-	        if (pausado) {
-	            dibujarMenuPausa();
-	        }
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                reiniciarPartida();
+            }
+            return;
+        }
 
-	        return;
-	    }
+        if (pausado || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            actualizarMenuPausa();
+            dibujarEscenaPausada();
 
-	    jugador.actualizarCooldowns(delta);
+            if (pausado) {
+                dibujarMenuPausa();
+            }
+            return;
+        }
 
-	    if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
-	        jugador.usarPocima();
-	    }
-	    
-	    if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
-	            && juego.avanzarEtapa()) {
+        jugador.actualizarCooldowns(delta);
 
-	        jugador.getPosicion().setX(140f);
-	        jugador.getPosicion().setY(pisoY);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+            jugador.usarPocima();
+        }
 
-	        velocidadX = 0f;
-	        velocidadY = 0f;
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && juego.avanzarEtapa()) {
+            jugador.getPosicion().setX(140f);
+            jugador.getPosicion().setY(pisoY);
 
-	        haciendoDash = false;
-	        tiempoDashRestante = 0f;
-	        dashDisponibleAire = 1;
-	        saltosDisponibles = 2;
+            velocidadX = 0f;
+            velocidadY = 0f;
 
-	        transicionBloqueada = false;
-	        tiempoHitboxAtaqueDebug = 0f;
-	        tiempoHitboxAtaqueEnemigoDebug = 0f;
-	    }
-        
+            haciendoDash = false;
+            tiempoDashRestante = 0f;
+            dashDisponibleAire = 1;
+            saltosDisponibles = 2;
+
+            transicionBloqueada = false;
+            tiempoHitboxAtaqueDebug = 0f;
+            tiempoHitboxAtaqueEnemigoDebug = 0f;
+        }
+
         boolean seMueve = false;
 
-	    // --------------------------------------------------
-	    // DASH
-	    // --------------------------------------------------
-	
-	    // Reducimos el cooldown con el paso del tiempo.
-	    if (tiempoCooldownDash > 0) {
-	
-	        tiempoCooldownDash -= delta;
-	    }
-	    
-		// Intentamos iniciar el dash.
-		// El propio método comprobará si está permitido.
-		if (botonDashRecienPresionado()) {
-	
-		    iniciarDash();
-		}
-	    
-	    // --------------------------------------------------
-	    // MOVIMIENTO HORIZONTAL
-	    // --------------------------------------------------
-		
-		// Guardamos la hitbox antes de realizar
-		// cualquier movimiento horizontal.
-		Rectangle hitboxJugadorAntesX =
-		    obtenerHitboxJugador();
-	
-	    if (haciendoDash) {
-	
-	        // Durante el dash ignoramos momentáneamente
-	        // la velocidad normal del jugador.
-	    	jugador.getPosicion().moverX(
-	    		    jugador.getVelocidadDash() * direccionDash * delta
-	    		);
-	
-	        seMueve = true;
-	
-	
-	        // Actualizamos hacia dónde mira.
-	        if (direccionDash == -1) {
-	            mirandoIzquierda = true;
-	        }
-	        else {
-	            mirandoIzquierda = false;
-	        }
-	
-	
-	        // Restamos el tiempo que dura el dash.
-	        tiempoDashRestante -= delta;
-	
-	
-	        // Cuando se acaba el tiempo,
-	        // volvemos al movimiento normal.
-	        if (tiempoDashRestante <= 0) {
-	
-	            haciendoDash = false;
-	        }
-	    }
-	    else {
-	
-	        // -----------------------------------------
-	        // MOVIMIENTO NORMAL
-	        // -----------------------------------------
-	
-	        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-	
-	            jugador.getPosicion().moverX(
-	                jugador.getVelocidad() * delta
-	            );
-	
-	            seMueve = true;
-	
-	            mirandoIzquierda = false;
-	        }
-	
-	
-	        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-	
-	            jugador.getPosicion().moverX(
-	                -jugador.getVelocidad() * delta
-	            );
-	
-	            seMueve = true;
-	
-	            mirandoIzquierda = true;
-	        }
-	    }
-	    
-		// --------------------------------------------------
-		// IMPULSO / RETROCESO HORIZONTAL
-		// --------------------------------------------------
-	
-		if (!haciendoDash && velocidadX != 0) {
-	
-		    // Aplicamos el movimiento producido por el impulso.
-		    jugador.getPosicion().moverX(
-		        velocidadX * delta
-		    );
-	
-	
-		    // Si el impulso va hacia la derecha...
-		    if (velocidadX > 0) {
-	
-		        velocidadX -= desaceleracionX * delta;
-	
-		        // Evitamos que al frenar termine yéndose
-		        // accidentalmente hacia el lado contrario.
-		        if (velocidadX < 0) {
-	
-		            velocidadX = 0;
-		        }
-		    }
-	
-		    // Si el impulso va hacia la izquierda...
-		    else {
-	
-		        velocidadX += desaceleracionX * delta;
-	
-		        if (velocidadX > 0) {
-	
-		            velocidadX = 0;
-		        }
-		    }
-		}
-		
-		
-		// Corregimos una posible colisión
-		// horizontal con las plataformas.
-		comprobarColisionHorizontalPlataformas(
-		    hitboxJugadorAntesX
-		);
-		
-        
-	    // --------------------------------------------------
-	    // SALTO + DOBLE SALTO
-	    // --------------------------------------------------
-	
-	    if (botonSaltoRecienPresionado()
-	            && saltosDisponibles > 0) {
-	
-	        // Cada salto vuelve a darle al personaje
-	        // una velocidad vertical hacia arriba.
-	        velocidadY = fuerzaSalto;
-	
-	        // Consumimos uno de los saltos.
-	        saltosDisponibles--;
-	    }
-	    
-		// --------------------------------------------------
-		// SALTO VARIABLE
-		// --------------------------------------------------
-	    
-	    float velocidadActualY = velocidadY;
-	    
-		// Indica si el jugador está apoyado
-		// sobre el piso o sobre una plataforma.
-		boolean enElPiso = false;
-	    
-	    // Si NO estamos haciendo el dash... (para que sea estático durante el mismo)
-	    if (!haciendoDash) {
-	    	
-	    	Rectangle hitboxJugadorAnterior =
-				    obtenerHitboxJugador();
-	    	
-			// Si todavía estamos subiendo...
-			if (velocidadY > 0
-			        // ...pero el jugador ya soltó Z/UP...
-			        && !botonSaltoPresionado()) {
-				
-		
-			    // ...aplicamos gravedad adicional.
-			    //
-			    // Esto corta antes la subida y genera
-			    // un salto más bajo.
-			    velocidadY += gravedadSaltoCorto * delta;
-			}
-			
-	        // CAÍDA RÁPIDA
-	        /*if (Gdx.input.isKeyPressed(Input.Keys.DOWN) && jugador.getPosicion().getY() > pisoY) {
-	            velocidadY -= aceleracionCaidaRapida * delta;
-	        }*/
-	        
-			
+        if (tiempoCooldownDash > 0) {
+            tiempoCooldownDash -= delta;
+        }
 
+        if (botonDashRecienPresionado()) {
+            iniciarDash();
+        }
 
-				// GRAVEDAD
-				velocidadY += gravedad * delta;
+        Rectangle hitboxJugadorAntesX = obtenerHitboxJugador();
 
+        if (haciendoDash) {
+            jugador.getPosicion().moverX(jugador.getVelocidadDash() * direccionDash * delta);
+            seMueve = true;
 
-				// MOVIMIENTO VERTICAL
-				jugador.getPosicion().moverY(
-				    velocidadY * delta
-				);
+            if (direccionDash == -1) {
+                mirandoIzquierda = true;
+            } else {
+                mirandoIzquierda = false;
+            }
 
+            tiempoDashRestante -= delta;
 
-				// --------------------------------------------------
-				// COLISIÓN CON PLATAFORMAS
-				// --------------------------------------------------
+            if (tiempoDashRestante <= 0) {
+                haciendoDash = false;
+            }
+        } else {
+            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+                jugador.getPosicion().moverX(jugador.getVelocidad() * delta);
+                seMueve = true;
+                mirandoIzquierda = false;
+            }
 
-				enElPiso =
-				    comprobarColisionPlataformas(
-				        hitboxJugadorAnterior
-				    );
+            if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+                jugador.getPosicion().moverX(-jugador.getVelocidad() * delta);
+                seMueve = true;
+                mirandoIzquierda = true;
+            }
+        }
 
+        if (!haciendoDash && velocidadX != 0) {
+            jugador.getPosicion().moverX(velocidadX * delta);
 
-				if (enElPiso) {
+            if (velocidadX > 0) {
+                velocidadX -= desaceleracionX * delta;
+                if (velocidadX < 0) {
+                    velocidadX = 0;
+                }
+            } else {
+                velocidadX += desaceleracionX * delta;
+                if (velocidadX > 0) {
+                    velocidadX = 0;
+                }
+            }
+        }
 
-				    velocidadActualY = 0;
-				}
-	        
-	    }
+        comprobarColisionHorizontalPlataformas(hitboxJugadorAntesX);
 
-		 // --------------------------------------------------
-		 // COLISIÓN CON EL PISO
-		 // --------------------------------------------------
-	
-		 if (jugador.getPosicion().getY() <= pisoY) {
-	
-		     jugador.getPosicion().setY(
-		         pisoY
-		     );
-	
-		     velocidadY = 0;
-		     velocidadActualY = 0;
-	
-		     enElPiso = true;
-		 }
-	
-	
-		 // Si estamos apoyados en piso O plataforma,
-		 // recuperamos las capacidades aéreas.
-		 if (enElPiso) {
-	
-		     saltosDisponibles = 2;
-	
-		     dashDisponibleAire = 1;
-		 }
+        if (botonSaltoRecienPresionado() && saltosDisponibles > 0) {
+            velocidadY = fuerzaSalto;
+            saltosDisponibles--;
+        }
 
-        // EVALUAR Y ACTUALIZAR ESTADO
+        float velocidadActualY = velocidadY;
+        boolean enElPiso = false;
+
+        if (!haciendoDash) {
+            Rectangle hitboxJugadorAnterior = obtenerHitboxJugador();
+
+            if (velocidadY > 0 && !botonSaltoPresionado()) {
+                velocidadY += gravedadSaltoCorto * delta;
+            }
+
+            velocidadY += gravedad * delta;
+            jugador.getPosicion().moverY(velocidadY * delta);
+
+            enElPiso = comprobarColisionPlataformas(hitboxJugadorAnterior);
+
+            if (enElPiso) {
+                velocidadActualY = 0;
+            }
+        }
+
+        if (jugador.getPosicion().getY() <= pisoY) {
+            jugador.getPosicion().setY(pisoY);
+            velocidadY = 0;
+            velocidadActualY = 0;
+            enElPiso = true;
+        }
+
+        if (enElPiso) {
+            saltosDisponibles = 2;
+            dashDisponibleAire = 1;
+        }
+
         jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
-        
-	     // --------------------------------------------------
-	     // ATAQUE DEL JUGADOR
-	     // --------------------------------------------------
-	
-	     comprobarAtaqueJugador();
-	     
-	     // --------------------------------------------------
-	     // OBJETOS
-	     // --------------------------------------------------
 
-	     comprobarRecogerItem();
-	     
-	     comprobarCompraTienda();
+        comprobarAtaqueJugador();
+        comprobarRecogerItem();
+        comprobarCompraTienda();
+        actualizarPuertas();
+        limitarJugadorAHabitacion();
+        comprobarCambioSala();
 
-	     // --------------------------------------------------
-	     // ACTUALIZAMOS LAS PUERTAS
-	     // --------------------------------------------------
-	
-	     actualizarPuertas();
-	
-	
-	     // --------------------------------------------------
-	     // LIMITAMOS AL JUGADOR A LA HABITACIÓN
-	     // --------------------------------------------------
-	
-	     limitarJugadorAHabitacion();
-	
-	
-	     // --------------------------------------------------
-	     // COMPROBAMOS CAMBIO DE SALA
-	     // --------------------------------------------------
-	
-	     comprobarCambioSala();
-	
-	
-	     // --------------------------------------------------
-	     // DIBUJAMOS LA HABITACIÓN PRIMERO
-	     // --------------------------------------------------
-	
-	     dibujarHabitacion();
-	     
-	     // DIBUJAMOS TODOS LOS ENEMIGOS DE LA HABITACIÓN ACTUAL
-	     
-	     dibujarEnemigos();
-	     
-	     // DIBUJAMOS EL ITEM DE LA HABITACIÓN
+        dibujarHabitacion();
+        dibujarEnemigos(); // <--- Dibuja los enemigos con la textura del bicho
+        dibujarItems();
+        dibujarPlataformas();
 
-	     dibujarItems();
-	     
-	     // DIBUJAMOS LAS PLATAFORMAS
-	     
-	     dibujarPlataformas();
-	     
-	     // --------------------------------------------------
-	     // DEBUG DEL ATAQUE
-	     // --------------------------------------------------
+        dibujarHitboxAtaque(delta);
+        dibujarHitboxAtaqueEnemigo(delta);
 
-	     dibujarHitboxAtaque(delta);
-	     
-	     
-	     dibujarHitboxAtaqueEnemigo(delta);
-	     
-	     
-		 // --------------------------------------------------
-		 // DAÑO DE LOS ENEMIGOS
-		 // --------------------------------------------------
-	
-		 comprobarDañoEnemigos(delta);
-		 
-		 // --------- ACTUALIZA EL MOVIMIENTO CADA FRAME ----------
-		 
-		 actualizarMovimientoEnemigos(delta);
-		 
-		 // --------------------------------------------------
-		 // JEFE Y PROYECTILES
-		 // --------------------------------------------------
+        comprobarDañoEnemigos(delta);
+        actualizarMovimientoEnemigos(delta);
 
-		 actualizarAtaqueJefe();
+        actualizarAtaqueJefe();
+        actualizarProyectiles(delta);
+        dibujarProyectiles();
 
-		 actualizarProyectiles(
-		     delta
-		 );
+        batch.begin();
+        jugador.render(batch, delta);
+        batch.end();
 
-		 dibujarProyectiles();
-	     
-	     // --------------------------------------------------
-	     // DIBUJAMOS EL PERSONAJE ANIMADO
-	     // --------------------------------------------------
-	
-	     batch.begin();
-	
-	     jugador.render(batch, delta);
-	
-	     batch.end();
-	     
-	     dibujarHitboxJugador();
-	     
-	     
-	     // --------------------------------------------------
-	     // DIBUJAMOS EL HUD AL FINAL
-	     //
-	     // De esta forma siempre queda por encima
-	     // del escenario y del personaje.
-	     // --------------------------------------------------
-	
-	     dibujarHUD();
-	     
-	     dibujarAvisoAvanzarEtapa();
-	     
+        dibujarHitboxJugador();
+
+        dibujarHUD();
+        dibujarAvisoAvanzarEtapa();
     }
 
     @Override
     public void dispose() {
-
         batch.dispose();
-        
         font.dispose();
-        
         shapeRenderer.dispose();
-        
         texturaMoneda.dispose();
+        texturaBicho.dispose(); // <--- LIBERAMOS LA TEXTURA DEL BICHO
+        texturaPlataforma.dispose();
     }
-    
+
     private boolean botonSaltoPresionado() {
-
-        return Gdx.input.isKeyPressed(
-            Input.Keys.Z
-        );
+        return Gdx.input.isKeyPressed(Input.Keys.Z);
     }
-
 
     private boolean botonSaltoRecienPresionado() {
-
-        return Gdx.input.isKeyJustPressed(
-            Input.Keys.Z
-        );
+        return Gdx.input.isKeyJustPressed(Input.Keys.Z);
     }
-    
-    private boolean botonDashRecienPresionado() {
 
+    private boolean botonDashRecienPresionado() {
         return Gdx.input.isKeyJustPressed(Input.Keys.C);
     }
-    
+
     private void iniciarDash() {
-
-        // --------------------------------------------------
-        // COMPROBACIONES
-        // --------------------------------------------------
-
-        // Si todavía está en cooldown,
-        // no podemos hacer otro dash.
-        if (tiempoCooldownDash > 0) {
+        if (tiempoCooldownDash > 0 || haciendoDash) {
             return;
         }
 
-        // Si ya estamos haciendo dash,
-        // tampoco comenzamos otro.
-        if (haciendoDash) {
-            return;
-        }
+        boolean estaEnElAire = jugador.getPosicion().getY() > pisoY;
 
-
-        // Comprobamos si estamos en el aire.
-        boolean estaEnElAire =
-            jugador.getPosicion().getY() > pisoY;
-
-
-        // Si estamos en el aire y ya usamos
-        // nuestro único dash aéreo, no hacemos nada.
         if (estaEnElAire && dashDisponibleAire <= 0) {
             return;
         }
 
-
-        // --------------------------------------------------
-        // DIRECCIÓN DEL DASH
-        // --------------------------------------------------
-
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-
             direccionDash = -1;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-
+        } else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             direccionDash = 1;
-        }
-        else {
-
+        } else {
             if (mirandoIzquierda) {
                 direccionDash = -1;
-            }
-            else {
+            } else {
                 direccionDash = 1;
             }
         }
 
-
-        // --------------------------------------------------
-        // INICIAMOS EL DASH
-        // --------------------------------------------------
-
         haciendoDash = true;
-
         tiempoDashRestante = duracionDash;
-
         tiempoCooldownDash = cooldownDash;
+        velocidadX = 0;
+        velocidadY = 0;
 
-	    // El dash toma control del movimiento,
-	    // por eso eliminamos impulsos anteriores.
-	    velocidadX = 0;
-	    velocidadY = 0;
-
-
-        // --------------------------------------------------
-        // CONSUMIMOS EL DASH AÉREO
-        // --------------------------------------------------
-
-        // Solamente gastamos el dash aéreo
-        // si realmente estamos en el aire.
         if (estaEnElAire) {
-
             dashDisponibleAire--;
         }
     }
-    
-    // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
-    
+
     @Override
     public void resize(int width, int height) {
-
-        // Adapta nuestro mundo 1280x720
-        // al tamaño real de la ventana.
-        viewport.update(
-            width,
-            height,
-            true
-        );
+        viewport.update(width, height, true);
     }
-    
-    // ---------------------------------------- TAMAÑO PANTALLA -----------------------------------------------
-    
-    // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
-    
+
     private Color obtenerColorSala(Sala sala) {
-
-        if (sala == null) {
-            return Color.DARK_GRAY;
-        }
-
+        if (sala == null) return Color.DARK_GRAY;
         switch (sala.getTipo()) {
-
-            case INICIAL:
-                return Color.GREEN;
-
-            case ENEMIGOS:
-                return Color.LIGHT_GRAY; // COLORES PREDETERMINADOS PARA CADA SALA EN EL MAPA
-
-            case ITEM:
-                return Color.YELLOW;
-
-            case TIENDA:
-                return Color.BROWN;
-
-            case JEFE:
-                return Color.RED;
+            case INICIAL: return Color.GREEN;
+            case ENEMIGOS: return Color.LIGHT_GRAY;
+            case ITEM: return Color.YELLOW;
+            case TIENDA: return Color.BROWN;
+            case JEFE: return Color.RED;
         }
-
         return Color.WHITE;
     }
-    
+
     private void dibujarNombreEtapa() {
-
-        // Obtenemos el nombre de la etapa que estamos jugando actualmente.
-        String nombreEtapa =
-            juego.getEtapaActual().getNombre();
-
-        // Calculamos cuánto ocupa el texto.
-        layout.setText(
-            font,
-            nombreEtapa
-        );
-
-        // Calculamos la posición X necesaria
-        // para que quede perfectamente centrado.
-        float posicionX =
-            (ANCHO_MUNDO - layout.width) / 2;
-
-        // Lo colocamos cerca del borde superior.
-        float posicionY =
-            ALTO_MUNDO - 20;
+        String nombreEtapa = juego.getEtapaActual().getNombre();
+        layout.setText(font, nombreEtapa);
+        float posicionX = (ANCHO_MUNDO - layout.width) / 2;
+        float posicionY = ALTO_MUNDO - 20;
 
         batch.begin();
-
-        font.draw(
-            batch,
-            layout,
-            posicionX,
-            posicionY
-        );
-
+        font.draw(batch, layout, posicionX, posicionY);
         batch.end();
     }
-    
+
     private void dibujarPocimaHUD() {
         int cargas = jugador.getCargasPocima();
 
@@ -983,221 +485,96 @@ public class Main_game extends ApplicationAdapter {
         font.setColor(Color.WHITE);
         batch.end();
     }
-    
-    private void dibujarBarraVida() {
 
+    private void dibujarBarraVida() {
         float barraX = 20;
         float barraY = ALTO_MUNDO - 35;
         float barraAncho = 240;
         float barraAlto = 18;
 
-        float porcentajeVida =
-            (float) jugador.getVidaActual() / jugador.getVidaMax();
+        float porcentajeVida = (float) jugador.getVidaActual() / jugador.getVidaMax();
 
-        // Fondo de la barra
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
         shapeRenderer.setColor(Color.DARK_GRAY);
-        shapeRenderer.rect(
-            barraX,
-            barraY,
-            barraAncho,
-            barraAlto
-        );
+        shapeRenderer.rect(barraX, barraY, barraAncho, barraAlto);
 
-        // Vida actual
         shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(
-            barraX,
-            barraY,
-            barraAncho * porcentajeVida,
-            barraAlto
-        );
-
+        shapeRenderer.rect(barraX, barraY, barraAncho * porcentajeVida, barraAlto);
         shapeRenderer.end();
 
-        // Borde
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-
         shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.rect(
-            barraX,
-            barraY,
-            barraAncho,
-            barraAlto
-        );
-
+        shapeRenderer.rect(barraX, barraY, barraAncho, barraAlto);
         shapeRenderer.end();
     }
-    
-    private void dibujarMonedas() {
 
-        // Posición del icono, debajo de la barra de vida.
+    private void dibujarMonedas() {
         float monedaX = 20;
         float monedaY = ALTO_MUNDO - 80;
-
-        // Tamaño visual de la moneda en el HUD.
         float tamañoMoneda = 40;
 
-
         batch.begin();
-
-
-        // Dibujamos la imagen de la moneda.
-        batch.draw(
-            texturaMoneda,
-            monedaX,
-            monedaY,
-            tamañoMoneda,
-            tamañoMoneda
-        );
-
-
-        // Dibujamos la cantidad a la derecha de la imagen.
-        font.draw(
-            batch,
-            "" + jugador.getMonedas(),
-            monedaX + tamañoMoneda + 8,
-            monedaY + 25
-        );
-
-
+        batch.draw(texturaMoneda, monedaX, monedaY, tamañoMoneda, tamañoMoneda);
+        font.draw(batch, "" + jugador.getMonedas(), monedaX + tamañoMoneda + 8, monedaY + 25);
         batch.end();
     }
-    
-    private void dibujarMiniMapa() {
 
+    private void dibujarMiniMapa() {
         Sala[][] mapa = juego.getEtapaActual().getMapa();
         Sala salaActual = juego.getSalaActual();
 
         float tamañoCelda = 16;
         float separacion = 4;
+        float anchoMiniMapa = mapa[0].length * (tamañoCelda + separacion);
+        float inicioX = ANCHO_MUNDO - anchoMiniMapa - 30;
+        float inicioY = ALTO_MUNDO - 30;
 
-        float anchoMiniMapa =
-            mapa[0].length * (tamañoCelda + separacion);
-
-        float inicioX =
-        	ANCHO_MUNDO - anchoMiniMapa - 30;
-
-        float inicioY =
-            ALTO_MUNDO - 30;
-
-        // ---------------------------
-        // CUADRADOS DEL MAPA
-        // ---------------------------
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
         for (int fila = 0; fila < mapa.length; fila++) {
-
             for (int columna = 0; columna < mapa[fila].length; columna++) {
-
                 Sala sala = mapa[fila][columna];
-
                 if (sala != null) {
+                    float x = inicioX + columna * (tamañoCelda + separacion);
+                    float y = inicioY - (fila + 1) * (tamañoCelda + separacion);
 
-                    float x =
-                        inicioX + columna * (tamañoCelda + separacion);
-
-                    float y =
-                        inicioY - (fila + 1) * (tamañoCelda + separacion);
-
-                    // Si es la sala actual del jugador,
-                    // la pintamos blanca para destacar su posición.
                     if (sala == salaActual) {
                         shapeRenderer.setColor(Color.WHITE);
                     } else {
                         shapeRenderer.setColor(obtenerColorSala(sala));
                     }
-
-                    shapeRenderer.rect(
-                        x,
-                        y,
-                        tamañoCelda,
-                        tamañoCelda
-                    );
+                    shapeRenderer.rect(x, y, tamañoCelda, tamañoCelda);
                 }
             }
         }
-
         shapeRenderer.end();
 
-        // ---------------------------
-        // BORDES DEL MAPA
-        // ---------------------------
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-
         shapeRenderer.setColor(Color.BLACK);
-
         for (int fila = 0; fila < mapa.length; fila++) {
-
             for (int columna = 0; columna < mapa[fila].length; columna++) {
-
                 Sala sala = mapa[fila][columna];
-
                 if (sala != null) {
-
-                    float x =
-                        inicioX + columna * (tamañoCelda + separacion);
-
-                    float y =
-                        inicioY - (fila + 1) * (tamañoCelda + separacion);
-
-                    shapeRenderer.rect(
-                        x,
-                        y,
-                        tamañoCelda,
-                        tamañoCelda
-                    );
+                    float x = inicioX + columna * (tamañoCelda + separacion);
+                    float y = inicioY - (fila + 1) * (tamañoCelda + separacion);
+                    shapeRenderer.rect(x, y, tamañoCelda, tamañoCelda);
                 }
             }
         }
-
         shapeRenderer.end();
     }
-    
-    private void dibujarTextoHUD() {
 
+    private void dibujarTextoHUD() {
         Sala salaActual = juego.getSalaActual();
 
         batch.begin();
-
-        // Vida numérica
-        font.draw(
-            batch,
-            "Vida: " + jugador.getVidaActual() + "/" + jugador.getVidaMax(),
-            20,
-            ALTO_MUNDO - 19
-        );
-
-        // Tipo de sala actual
-        font.draw(
-            batch,
-            "Sala: " + salaActual.getTipo(),
-            20,
-            ALTO_MUNDO - 95
-        );
-
-        // Posición en el mapa
-        font.draw(
-            batch,
-            "Posicion: [" + salaActual.getFila() + "][" + salaActual.getColumna() + "]",
-            20,
-            ALTO_MUNDO - 125
-        );
-
-        // Título del minimapa
-        font.draw(
-            batch,
-            "Mapa",
-            ANCHO_MUNDO - 110,
-            ALTO_MUNDO - 10
-        );
-
+        font.draw(batch, "Vida: " + jugador.getVidaActual() + "/" + jugador.getVidaMax(), 20, ALTO_MUNDO - 19);
+        font.draw(batch, "Sala: " + salaActual.getTipo(), 20, ALTO_MUNDO - 95);
+        font.draw(batch, "Posicion: [" + salaActual.getFila() + "][" + salaActual.getColumna() + "]", 20, ALTO_MUNDO - 125);
+        font.draw(batch, "Mapa", ANCHO_MUNDO - 110, ALTO_MUNDO - 10);
         batch.end();
     }
-    
-    private void dibujarHUD() {
 
+    private void dibujarHUD() {
         dibujarBarraVida();
         dibujarMonedas();
         dibujarMiniMapa();
@@ -1205,18 +582,14 @@ public class Main_game extends ApplicationAdapter {
         dibujarNombreEtapa();
         dibujarPocimaHUD();
     }
-    
-    // ----------------------------------------- ELEMENTOS DEL HUD --------------------------------------------
-    
+
     private void dibujarAvisoAvanzarEtapa() {
         if (gameOver || !juego.puedeAvanzarEtapa()) {
             return;
         }
 
         String mensaje = "Presionar ENTER para avanzar de etapa";
-
         font.setColor(Color.WHITE);
-
         GlyphLayout layout = new GlyphLayout(font, mensaje);
         float x = (ANCHO_MUNDO - layout.width) / 2f;
 
@@ -1224,9 +597,7 @@ public class Main_game extends ApplicationAdapter {
         font.draw(batch, layout, x, 40f);
         batch.end();
     }
-    
-    //---------------------------------------- MENÚ ---------------------------------------
-    
+
     private void actualizarMenuPausa() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (viendoControles) {
@@ -1238,9 +609,7 @@ public class Main_game extends ApplicationAdapter {
             return;
         }
 
-        if (viendoControles) {
-            return;
-        }
+        if (viendoControles) return;
 
         int cantidad = OPCIONES_PAUSA.length;
 
@@ -1252,17 +621,9 @@ public class Main_game extends ApplicationAdapter {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
             switch (opcionPausa) {
-                case 0:
-                    pausado = false;
-                    break;
-
-                case 1:
-                    viendoControles = true;
-                    break;
-
-                case 2:
-                    reiniciarPartida();
-                    break;
+                case 0: pausado = false; break;
+                case 1: viendoControles = true; break;
+                case 2: reiniciarPartida(); break;
             }
         }
     }
@@ -1282,18 +643,16 @@ public class Main_game extends ApplicationAdapter {
     }
 
     private void dibujarMenuPausa() {
-    	
-    	Gdx.gl.glEnable(GL20.GL_BLEND);
-    	Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-    	shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-    	shapeRenderer.setColor(0f, 0f, 0f, 0.55f);
-    	shapeRenderer.rect(0f, 0f, ANCHO_MUNDO, ALTO_MUNDO);
-    	shapeRenderer.end();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0f, 0f, 0f, 0.55f);
+        shapeRenderer.rect(0f, 0f, ANCHO_MUNDO, ALTO_MUNDO);
+        shapeRenderer.end();
 
-    	Gdx.gl.glDisable(GL20.GL_BLEND);
-    	
-    	
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0.08f, 0.09f, 0.13f, 1f);
         shapeRenderer.rect(360f, 155f, 560f, 410f);
@@ -1318,22 +677,11 @@ public class Main_game extends ApplicationAdapter {
 
             for (int i = 0; i < OPCIONES_PAUSA.length; i++) {
                 boolean seleccionada = i == opcionPausa;
-                String texto = seleccionada
-                    ? "> " + OPCIONES_PAUSA[i]
-                    : OPCIONES_PAUSA[i];
-
-                dibujarTextoCentrado(
-                    texto,
-                    420f - i * 55f,
-                    seleccionada ? Color.ORANGE : Color.WHITE
-                );
+                String texto = seleccionada ? "> " + OPCIONES_PAUSA[i] : OPCIONES_PAUSA[i];
+                dibujarTextoCentrado(texto, 420f - i * 55f, seleccionada ? Color.ORANGE : Color.WHITE);
             }
 
-            dibujarTextoCentrado(
-                "Arriba / abajo para elegir - ENTER para aceptar",
-                205f,
-                Color.LIGHT_GRAY
-            );
+            dibujarTextoCentrado("Arriba / abajo para elegir - ENTER para aceptar", 205f, Color.LIGHT_GRAY);
         }
 
         font.setColor(Color.WHITE);
@@ -1345,2688 +693,946 @@ public class Main_game extends ApplicationAdapter {
         layout.setText(font, texto);
         font.draw(batch, layout, (ANCHO_MUNDO - layout.width) / 2f, y);
     }
-    
-    //---------------------------------------- MENÚ ---------------------------------------
-    
-    
+
     private void actualizarPuertas() {
-
-    	float anchoPantalla =
-    		    ANCHO_MUNDO;
-
-        // -----------------------------
-        // PUERTAS LATERALES
-        // -----------------------------
-
+        float anchoPantalla = ANCHO_MUNDO;
         float anchoPuertaLateral = 80;
         float altoPuerta = 170;
 
-
-        puertaIzquierda.set(
-            0,
-            pisoY,
-            anchoPuertaLateral,
-            altoPuerta
-        );
-
-
-        puertaDerecha.set(
-            anchoPantalla - anchoPuertaLateral,
-            pisoY,
-            anchoPuertaLateral,
-            altoPuerta
-        );
-
-
-        // -----------------------------
-        // PUERTAS ARRIBA / ABAJO
-        // -----------------------------
+        puertaIzquierda.set(0, pisoY, anchoPuertaLateral, altoPuerta);
+        puertaDerecha.set(anchoPantalla - anchoPuertaLateral, pisoY, anchoPuertaLateral, altoPuerta);
 
         float anchoPuertaCentral = 80;
-
         float separacion = 30;
+        float centroPantalla = anchoPantalla / 2;
 
-        float centroPantalla =
-            anchoPantalla / 2;
+        puertaArriba.set(centroPantalla - anchoPuertaCentral - separacion, pisoY, anchoPuertaCentral, altoPuerta);
+        puertaAbajo.set(centroPantalla + separacion, pisoY, anchoPuertaCentral, altoPuerta);
+    }
+
+    private boolean jugadorEstaEnPuerta(Rectangle puerta) {
+        Rectangle cuerpo = obtenerHitboxJugador();
+        float centroJugadorX = cuerpo.x + cuerpo.width / 2f;
+        float centroJugadorY = cuerpo.y + cuerpo.height / 2f;
+        return puerta.contains(centroJugadorX, centroJugadorY);
+    }
+
+    private boolean estaEnPuertaLateralActiva() {
+        if (juego.haySalaEnDireccion(0, -1) && jugadorEstaEnPuerta(puertaIzquierda)) return true;
+        if (juego.haySalaEnDireccion(0, 1) && jugadorEstaEnPuerta(puertaDerecha)) return true;
+        return false;
+    }
+
+    private void comprobarCambioSala() {
+        if (transicionBloqueada) {
+            if (!estaEnPuertaLateralActiva()) {
+                transicionBloqueada = false;
+            }
+            return;
+        }
+
+        if (juego.haySalaEnDireccion(0, -1) && jugadorEstaEnPuerta(puertaIzquierda)) {
+            if (juego.cambiarSala(0, -1)) {
+                colocarJugadorTrasCambio(0, -1);
+                transicionBloqueada = true;
+            }
+            return;
+        }
+
+        if (juego.haySalaEnDireccion(0, 1) && jugadorEstaEnPuerta(puertaDerecha)) {
+            if (juego.cambiarSala(0, 1)) {
+                colocarJugadorTrasCambio(0, 1);
+                transicionBloqueada = true;
+            }
+            return;
+        }
+
+        if (juego.haySalaEnDireccion(-1, 0) && jugadorEstaEnPuerta(puertaArriba) && Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+            if (juego.cambiarSala(-1, 0)) {
+                colocarJugadorTrasCambio(-1, 0);
+            }
+            return;
+        }
+
+        if (juego.haySalaEnDireccion(1, 0) && jugadorEstaEnPuerta(puertaAbajo) && Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+            if (juego.cambiarSala(1, 0)) {
+                colocarJugadorTrasCambio(1, 0);
+            }
+        }
+    }
+
+    private void colocarJugadorTrasCambio(int cambioFila, int cambioColumna) {
+        if (cambioColumna == -1) {
+            jugador.getPosicion().setX(ANCHO_MUNDO - jugador.getAnchoSprite());
+        } else if (cambioColumna == 1) {
+            jugador.getPosicion().setX(0f);
+        } else if (cambioFila == -1) {
+            jugador.getPosicion().setX(puertaAbajo.x + puertaAbajo.width / 2f - jugador.getAnchoSprite() / 2f);
+        } else if (cambioFila == 1) {
+            jugador.getPosicion().setX(puertaArriba.x + puertaArriba.width / 2f - jugador.getAnchoSprite() / 2f);
+        }
+
+        jugador.getPosicion().setY(pisoY);
+        velocidadY = 0;
+    }
+
+    private void limitarJugadorAHabitacion() {
+        float minimoX = 0f;
+        float maximoX = ANCHO_MUNDO - jugador.getAnchoSprite();
+        float posicionX = jugador.getPosicion().getX();
+
+        if (posicionX < minimoX) {
+            jugador.getPosicion().setX(minimoX);
+        } else if (posicionX > maximoX) {
+            jugador.getPosicion().setX(maximoX);
+        }
+    }
+
+    private void dibujarHabitacion() {
+        float anchoPantalla = ANCHO_MUNDO;
+        float altoPantalla = ALTO_MUNDO;
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.WHITE);
+
+        shapeRenderer.rect(1, pisoY, anchoPantalla - 2, altoPantalla - pisoY - 2);
+
+        if (juego.haySalaEnDireccion(0, -1)) {
+            shapeRenderer.rect(puertaIzquierda.x, puertaIzquierda.y, puertaIzquierda.width, puertaIzquierda.height);
+        }
+
+        if (juego.haySalaEnDireccion(0, 1)) {
+            shapeRenderer.rect(puertaDerecha.x, puertaDerecha.y, puertaDerecha.width, puertaDerecha.height);
+        }
+
+        if (juego.haySalaEnDireccion(-1, 0)) {
+            shapeRenderer.rect(puertaArriba.x, puertaArriba.y, puertaArriba.width, puertaArriba.height);
+            dibujarFlechaArriba(puertaArriba);
+        }
+
+        if (juego.haySalaEnDireccion(1, 0)) {
+            shapeRenderer.rect(puertaAbajo.x, puertaAbajo.y, puertaAbajo.width, puertaAbajo.height);
+            dibujarFlechaAbajo(puertaAbajo);
+        }
+
+        shapeRenderer.end();
+    }
+
+    private void dibujarFlechaArriba(Rectangle puerta) {
+        float centroX = puerta.x + puerta.width / 2;
+        float abajo = puerta.y + 25;
+        float arriba = puerta.y + puerta.height - 25;
+
+        shapeRenderer.line(centroX, abajo, centroX, arriba);
+        shapeRenderer.line(centroX, arriba, centroX - 10, arriba - 15);
+        shapeRenderer.line(centroX, arriba, centroX + 10, arriba - 15);
+    }
+
+    private void dibujarFlechaAbajo(Rectangle puerta) {
+        float centroX = puerta.x + puerta.width / 2;
+        float arriba = puerta.y + puerta.height - 25;
+        float abajo = puerta.y + 25;
+
+        shapeRenderer.line(centroX, arriba, centroX, abajo);
+        shapeRenderer.line(centroX, abajo, centroX - 10, abajo + 15);
+        shapeRenderer.line(centroX, abajo, centroX + 10, abajo + 15);
+    }
+
+    private Rectangle obtenerHitboxAtaqueJugador() {
+        Ataque ataque = jugador.getAtaqueNormal();
+        float ataqueX;
+        float separacionCentral = 15;
+        Rectangle hitboxJugador = obtenerHitboxJugador();
+        float centroJugadorX = hitboxJugador.x + hitboxJugador.width / 2;
+        float ataqueY = hitboxJugador.y;
+
+        if (mirandoIzquierda) {
+            ataqueX = centroJugadorX - ataque.getAncho() - separacionCentral;
+        } else {
+            ataqueX = centroJugadorX + separacionCentral;
+        }
+
+        return new Rectangle(ataqueX, ataqueY, ataque.getAncho(), ataque.getAlto());
+    }
+
+    private void actualizarGravedadEnemigo(Enemigo enemigo, float delta) {
+        Rectangle cuerpoAnterior = obtenerHitboxEnemigo(enemigo);
+        enemigo.actualizarGravedad(delta, gravedad);
+
+        if (enemigo.getVelocidadY() > 0f) {
+            return;
+        }
+
+        Rectangle cuerpoActual = obtenerHitboxEnemigo(enemigo);
+        float superficieApoyo = pisoY;
+
+        for (Plataforma plataforma : juego.getSalaActual().getPlataformas()) {
+            float superficiePlataforma = plataforma.getY() + plataforma.getAlto();
+            boolean coincideEnX = cuerpoActual.x < plataforma.getX() + plataforma.getAncho()
+                && cuerpoActual.x + cuerpoActual.width > plataforma.getX();
+            boolean cruzaSuperficie = cuerpoAnterior.y >= superficiePlataforma && cuerpoActual.y <= superficiePlataforma;
+
+            if (coincideEnX && cruzaSuperficie) {
+                superficieApoyo = Math.max(superficieApoyo, superficiePlataforma);
+            }
+        }
+
+        if (cuerpoActual.y <= superficieApoyo) {
+            enemigo.getPosicion().moverY(superficieApoyo - cuerpoActual.y);
+            enemigo.detenerCaida();
+        }
+    }
+
+    private Rectangle obtenerHitboxAtaqueEnemigo(Enemigo enemigo) {
+        Rectangle cuerpo = obtenerHitboxEnemigo(enemigo);
+        if (enemigo.esAtaqueHaciaArriba()) {
+            return enemigo.getAtaqueNormal().obtenerHitboxHaciaArriba(cuerpo);
+        }
+        return enemigo.getAtaqueNormal().obtenerHitboxCuerpoACuerpo(cuerpo, obtenerHitboxJugador());
+    }
+
+    private Rectangle obtenerHitboxProyectil(Proyectil proyectil) {
+        return new Rectangle(proyectil.getPosicion().getX(), proyectil.getPosicion().getY(), proyectil.getAncho(), proyectil.getAlto());
+    }
+
+    private void intentarAtaqueEnemigo(Enemigo enemigo) {
+        Ataque ataque = enemigo.getAtaqueNormal();
+        if (!ataque.estaDisponible()) {
+            return;
+        }
+
+        Rectangle hitboxAtaque = obtenerHitboxAtaqueEnemigo(enemigo);
+        hitboxAtaqueEnemigoDebug.set(hitboxAtaque.x, hitboxAtaque.y, hitboxAtaque.width, hitboxAtaque.height);
+        tiempoHitboxAtaqueEnemigoDebug = 0.15f;
+
+        Rectangle hitboxJugador = obtenerHitboxJugador();
+        ataque.iniciarCooldown();
+
+        if (!rectanguloTocaHurtboxJugador(hitboxAtaque)) {
+            return;
+        }
+
+        if (tiempoInvulnerable > 0) {
+            return;
+        }
+
+        jugador.recibirDaño(ataque.getDaño());
+        tiempoInvulnerable = duracionInvulnerabilidad;
+
+        if (!jugador.estaVivo()) {
+            gameOver = true;
+        }
+    }
+
+    private void actualizarAtaqueJefe() {
+        Sala salaActual = juego.getSalaActual();
+        if (salaActual.getTipo() != TipoSala.JEFE) {
+            return;
+        }
+
+        for (Enemigo enemigo : salaActual.getEnemigos()) {
+            if (!(enemigo instanceof Jefe)) {
+                continue;
+            }
+
+            Jefe jefe = (Jefe) enemigo;
+            if (!jefe.estaVivo()) {
+                continue;
+            }
+
+            if (jefe.getEstado() == EstadoEnemigo.ATACAR) {
+                continue;
+            }
+
+            Ataque ataque = jefe.getAtaqueDistancia();
+            if (!ataque.estaDisponible()) {
+                continue;
+            }
+
+            Rectangle hitboxJefe = obtenerHitboxEnemigo(jefe);
+            float origenX = hitboxJefe.x + hitboxJefe.width / 2f - ataque.getAncho() / 2f;
+            float origenY = hitboxJefe.y + hitboxJefe.height / 2f - ataque.getAlto() / 2f;
+
+            Rectangle hitboxJugador = obtenerHitboxJugador();
+            float objetivoX = hitboxJugador.x + hitboxJugador.width / 2f;
+            float objetivoY = hitboxJugador.y + hitboxJugador.height / 2f;
+
+            Proyectil proyectil = new Proyectil(
+                new Posicion(origenX, origenY),
+                objetivoX, objetivoY,
+                300f, ataque.getDaño(), ataque.getAncho(), ataque.getAlto()
+            );
+
+            salaActual.agregarProyectil(proyectil);
+            ataque.iniciarCooldown();
+        }
+    }
+
+    private Rectangle obtenerHitboxJugador() {
+        float hitboxX = jugador.getSpriteX() + (jugador.getAnchoSprite() - ANCHO_HITBOX_JUGADOR) / 2f;
+        float hitboxY = jugador.getSpriteY() + (jugador.getAltoSprite() - ALTO_HITBOX_JUGADOR) / 2f;
+
+        return new Rectangle(hitboxX, hitboxY, ANCHO_HITBOX_JUGADOR, ALTO_HITBOX_JUGADOR);
+    }
+
+    private Ellipse obtenerHurtboxJugador() {
+        Rectangle hitboxFisica = obtenerHitboxJugador();
+        float hurtboxX = hitboxFisica.x + (hitboxFisica.width - ANCHO_HURTBOX_JUGADOR) / 2f;
+        float hurtboxY = hitboxFisica.y + (hitboxFisica.height - ALTO_HURTBOX_JUGADOR) / 2f;
+
+        return new Ellipse(hurtboxX, hurtboxY, ANCHO_HURTBOX_JUGADOR, ALTO_HURTBOX_JUGADOR);
+    }
+
+    private boolean rectanguloTocaHurtboxJugador(Rectangle rectangulo) {
+        Ellipse hurtbox = obtenerHurtboxJugador();
+        float centroX = hurtbox.x + hurtbox.width / 2f;
+        float centroY = hurtbox.y + hurtbox.height / 2f;
+        float radioX = hurtbox.width / 2f;
+        float radioY = hurtbox.height / 2f;
+
+        float puntoX = Math.max(rectangulo.x, Math.min(centroX, rectangulo.x + rectangulo.width));
+        float puntoY = Math.max(rectangulo.y, Math.min(centroY, rectangulo.y + rectangulo.height));
+
+        float distanciaX = (puntoX - centroX) / radioX;
+        float distanciaY = (puntoY - centroY) / radioY;
+
+        return (distanciaX * distanciaX + distanciaY * distanciaY) <= 1f;
+    }
+
+    private Rectangle obtenerHitboxEnemigo(Enemigo enemigo) {
+        return enemigo.getHitbox().obtenerRectangulo(enemigo.getPosicion());
+    }
+
+    private Rectangle obtenerHitboxItem(Item item) {
+        return new Rectangle(item.getPosicion().getX(), item.getPosicion().getY(), 40, 40);
+    }
 
 
-        // La puerta ARRIBA queda a la izquierda
-        // de las dos puertas centrales.
-        puertaArriba.set(
-            centroPantalla
-                - anchoPuertaCentral
-                - separacion,
 
-            pisoY,
+    private Enemigo buscarEnemigoGolpeado(Sala sala, Rectangle hitboxAtaque) {
+        for (Enemigo enemigo : sala.getEnemigos()) {
+            Rectangle hitboxEnemigo = obtenerHitboxEnemigo(enemigo);
+            if (hitboxAtaque.overlaps(hitboxEnemigo)) {
+                return enemigo;
+            }
+        }
+        return null;
+    }
 
-            anchoPuertaCentral,
-            altoPuerta
+    private Rectangle obtenerHitboxPogoJugador() {
+        Ataque pogo = jugador.getAtaquePogo();
+        Rectangle hitboxJugador = obtenerHitboxJugador();
+        float pogoX = hitboxJugador.x + (hitboxJugador.width - pogo.getAncho()) / 2f;
+        float pogoY = hitboxJugador.y - pogo.getAlto();
+
+        return new Rectangle(pogoX, pogoY, pogo.getAncho(), pogo.getAlto());
+    }
+
+    private Rectangle obtenerHitboxAtaqueArribaJugador() {
+        Ataque ataque = jugador.getAtaqueNormal();
+        Rectangle hitboxJugador = obtenerHitboxJugador();
+        float ataqueX = hitboxJugador.x + (hitboxJugador.width - ataque.getAncho()) / 2f;
+        float ataqueY = hitboxJugador.y + hitboxJugador.height;
+
+        return new Rectangle(ataqueX, ataqueY, ataque.getAncho(), ataque.getAlto());
+    }
+
+    private void comprobarAtaqueJugador() {
+        if (!Gdx.input.isKeyJustPressed(Input.Keys.X)) {
+            return;
+        }
+
+        Sala salaActual = juego.getSalaActual();
+
+        if (jugador.getPosicion().getY() > pisoY && Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+            Ataque pogo = jugador.getAtaquePogo();
+            if (!pogo.estaDisponible()) {
+                return;
+            }
+            pogo.iniciarCooldown();
+
+            Rectangle hitboxPogo = obtenerHitboxPogoJugador();
+            hitboxAtaqueDebug.set(hitboxPogo.x, hitboxPogo.y, hitboxPogo.width, hitboxPogo.height);
+            tiempoHitboxAtaqueDebug = 0.15f;
+
+            Enemigo objetivo = buscarEnemigoGolpeado(salaActual, hitboxPogo);
+
+            if (objetivo != null) {
+                saltosDisponibles = 1;
+                dashDisponibleAire = 1;
+                jugador.atacar(objetivo, jugador.getAtaquePogo());
+                velocidadY = jugador.getFuerzaPogo();
+
+                if (!objetivo.estaVivo()) {
+                    int monedas = objetivo.generarMonedasDrop();
+                    jugador.agarrarMonedas(monedas);
+                    salaActual.eliminarEnemigo(objetivo);
+                }
+            }
+            return;
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+            Ataque ataqueArriba = jugador.getAtaqueNormal();
+            if (!ataqueArriba.estaDisponible()) {
+                return;
+            }
+
+            ataqueArriba.iniciarCooldown();
+            Rectangle hitboxAtaqueArriba = obtenerHitboxAtaqueArribaJugador();
+            hitboxAtaqueDebug.set(hitboxAtaqueArriba.x, hitboxAtaqueArriba.y, hitboxAtaqueArriba.width, hitboxAtaqueArriba.height);
+            tiempoHitboxAtaqueDebug = 0.15f;
+
+            Enemigo objetivo = buscarEnemigoGolpeado(salaActual, hitboxAtaqueArriba);
+            if (objetivo == null) {
+                return;
+            }
+
+            jugador.atacar(objetivo, ataqueArriba);
+
+            if (!objetivo.estaVivo()) {
+                int monedas = objetivo.generarMonedasDrop();
+                jugador.agarrarMonedas(monedas);
+                salaActual.eliminarEnemigo(objetivo);
+            }
+            return;
+        }
+
+        Ataque ataqueNormal = jugador.getAtaqueNormal();
+        if (!ataqueNormal.estaDisponible()) {
+            return;
+        }
+
+        ataqueNormal.iniciarCooldown();
+        Rectangle hitboxAtaque = obtenerHitboxAtaqueJugador();
+
+        hitboxAtaqueDebug.set(hitboxAtaque.x, hitboxAtaque.y, hitboxAtaque.width, hitboxAtaque.height);
+        tiempoHitboxAtaqueDebug = 0.15f;
+
+        Enemigo objetivo = buscarEnemigoGolpeado(salaActual, hitboxAtaque);
+        if (objetivo == null) {
+            return;
+        }
+
+        jugador.atacar(objetivo, jugador.getAtaqueNormal());
+        aplicarRetrocesoAtaque();
+
+        if (!objetivo.estaVivo()) {
+            int monedas = objetivo.generarMonedasDrop();
+            jugador.agarrarMonedas(monedas);
+            salaActual.eliminarEnemigo(objetivo);
+        }
+    }
+
+    private void aplicarRetrocesoAtaque() {
+        if (mirandoIzquierda) {
+            velocidadX = FUERZA_RETROCESO_X;
+        } else {
+            velocidadX = -FUERZA_RETROCESO_X;
+        }
+    }
+
+    private boolean comprobarColisionPlataformas(Rectangle hitboxAnterior) {
+        Rectangle hitboxActual = obtenerHitboxJugador();
+
+        for (Plataforma plataforma : juego.getSalaActual().getPlataformas()) {
+            Rectangle hitboxPlataforma = obtenerHitboxPlataforma(plataforma);
+
+            boolean coincideEnX = hitboxActual.x + hitboxActual.width > hitboxPlataforma.x
+                && hitboxActual.x < hitboxPlataforma.x + hitboxPlataforma.width;
+
+            if (!coincideEnX) {
+                continue;
+            }
+
+            float piesAntes = hitboxAnterior.y;
+            float cabezaAntes = hitboxAnterior.y + hitboxAnterior.height;
+            float piesAhora = hitboxActual.y;
+            float cabezaAhora = hitboxActual.y + hitboxActual.height;
+
+            float arribaPlataforma = plataforma.getY() + plataforma.getAlto();
+            float abajoPlataforma = plataforma.getY();
+
+            if (velocidadY <= 0 && piesAntes >= arribaPlataforma && piesAhora <= arribaPlataforma) {
+                float correccionY = arribaPlataforma - piesAhora;
+                jugador.getPosicion().moverY(correccionY);
+                velocidadY = 0;
+                return true;
+            }
+
+            if (velocidadY > 0 && cabezaAntes <= abajoPlataforma && cabezaAhora >= abajoPlataforma) {
+                float correccionY = abajoPlataforma - cabezaAhora;
+                jugador.getPosicion().moverY(correccionY);
+                velocidadY = 0;
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private void comprobarColisionHorizontalPlataformas(Rectangle hitboxAnterior) {
+        Rectangle hitboxActual = obtenerHitboxJugador();
+
+        for (Plataforma plataforma : juego.getSalaActual().getPlataformas()) {
+            Rectangle hitboxPlataforma = obtenerHitboxPlataforma(plataforma);
+
+            if (!hitboxActual.overlaps(hitboxPlataforma)) {
+                continue;
+            }
+
+            boolean veniaDesdeIzquierda = hitboxAnterior.x + hitboxAnterior.width <= hitboxPlataforma.x;
+
+            if (veniaDesdeIzquierda) {
+                float correccionX = hitboxPlataforma.x - (hitboxActual.x + hitboxActual.width);
+                jugador.getPosicion().moverX(correccionX);
+                velocidadX = 0;
+                haciendoDash = false;
+                tiempoDashRestante = 0;
+                return;
+            }
+
+            boolean veniaDesdeDerecha = hitboxAnterior.x >= hitboxPlataforma.x + hitboxPlataforma.width;
+
+            if (veniaDesdeDerecha) {
+                float correccionX = (hitboxPlataforma.x + hitboxPlataforma.width) - hitboxActual.x;
+                jugador.getPosicion().moverX(correccionX);
+                velocidadX = 0;
+                haciendoDash = false;
+                tiempoDashRestante = 0;
+                return;
+            }
+        }
+    }
+
+    private void dibujarHitboxJugador() {
+        Rectangle hitboxJugador = obtenerHitboxJugador();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.GREEN);
+        shapeRenderer.rect(hitboxJugador.x, hitboxJugador.y, hitboxJugador.width, hitboxJugador.height);
+        shapeRenderer.end();
+    }
+
+    private void dibujarHurtboxJugador() {
+        Ellipse hurtbox = obtenerHurtboxJugador();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.YELLOW);
+        shapeRenderer.ellipse(hurtbox.x, hurtbox.y, hurtbox.width, hurtbox.height);
+        shapeRenderer.end();
+    }
+
+    // --- NUEVO MÉTODO PARA DIBUJAR AL BICHO USANDO SU SPRITE SHEET ---
+    private void dibujarEnemigos() {
+        Sala salaActual = juego.getSalaActual();
+
+        batch.begin();
+
+        for (Enemigo enemigo : salaActual.getEnemigos()) {
+            Rectangle hitboxEnemigo = obtenerHitboxEnemigo(enemigo);
+            Rectangle hitboxJugador = obtenerHitboxJugador();
+
+            boolean jugadorDerecha = hitboxJugador.x >= hitboxEnemigo.x;
+            enemigo.actualizarAnimacionYFrame(Gdx.graphics.getDeltaTime(), jugadorDerecha);
+
+            int anchoImg = texturaBicho.getWidth();
+            int altoImg = texturaBicho.getHeight();
+
+            // Centramos horizontalmente respecto a la hitbox
+            float offsetX = (ANCHO_ENEMIGO - hitboxEnemigo.width) / 2f;
+
+            // Alineamos la parte inferior del sprite exactamente con los pies de la hitbox
+            float drawX = hitboxEnemigo.x - offsetX;
+            float drawY = hitboxEnemigo.y; // Los pies quedan apoyados en la base física
+
+            batch.draw(
+                texturaBicho,
+                drawX,
+                drawY,
+                ANCHO_ENEMIGO,
+                ALTO_ENEMIGO,
+                enemigo.getSourceX(anchoImg),
+                enemigo.getSourceY(altoImg),
+                enemigo.getAnchoFrame(anchoImg),
+                enemigo.getAltoFrame(altoImg),
+                false,
+                false
+            );
+        }
+
+        batch.end();
+    }
+
+    private void dibujarItems() {
+        Sala salaActual = juego.getSalaActual();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(Color.YELLOW);
+
+        if (salaActual.tieneItem()) {
+            Item item = salaActual.getItem();
+            Rectangle hitboxItem = obtenerHitboxItem(item);
+            shapeRenderer.rect(hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+        }
+
+        for (OfertaTienda oferta : salaActual.getOfertasTienda()) {
+            Item item = oferta.getItem();
+            Rectangle hitboxItem = obtenerHitboxItem(item);
+            shapeRenderer.rect(hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+        }
+
+        shapeRenderer.end();
+    }
+
+    private Rectangle obtenerHitboxPlataforma(Plataforma plataforma) {
+        float altoFisico = 15f;
+        float ySuperficie = plataforma.getY() + plataforma.getAlto();
+
+        // --- OFFSET VERTICAL UNIFICADO ---
+        // Sube o baja este número para mover TODO (hitbox e imagen juntos)
+        // hasta que la superficie de la piedra toque los pies del personaje.
+        float offsetY = 60f; // <--- Sube o baja este valor según necesites
+
+        float yFisica = (ySuperficie - altoFisico) + offsetY;
+
+        return new Rectangle(
+            plataforma.getX(),
+            yFisica,
+            plataforma.getAncho(),
+            altoFisico
         );
+    }
+
+    private void dibujarPlataformas() {
+        batch.begin();
+
+        for (Plataforma plataforma : juego.getSalaActual().getPlataformas()) {
+            float ySuperficie = plataforma.getY() + plataforma.getAlto();
+            float altoVisual = 140f;
+            float anchoVisual = plataforma.getAncho();
+
+            // Usamos EXACTAMENTE el mismo offsetY que la física para que vayan siempre pegadas
+            float offsetY = 60f;
 
+            float yVisual = (ySuperficie - altoVisual) + offsetY;
+
+            batch.draw(
+                texturaPlataforma,
+                plataforma.getX(),
+                yVisual,
+                anchoVisual,
+                altoVisual
+            );
+        }
+
+        batch.end();
+    }
+
+    private void dibujarHitboxAtaque(float delta) {
+        if (tiempoHitboxAtaqueDebug <= 0) {
+            return;
+        }
 
-        // La puerta ABAJO queda a la derecha.
-        puertaAbajo.set(
-            centroPantalla + separacion,
-
-            pisoY,
-
-            anchoPuertaCentral,
-            altoPuerta
-        );
-     }
-    
-	 // Comprueba si el centro del jugador se encuentra
-	 // dentro de la zona de una puerta.
-     private boolean jugadorEstaEnPuerta(Rectangle puerta) {
-
-         Rectangle cuerpo = obtenerHitboxJugador();
-
-         float centroJugadorX =
-             cuerpo.x + cuerpo.width / 2f;
-
-         float centroJugadorY =
-             cuerpo.y + cuerpo.height / 2f;
-
-         return puerta.contains(
-             centroJugadorX,
-             centroJugadorY
-         );
-     }
-	 
-	 // Comprueba solamente las puertas laterales.
-	 //
-	 // Se usa para evitar que al entrar por una puerta lateral
-	 // el jugador vuelva instantáneamente a la sala anterior.
-	 private boolean estaEnPuertaLateralActiva() {
-
-	     // Puerta izquierda
-	     if (juego.haySalaEnDireccion(0, -1)
-	         && jugadorEstaEnPuerta(puertaIzquierda)) {
-
-	         return true;
-	     }
-
-	     // Puerta derecha
-	     if (juego.haySalaEnDireccion(0, 1)
-	         && jugadorEstaEnPuerta(puertaDerecha)) {
-
-	         return true;
-	     }
-
-	     return false;
-	 }
-	 
-	 private void comprobarCambioSala() {
-
-		    // --------------------------------------------------
-		    // BLOQUEO DE PUERTAS LATERALES
-		    // --------------------------------------------------
-
-		    // Si acabamos de cambiar por izquierda o derecha,
-		    // esperamos a que el jugador se aleje de esa puerta
-		    // antes de permitir otra transición lateral.
-		    if (transicionBloqueada) {
-
-		        if (!estaEnPuertaLateralActiva()) {
-		            transicionBloqueada = false;
-		        }
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // IZQUIERDA
-		    // Funciona simplemente tocando la puerta.
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(0, -1)
-		        && jugadorEstaEnPuerta(puertaIzquierda)) {
-
-		        if (juego.cambiarSala(0, -1)) {
-
-		            colocarJugadorTrasCambio(
-		                0,
-		                -1
-		            );
-
-		            // Evitamos volver inmediatamente.
-		            transicionBloqueada = true;
-		        }
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // DERECHA
-		    // También funciona por contacto.
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(0, 1)
-		        && jugadorEstaEnPuerta(puertaDerecha)) {
-
-		        if (juego.cambiarSala(0, 1)) {
-
-		            colocarJugadorTrasCambio(
-		                0,
-		                1
-		            );
-
-		            transicionBloqueada = true;
-		        }
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // ARRIBA
-		    //
-		    // Para usar esta puerta:
-		    // 1. Debe existir una sala arriba.
-		    // 2. El jugador debe estar frente a la puerta.
-		    // 3. Debe presionar F.
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(-1, 0)
-		        && jugadorEstaEnPuerta(puertaArriba)
-		        && Gdx.input.isKeyJustPressed(Input.Keys.F)) {
-
-		        if (juego.cambiarSala(-1, 0)) {
-
-		            colocarJugadorTrasCambio(
-		                -1,
-		                0
-		            );
-		        }
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // ABAJO
-		    // Funciona igual que ARRIBA pero hacia fila + 1.
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(1, 0)
-		        && jugadorEstaEnPuerta(puertaAbajo)
-		        && Gdx.input.isKeyJustPressed(Input.Keys.F)) {
-
-		        if (juego.cambiarSala(1, 0)) {
-
-		            colocarJugadorTrasCambio(
-		                1,
-		                0
-		            );
-		        }
-		    }
-		}
-	 
-	 private void colocarJugadorTrasCambio(
-		        int cambioFila,
-		        int cambioColumna) {
-
-		 	float anchoPantalla = ANCHO_MUNDO;
-		 	
-		 	
-			// Salimos por izquierda:
-			// aparecemos a la derecha de la nueva sala.
-			if (cambioColumna == -1) {
-	
-			    jugador.getPosicion().setX(
-			        ANCHO_MUNDO - jugador.getAnchoSprite()
-			    );
-			}
-	
-			// Salimos por derecha:
-			// aparecemos a la izquierda de la nueva sala.
-			else if (cambioColumna == 1) {
-	
-			    jugador.getPosicion().setX(0f);
-			}
-
-
-		    // --------------------------------------------------
-		    // FUIMOS HACIA ARRIBA
-		    //
-		    // En la nueva sala aparecemos frente
-		    // a la puerta que lleva ABAJO.
-		    // --------------------------------------------------
-
-		    else if (cambioFila == -1) {
-
-		    	jugador.getPosicion().setX(
-		    		    puertaAbajo.x
-		    		    + puertaAbajo.width / 2f
-		    		    - jugador.getAnchoSprite() / 2f
-		    		);
-		    }
-
-
-		    // --------------------------------------------------
-		    // FUIMOS HACIA ABAJO
-		    //
-		    // En la nueva sala aparecemos frente
-		    // a la puerta que lleva ARRIBA.
-		    // --------------------------------------------------
-
-		    else if (cambioFila == 1) {
-
-		    	jugador.getPosicion().setX(
-		    		    puertaArriba.x
-		    		    + puertaArriba.width / 2f
-		    		    - jugador.getAnchoSprite() / 2f
-		    		);
-		    }
-
-
-		    // Por ahora todas las puertas están al nivel del piso.
-		    jugador.getPosicion().setY(pisoY);
-
-		    // Cancelamos cualquier salto o caída
-		    // que tuviera el personaje.
-		    velocidadY = 0;
-	 }
-	 
-	 private void limitarJugadorAHabitacion() {
-
-		    float minimoX = 0f;
-
-		    float maximoX =
-		        ANCHO_MUNDO - jugador.getAnchoSprite();
-
-		    float posicionX =
-		        jugador.getPosicion().getX();
-
-		    if (posicionX < minimoX) {
-		        jugador.getPosicion().setX(minimoX);
-		    } 
-		    
-		    else if (posicionX > maximoX) {
-		        jugador.getPosicion().setX(maximoX);
-		    }
-		}
-	 
-	 private void dibujarHabitacion() {
-
-		 	float anchoPantalla =
-				    ANCHO_MUNDO;
-
-			float altoPantalla =
-				    ALTO_MUNDO;
-
-
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Line
-		    );
-
-		    shapeRenderer.setColor(Color.WHITE);
-
-
-		    // --------------------------------------------------
-		    // CONTORNO TEMPORAL DE LA HABITACIÓN
-		    // --------------------------------------------------
-
-		    shapeRenderer.rect(
-		        1,
-		        pisoY,
-		        anchoPantalla - 2,
-		        altoPantalla - pisoY - 2
-		    );
-
-
-		    // --------------------------------------------------
-		    // PUERTA IZQUIERDA
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(0, -1)) {
-
-		        shapeRenderer.rect(
-		            puertaIzquierda.x,
-		            puertaIzquierda.y,
-		            puertaIzquierda.width,
-		            puertaIzquierda.height
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // PUERTA DERECHA
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(0, 1)) {
-
-		        shapeRenderer.rect(
-		            puertaDerecha.x,
-		            puertaDerecha.y,
-		            puertaDerecha.width,
-		            puertaDerecha.height
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // PUERTA ARRIBA
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(-1, 0)) {
-
-		        shapeRenderer.rect(
-		            puertaArriba.x,
-		            puertaArriba.y,
-		            puertaArriba.width,
-		            puertaArriba.height
-		        );
-
-		        dibujarFlechaArriba(
-		            puertaArriba
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // PUERTA ABAJO
-		    // --------------------------------------------------
-
-		    if (juego.haySalaEnDireccion(1, 0)) {
-
-		        shapeRenderer.rect(
-		            puertaAbajo.x,
-		            puertaAbajo.y,
-		            puertaAbajo.width,
-		            puertaAbajo.height
-		        );
-
-		        dibujarFlechaAbajo(
-		            puertaAbajo
-		        );
-		    }
-
-
-		    shapeRenderer.end();
-		}
-	 
-	 private void dibujarFlechaArriba(
-		        Rectangle puerta) {
-
-		    float centroX =
-		        puerta.x + puerta.width / 2;
-
-		    float abajo =
-		        puerta.y + 25;
-
-		    float arriba =
-		        puerta.y + puerta.height - 25;
-
-
-		    // Línea vertical
-		    shapeRenderer.line(
-		        centroX,
-		        abajo,
-		        centroX,
-		        arriba
-		    );
-
-
-		    // Punta izquierda
-		    shapeRenderer.line(
-		        centroX,
-		        arriba,
-		        centroX - 10,
-		        arriba - 15
-		    );
-
-
-		    // Punta derecha
-		    shapeRenderer.line(
-		        centroX,
-		        arriba,
-		        centroX + 10,
-		        arriba - 15
-		    );
-		}
-	 
-	 private void dibujarFlechaAbajo(
-		        Rectangle puerta) {
-
-		    float centroX =
-		        puerta.x + puerta.width / 2;
-
-		    float arriba =
-		        puerta.y + puerta.height - 25;
-
-		    float abajo =
-		        puerta.y + 25;
-
-
-		    // Línea vertical
-		    shapeRenderer.line(
-		        centroX,
-		        arriba,
-		        centroX,
-		        abajo
-		    );
-
-
-		    // Punta izquierda
-		    shapeRenderer.line(
-		        centroX,
-		        abajo,
-		        centroX - 10,
-		        abajo + 15
-		    );
-
-
-		    // Punta derecha
-		    shapeRenderer.line(
-		        centroX,
-		        abajo,
-		        centroX + 10,
-		        abajo + 15
-		    );
-		}
-		 
-		// --------------------------------------------------
-		// HITBOX DEL ATAQUE DEL JUGADOR
-		// --------------------------------------------------
-	
-	 private Rectangle obtenerHitboxAtaqueJugador() {
-
-		    Ataque ataque =
-		        jugador.getAtaqueNormal();
-
-
-		    float ataqueX;
-
-		    float separacionCentral = 15;
-
-
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
-
-
-		    float centroJugadorX =
-		        hitboxJugador.x
-		        + hitboxJugador.width / 2;
-
-
-		    float ataqueY =
-		        hitboxJugador.y;
-
-
-		    if (mirandoIzquierda) {
-
-		        ataqueX =
-		            centroJugadorX
-		            - ataque.getAncho()
-		            - separacionCentral;
-		    }
-
-		    else {
-
-		        ataqueX =
-		            centroJugadorX
-		            + separacionCentral;
-		    }
-
-
-		    return new Rectangle(
-		        ataqueX,
-		        ataqueY,
-		        ataque.getAncho(),
-		        ataque.getAlto()
-		    );
-		}
-	 
-	 private void actualizarGravedadEnemigo(
-		        Enemigo enemigo,
-		        float delta) {
-
-		    Rectangle cuerpoAnterior =
-		        obtenerHitboxEnemigo(enemigo);
-
-		    enemigo.actualizarGravedad(
-		        delta,
-		        gravedad
-		    );
-
-		    // Solo buscamos superficies donde aterrizar
-		    // cuando el enemigo está cayendo.
-		    if (enemigo.getVelocidadY() > 0f) {
-		        return;
-		    }
-
-		    Rectangle cuerpoActual =
-		        obtenerHitboxEnemigo(enemigo);
-
-		    // El piso es la superficie más baja.
-		    float superficieApoyo = pisoY;
-
-		    for (Plataforma plataforma :
-		            juego.getSalaActual().getPlataformas()) {
-
-		        float superficiePlataforma =
-		            plataforma.getY()
-		            + plataforma.getAlto();
-
-		        boolean coincideEnX =
-		            cuerpoActual.x
-		                < plataforma.getX()
-		                    + plataforma.getAncho()
-		            && cuerpoActual.x + cuerpoActual.width
-		                > plataforma.getX();
-
-		        // Antes sus pies estaban sobre la superficie.
-		        // Después quedaron a su altura o por debajo.
-		        boolean cruzaSuperficie =
-		            cuerpoAnterior.y >= superficiePlataforma
-		            && cuerpoActual.y <= superficiePlataforma;
-
-		        if (coincideEnX && cruzaSuperficie) {
-
-		            // Si atravesó varias superficies,
-		            // aterriza en la más alta.
-		            superficieApoyo = Math.max(
-		                superficieApoyo,
-		                superficiePlataforma
-		            );
-		        }
-		    }
-
-		    if (cuerpoActual.y <= superficieApoyo) {
-
-		        // Corregimos usando los pies de la hitbox.
-		        // También funciona si tiene desplazamiento Y.
-		        enemigo.getPosicion().moverY(
-		            superficieApoyo - cuerpoActual.y
-		        );
-
-		        enemigo.detenerCaida();
-		    }
-		}
-	 
-	 private Rectangle obtenerHitboxAtaqueEnemigo(Enemigo enemigo) {
-
-		    Rectangle cuerpo = obtenerHitboxEnemigo(enemigo);
-
-		    if (enemigo.esAtaqueHaciaArriba()) {
-		        return enemigo.getAtaqueNormal().obtenerHitboxHaciaArriba(cuerpo);
-		    }
-
-		    return enemigo.getAtaqueNormal().obtenerHitboxCuerpoACuerpo(
-		        cuerpo,
-		        obtenerHitboxJugador()
-		    );
-		}
-		 
-		// --------------------------------------------------
-		// HITBOX DEL PROYECTIL
-		// --------------------------------------------------
-	
-		private Rectangle obtenerHitboxProyectil(
-		        Proyectil proyectil) {
-	
-		    return new Rectangle(
-		        proyectil.getPosicion().getX(),
-		        proyectil.getPosicion().getY(),
-		        proyectil.getAncho(),
-		        proyectil.getAlto()
-		    );
-		}
-	 
-	 	private void intentarAtaqueEnemigo(
-		        Enemigo enemigo) {
-
-		    Ataque ataque =
-		        enemigo.getAtaqueNormal();
-
-
-		    // Si todavía está en cooldown,
-		    // no puede volver a atacar.
-		    if (!ataque.estaDisponible()) {
-		        return;
-		    }
-
-
-		    Rectangle hitboxAtaque =
-		        obtenerHitboxAtaqueEnemigo(
-		            enemigo
-		        );
-		    
-			// Guardamos temporalmente la hitbox
-			// para poder verla en pantalla.
-			hitboxAtaqueEnemigoDebug.set(
-			    hitboxAtaque.x,
-			    hitboxAtaque.y,
-			    hitboxAtaque.width,
-			    hitboxAtaque.height
-			);
-	
-	
-			// La mostramos durante 0.15 segundos.
-			tiempoHitboxAtaqueEnemigoDebug =
-			    0.15f;
-
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
-
-
-		    // El ataque se realizó, así que empieza
-		    // el cooldown aunque falle.
-		    ataque.iniciarCooldown();
-
-
-		    // El jugador no estaba dentro del ataque.
-		    if (!rectanguloTocaHurtboxJugador(
-		            hitboxAtaque)) {
-
-		        return;
-		    }
-
-
-		    // Si el jugador todavía está en sus frames
-		    // de invulnerabilidad, no recibe otro golpe.
-		    if (tiempoInvulnerable > 0) {
-		        return;
-		    }
-
-
-		    jugador.recibirDaño(
-		        ataque.getDaño()
-		    );
-
-
-		    tiempoInvulnerable =
-		        duracionInvulnerabilidad;
-
-
-		    System.out.println(
-		        "El enemigo ataco al jugador haciendole "
-		        + ataque.getDaño()
-		        + " de daÃ±o."
-		    );
-
-
-		    if (!jugador.estaVivo()) {
-
-		        gameOver = true;
-
-		        System.out.println(
-		            "GAME OVER"
-		        );
-		    }
-		}
-	 	
-		// --------------------------------------------------
-		// ATAQUE A DISTANCIA DEL JEFE
-		// --------------------------------------------------
-	
-		private void actualizarAtaqueJefe() {
-	
-		    Sala salaActual =
-		        juego.getSalaActual();
-	
-	
-		    // Solo buscamos un jefe si estamos
-		    // realmente dentro de una sala JEFE.
-		    if (salaActual.getTipo() != TipoSala.JEFE) {
-		        return;
-		    }
-	
-	
-		    for (Enemigo enemigo :
-		            salaActual.getEnemigos()) {
-	
-		        if (!(enemigo instanceof Jefe)) {
-		            continue;
-		        }
-	
-	
-		        Jefe jefe =
-		            (Jefe) enemigo;
-	
-	
-		        if (!jefe.estaVivo()) {
-		            continue;
-		        }
-		        
-		        
-		        // Espera a terminar la preparación,
-		        // el golpe y la recuperación.
-		        if (jefe.getEstado() == EstadoEnemigo.ATACAR) {
-		            continue;
-		        }
-	
-	
-		        Ataque ataque =
-		            jefe.getAtaqueDistancia();
-	
-	
-		        // Todavía está esperando su cooldown.
-		        if (!ataque.estaDisponible()) {
-		            continue;
-		        }
-	
-	
-		        // --------------------------------------------------
-		        // POSICIÓN DEL JEFE
-		        // --------------------------------------------------
-	
-		        Rectangle hitboxJefe =
-		            obtenerHitboxEnemigo(
-		                jefe
-		            );
-	
-	
-		        // El disparo nace aproximadamente
-		        // desde el centro del jefe.
-		        float origenX =
-		            hitboxJefe.x
-		            + hitboxJefe.width / 2f
-		            - ataque.getAncho() / 2f;
-	
-		        float origenY =
-		            hitboxJefe.y
-		            + hitboxJefe.height / 2f
-		            - ataque.getAlto() / 2f;
-		
-		        // --------------------------------------------------
-		        // POSICIÓN DEL JUGADOR
-		        // --------------------------------------------------
-	
-		        Rectangle hitboxJugador =
-		            obtenerHitboxJugador();
-	
-	
-		        float objetivoX =
-		            hitboxJugador.x
-		            + hitboxJugador.width / 2f;
-	
-		        float objetivoY =
-		            hitboxJugador.y
-		            + hitboxJugador.height / 2f;
-	
-	
-		        // --------------------------------------------------
-		        // CREAMOS EL PROYECTIL
-		        // --------------------------------------------------
-	
-		        Proyectil proyectil =
-		            new Proyectil(
-		                new Posicion(
-		                    origenX,
-		                    origenY
-		                ),
-		                objetivoX,
-		                objetivoY,
-		                300f,               // velocidad PROVISIONAL
-		                ataque.getDaño(),
-		                ataque.getAncho(),
-		                ataque.getAlto()
-		            );
-	
-	
-		        salaActual.agregarProyectil(
-		            proyectil
-		        );
-	
-	
-		        // Comienza la espera para el siguiente disparo.
-		        ataque.iniciarCooldown();
-		     }
-		 }
-		 
-		// --------------------------------------------------
-		// HITBOX DEL CUERPO DEL JUGADOR
-		// --------------------------------------------------
-	
-	 	private Rectangle obtenerHitboxJugador() {
-
-		    // Centramos la hitbox respecto al sprite visual.
-		    float hitboxX =
-		        jugador.getSpriteX()
-		        + (jugador.getAnchoSprite() - ANCHO_HITBOX_JUGADOR) / 2f;
-
-		    // Centramos también la hitbox verticalmente
-		    // respecto del sprite, teniendo en cuenta
-		    // el desplazamiento visual definido en Jugador.
-		    float hitboxY =
-		    	    jugador.getSpriteY()
-		    	    + (jugador.getAltoSprite() - ALTO_HITBOX_JUGADOR) / 2f;
-
-		    return new Rectangle(
-		        hitboxX,
-		        hitboxY,
-		        ANCHO_HITBOX_JUGADOR,
-		        ALTO_HITBOX_JUGADOR
-		    );
-		}
-		
-		// --------------------------------------------------
-		// HURTBOX OVALADA DEL JUGADOR
-		// --------------------------------------------------
-	
-		private Ellipse obtenerHurtboxJugador() {
-	
-		    Rectangle hitboxFisica =
-		        obtenerHitboxJugador();
-	
-	
-		    // Centramos la hurtbox dentro
-		    // de la hitbox física.
-		    float hurtboxX =
-		        hitboxFisica.x
-		        + (
-		            hitboxFisica.width
-		            - ANCHO_HURTBOX_JUGADOR
-		        ) / 2f;
-	
-	
-		    float hurtboxY =
-		        hitboxFisica.y
-		        + (
-		            hitboxFisica.height
-		            - ALTO_HURTBOX_JUGADOR
-		        ) / 2f;
-	
-	
-		    return new Ellipse(
-		        hurtboxX,
-		        hurtboxY,
-		        ANCHO_HURTBOX_JUGADOR,
-		        ALTO_HURTBOX_JUGADOR
-		    );
-		}
-		
-		// --------------------------------------------------
-		// COLISIÓN RECTÁNGULO VS HURTBOX OVALADA
-		// --------------------------------------------------
-
-		private boolean rectanguloTocaHurtboxJugador(
-		        Rectangle rectangulo) {
-
-		    Ellipse hurtbox =
-		        obtenerHurtboxJugador();
-
-
-		    float centroX =
-		        hurtbox.x
-		        + hurtbox.width / 2f;
-
-		    float centroY =
-		        hurtbox.y
-		        + hurtbox.height / 2f;
-
-
-		    float radioX =
-		        hurtbox.width / 2f;
-
-		    float radioY =
-		        hurtbox.height / 2f;
-
-
-		    // Buscamos el punto del rectángulo
-		    // más cercano al centro del óvalo.
-		    float puntoX =
-		        Math.max(
-		            rectangulo.x,
-		            Math.min(
-		                centroX,
-		                rectangulo.x
-		                + rectangulo.width
-		            )
-		        );
-
-
-		    float puntoY =
-		        Math.max(
-		            rectangulo.y,
-		            Math.min(
-		                centroY,
-		                rectangulo.y
-		                + rectangulo.height
-		            )
-		        );
-
-
-		    // Convertimos la distancia según
-		    // los radios horizontal y vertical.
-		    float distanciaX =
-		        (puntoX - centroX)
-		        / radioX;
-
-		    float distanciaY =
-		        (puntoY - centroY)
-		        / radioY;
-
-
-		    // Si está dentro de la ecuación
-		    // de la elipse, hubo colisión.
-		    return (
-		        distanciaX * distanciaX
-		        + distanciaY * distanciaY
-		    ) <= 1f;
-		}
-	
-	
-		// --------------------------------------------------
-		// HITBOX DEL ENEMIGO
-		// --------------------------------------------------
-	
-		private Rectangle obtenerHitboxEnemigo(
-		        Enemigo enemigo) {
-
-		    return enemigo
-		        .getHitbox()
-		        .obtenerRectangulo(
-		            enemigo.getPosicion()
-		        );
-		}
-		
-		// --------------------------------------------------
-		// HITBOX DEL ITEM
-		// --------------------------------------------------
-		
-		private Rectangle obtenerHitboxItem(Item item) {
-
-			return new Rectangle(
-				item.getPosicion().getX(),
-				item.getPosicion().getY(),
-				40,
-				40
-			);
-		}
-		
-		// --------------------------------------------------
-		// HITBOX DE LA PLATAFORMA
-		// --------------------------------------------------
-		
-		private Rectangle obtenerHitboxPlataforma(
-		        Plataforma plataforma) {
-
-		    return new Rectangle(
-		        plataforma.getX(),
-		        plataforma.getY(),
-		        plataforma.getAncho(),
-		        plataforma.getAlto()
-		    );
-		}
-		
-		// --------------------------------------------------
-		// BUSCAR ENEMIGO GOLPEADO
-		// --------------------------------------------------
-
-		private Enemigo buscarEnemigoGolpeado(
-		        Sala sala,
-		        Rectangle hitboxAtaque) {
-
-		    for (Enemigo enemigo : sala.getEnemigos()) {
-
-		        Rectangle hitboxEnemigo =
-		            obtenerHitboxEnemigo(enemigo);
-
-
-		        if (hitboxAtaque.overlaps(hitboxEnemigo)) {
-
-		            return enemigo;
-		        }
-		    }
-
-
-		    return null;
-		}	
-		
-		// --------------------------------------------------
-		// HITBOX DEL POGO
-		// --------------------------------------------------
-
-		private Rectangle obtenerHitboxPogoJugador() {
-
-		    Ataque pogo =
-		        jugador.getAtaquePogo();
-
-
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
-
-
-		    float pogoX =
-		        hitboxJugador.x
-		        + (hitboxJugador.width - pogo.getAncho()) / 2f;
-
-
-		    float pogoY =
-		        hitboxJugador.y
-		        - pogo.getAlto();
-
-
-		    return new Rectangle(
-		        pogoX,
-		        pogoY,
-		        pogo.getAncho(),
-		        pogo.getAlto()
-		    );
-		}
-		
-		// --------------------------------------------------
-		// HITBOX DEL ATAQUE HACIA ARRIBA
-		// --------------------------------------------------
-
-		private Rectangle obtenerHitboxAtaqueArribaJugador() {
-
-		    Ataque ataque =
-		        jugador.getAtaqueNormal();
-
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
-
-
-		    // Centramos el ataque horizontalmente
-		    // respecto del cuerpo del jugador.
-		    float ataqueX =
-		        hitboxJugador.x
-		        + (hitboxJugador.width - ataque.getAncho()) / 2f;
-
-
-		    // La hitbox empieza exactamente
-		    // arriba del cuerpo del jugador.
-		    float ataqueY =
-		        hitboxJugador.y
-		        + hitboxJugador.height;
-
-
-		    return new Rectangle(
-		        ataqueX,
-		        ataqueY,
-		        ataque.getAncho(),
-		        ataque.getAlto()
-		    );
-		}
-	 
-		private void comprobarAtaqueJugador() {
-			
-		    // X ejecuta un ataque.
-		    if (!Gdx.input.isKeyJustPressed(Input.Keys.X)) {
-		        return;
-		    }
-
-
-		    Sala salaActual =
-		        juego.getSalaActual();
-
-
-		    // --------------------------------------------------
-		    // POGO
-		    // --------------------------------------------------
-
-		    // Si estamos en el aire y mantenemos DOWN,
-		    // X pasa a ser un ataque hacia abajo.
-		    if (jugador.getPosicion().getY() > pisoY
-		            && Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-		    	
-
-				Ataque pogo =
-					    jugador.getAtaquePogo();
-				
-				if (!pogo.estaDisponible()) {
-
-				    return;
-				}
-				
-				pogo.iniciarCooldown();
-		    	
-		        Rectangle hitboxPogo =
-		            obtenerHitboxPogoJugador();
-
-
-		        // Reutilizamos la visualización temporal
-		        // de la hitbox del ataque.
-		        hitboxAtaqueDebug.set(
-		            hitboxPogo.x,
-		            hitboxPogo.y,
-		            hitboxPogo.width,
-		            hitboxPogo.height
-		        );
-
-		        tiempoHitboxAtaqueDebug = 0.15f;
-
-
-		        Enemigo objetivo =
-		            buscarEnemigoGolpeado(
-		                salaActual,
-		                hitboxPogo
-		            );
-
-
-		        // Si el pogo golpeó un enemigo...
-		        if (objetivo != null) {
-		        	
-		        	saltosDisponibles = 1;
-		        	
-		        	dashDisponibleAire = 1;
-		        	
-		            // Aplicamos el daño normal del jugador.
-		        	jugador.atacar(
-		        		    objetivo,
-		        		    jugador.getAtaquePogo()
-		        		);
-
-
-		            // El retroceso del pogo es vertical:
-		            // nos impulsa nuevamente hacia arriba.
-		        	velocidadY = jugador.getFuerzaPogo();
-
-
-		            System.out.println(
-		                "POGO! Vida enemigo: "
-		                + objetivo.getVidaActual()
-		                + "/"
-		                + objetivo.getVidaMax()
-		            );
-
-
-		            // Si murió, manejamos el drop.
-		            if (!objetivo.estaVivo()) {
-
-		                int monedas =
-		                    objetivo.generarMonedasDrop();
-
-		                jugador.agarrarMonedas(
-		                    monedas
-		                );
-
-		                salaActual.eliminarEnemigo(
-		                    objetivo
-		                );
-		                
-		                System.out.println(
-		                    "Enemigo derrotado. Ganaste "
-		                    + monedas
-		                    + " monedas."
-		                );
-		            }
-		        } else if (objetivo == null) {
-
-			        System.out.println(
-			            "El ataque POGO no golpeÃ³ a ningÃºn enemigo."
-			        );
-
-			        return;
-			    }
-		        
-		        
-		        // IMPORTANTE:
-		        // DOWN + X en el aire significa pogo.
-		        // Aunque falle, NO queremos ejecutar después
-		        // un ataque horizontal.
-		        return;
-		    }
-		    
-		    // --------------------------------------------------
-		    // ATAQUE HACIA ARRIBA
-		    // --------------------------------------------------
-
-		 if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-
-		     Ataque ataqueArriba =
-		         jugador.getAtaqueNormal();
-
-
-		     // Comparte cooldown con el ataque horizontal.
-		     if (!ataqueArriba.estaDisponible()) {
-		         return;
-		     }
-
-
-		     ataqueArriba.iniciarCooldown();
-
-
-		     Rectangle hitboxAtaqueArriba =
-		         obtenerHitboxAtaqueArribaJugador();
-
-
-		     // Mostramos la hitbox usando el mismo
-		     // sistema de debug de los otros ataques.
-		     hitboxAtaqueDebug.set(
-		         hitboxAtaqueArriba.x,
-		         hitboxAtaqueArriba.y,
-		         hitboxAtaqueArriba.width,
-		         hitboxAtaqueArriba.height
-		     );
-
-		     tiempoHitboxAtaqueDebug = 0.15f;
-
-
-		     Enemigo objetivo =
-		         buscarEnemigoGolpeado(
-		             salaActual,
-		             hitboxAtaqueArriba
-		         );
-
-
-		     if (objetivo == null) {
-
-		         System.out.println(
-		             "El ataque hacia arriba no golpeÃ³ a ningÃºn enemigo."
-		         );
-
-		         return;
-		     }
-
-
-		     // Aplicamos el mismo daño que el ataque normal.
-		     jugador.atacar(
-		         objetivo,
-		         ataqueArriba
-		     );
-
-
-		     System.out.println(
-		         "Golpe hacia arriba. Vida enemigo: "
-		         + objetivo.getVidaActual()
-		         + "/"
-		         + objetivo.getVidaMax()
-		     );
-
-
-		     // Si murió, manejamos el drop.
-		     if (!objetivo.estaVivo()) {
-
-		         int monedas =
-		             objetivo.generarMonedasDrop();
-
-		         jugador.agarrarMonedas(
-		             monedas
-		         );
-
-		         salaActual.eliminarEnemigo(
-		             objetivo
-		         );
-
-		         System.out.println(
-		             "Enemigo derrotado. Ganaste "
-		             + monedas
-		             + " monedas."
-		         );
-		     }
-
-
-		     // MUY IMPORTANTE:
-		     // UP + X ya fue procesado.
-		     // No queremos ejecutar después
-		     // el ataque horizontal.
-		     return;
-		 }
-		    
-		    // --------------------------------------------------
-		    // ATAQUE NORMAL
-		    // --------------------------------------------------
-		    
-		    Ataque ataqueNormal =
-		    	    jugador.getAtaqueNormal();
-
-
-		   if (!ataqueNormal.estaDisponible()) {
-
-		       return;
-		   }
-
-
-		   // Comenzamos el cooldown desde
-		   // el momento en que ejecutamos el ataque.
-		   ataqueNormal.iniciarCooldown();
-		    	
-		    
-		    Rectangle hitboxAtaque =
-		        obtenerHitboxAtaqueJugador();
-
-
-		    hitboxAtaqueDebug.set(
-		        hitboxAtaque.x,
-		        hitboxAtaque.y,
-		        hitboxAtaque.width,
-		        hitboxAtaque.height
-		    );
-
-		    tiempoHitboxAtaqueDebug = 0.15f;
-
-
-		    Enemigo objetivo =
-		        buscarEnemigoGolpeado(
-		            salaActual,
-		            hitboxAtaque
-		        );
-
-
-		    if (objetivo == null) {
-
-		        System.out.println(
-		            "El ataque no golpeÃ³ a ningÃºn enemigo."
-		        );
-
-		        return;
-		    }
-
-
-		    // --------------------------------------------------
-		    // DAÑO
-		    // --------------------------------------------------
-
-		    jugador.atacar(
-		    	    objetivo,
-		    	    jugador.getAtaqueNormal()
-		    	);
-
-
-		    // Solamente hay retroceso si realmente
-		    // conectamos el golpe.
-		    aplicarRetrocesoAtaque();
-
-
-		    System.out.println(
-		        "Golpeaste al enemigo. Vida: "
-		        + objetivo.getVidaActual()
-		        + "/"
-		        + objetivo.getVidaMax()
-		    );
-
-
-		    // --------------------------------------------------
-		    // MUERTE
-		    // --------------------------------------------------
-
-		    if (!objetivo.estaVivo()) {
-
-		        int monedas =
-		            objetivo.generarMonedasDrop();
-
-
-		        jugador.agarrarMonedas(
-		            monedas
-		        );
-
-
-		        salaActual.eliminarEnemigo(
-		            objetivo
-		        );
-
-
-		        System.out.println(
-		            "Enemigo derrotado. Ganaste "
-		            + monedas
-		            + " monedas."
-		        );
-		    }
-		}
-		
-		// --------------------------------------------------
-		// RETROCESO AL GOLPEAR
-		// --------------------------------------------------
-
-		private void aplicarRetrocesoAtaque() {
-
-		    // Si atacamos hacia la izquierda,
-		    // el retroceso empuja al jugador hacia la derecha.
-		    if (mirandoIzquierda) {
-
-		        velocidadX = FUERZA_RETROCESO_X;
-		    }
-
-		    // Si atacamos hacia la derecha,
-		    // el retroceso empuja al jugador hacia la izquierda.
-		    else {
-
-		        velocidadX = -FUERZA_RETROCESO_X;
-		    }
-		}
-		
-		private boolean comprobarColisionPlataformas(
-		        Rectangle hitboxAnterior) {
-
-		    Rectangle hitboxActual =
-		        obtenerHitboxJugador();
-
-
-		    for (Plataforma plataforma :
-		            juego.getSalaActual().getPlataformas()) {
-
-		        Rectangle hitboxPlataforma =
-		            obtenerHitboxPlataforma(
-		                plataforma
-		            );
-
-
-		        // --------------------------------------------------
-		        // SUPERPOSICIÓN EN X
-		        // --------------------------------------------------
-
-		        boolean coincideEnX =
-		            hitboxActual.x
-		            + hitboxActual.width
-		            > hitboxPlataforma.x
-
-		            &&
-
-		            hitboxActual.x
-		            < hitboxPlataforma.x
-		            + hitboxPlataforma.width;
-
-
-		        if (!coincideEnX) {
-
-		            continue;
-		        }
-
-
-		        // Bordes del jugador ANTES del movimiento.
-		        float piesAntes =
-		            hitboxAnterior.y;
-
-		        float cabezaAntes =
-		            hitboxAnterior.y
-		            + hitboxAnterior.height;
-
-
-		        // Bordes del jugador AHORA.
-		        float piesAhora =
-		            hitboxActual.y;
-
-		        float cabezaAhora =
-		            hitboxActual.y
-		            + hitboxActual.height;
-
-
-		        // Bordes de la plataforma.
-		        float arribaPlataforma =
-		            hitboxPlataforma.y
-		            + hitboxPlataforma.height;
-
-		        float abajoPlataforma =
-		            hitboxPlataforma.y;
-
-
-		        // --------------------------------------------------
-		        // CAEMOS SOBRE LA PLATAFORMA
-		        // --------------------------------------------------
-
-		        if (velocidadY <= 0
-		                && piesAntes >= arribaPlataforma
-		                && piesAhora <= arribaPlataforma) {
-
-		            float correccionY =
-		                arribaPlataforma
-		                - piesAhora;
-
-
-		            jugador.getPosicion().moverY(
-		                correccionY
-		            );
-
-
-		            velocidadY = 0;
-
-
-		            // Estamos apoyados sobre algo,
-		            // por eso cuenta como piso.
-		            return true;
-		        }
-
-
-		        // --------------------------------------------------
-		        // GOLPEAMOS LA PLATAFORMA DESDE ABAJO
-		        // --------------------------------------------------
-
-		        if (velocidadY > 0
-		                && cabezaAntes <= abajoPlataforma
-		                && cabezaAhora >= abajoPlataforma) {
-
-		            float correccionY =
-		                abajoPlataforma
-		                - cabezaAhora;
-
-
-		            jugador.getPosicion().moverY(
-		                correccionY
-		            );
-
-
-		            // Detenemos el movimiento ascendente.
-		            velocidadY = 0;
-
-
-		            // Golpear el techo NO significa
-		            // estar apoyado en el piso.
-		            return false;
-		        }
-		    }
-
-
-		    return false;
-		}
-		
-		private void comprobarColisionHorizontalPlataformas(
-		        Rectangle hitboxAnterior) {
-
-		    Rectangle hitboxActual =
-		        obtenerHitboxJugador();
-
-
-		    for (Plataforma plataforma :
-		            juego.getSalaActual().getPlataformas()) {
-
-		        Rectangle hitboxPlataforma =
-		            obtenerHitboxPlataforma(
-		                plataforma
-		            );
-
-
-		        // Si después de movernos no estamos
-		        // dentro de la plataforma, no hay nada
-		        // que corregir.
-		        if (!hitboxActual.overlaps(hitboxPlataforma)) {
-
-		            continue;
-		        }
-
-
-		        // --------------------------------------------------
-		        // VENÍAMOS DESDE LA IZQUIERDA
-		        // --------------------------------------------------
-
-		        boolean veniaDesdeIzquierda =
-		            hitboxAnterior.x
-		            + hitboxAnterior.width
-		            <= hitboxPlataforma.x;
-
-
-		        if (veniaDesdeIzquierda) {
-
-		            // Calculamos cuánto penetramos
-		            // dentro de la plataforma.
-		            float correccionX =
-		                hitboxPlataforma.x
-		                - (
-		                    hitboxActual.x
-		                    + hitboxActual.width
-		                );
-
-
-		            jugador.getPosicion().moverX(
-		                correccionX
-		            );
-
-
-		            // Si llegamos por un retroceso,
-		            // el choque lo detiene.
-		            velocidadX = 0;
-
-
-		            // Si estábamos haciendo dash,
-		            // el choque también detiene el dash.
-		            haciendoDash = false;
-		            tiempoDashRestante = 0;
-
-		            return;
-		        }
-
-
-		        // --------------------------------------------------
-		        // VENÍAMOS DESDE LA DERECHA
-		        // --------------------------------------------------
-
-		        boolean veniaDesdeDerecha =
-		            hitboxAnterior.x
-		            >= hitboxPlataforma.x
-		            + hitboxPlataforma.width;
-
-
-		        if (veniaDesdeDerecha) {
-
-		            float correccionX =
-		                (
-		                    hitboxPlataforma.x
-		                    + hitboxPlataforma.width
-		                )
-		                - hitboxActual.x;
-
-
-		            jugador.getPosicion().moverX(
-		                correccionX
-		            );
-
-
-		            velocidadX = 0;
-
-		            haciendoDash = false;
-		            tiempoDashRestante = 0;
-
-		            return;
-		        }
-		    }
-		}
-		
-		private void dibujarHitboxJugador() {
-
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
-
-
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Line
-		    );
-
-		    // Verde para distinguirla de:
-		    // rojo = enemigo
-		    // celeste = ataque
-		    shapeRenderer.setColor(
-		        Color.GREEN
-		    );
-
-
-		    shapeRenderer.rect(
-		        hitboxJugador.x,
-		        hitboxJugador.y,
-		        hitboxJugador.width,
-		        hitboxJugador.height
-		    );
-
-
-		    shapeRenderer.end();
-		}
-		
-		private void dibujarHurtboxJugador() {
-
-		    Ellipse hurtbox =
-		        obtenerHurtboxJugador();
-
-
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Line
-		    );
-
-		    shapeRenderer.setColor(
-		        Color.YELLOW
-		    );
-
-
-		    shapeRenderer.ellipse(
-		        hurtbox.x,
-		        hurtbox.y,
-		        hurtbox.width,
-		        hurtbox.height
-		    );
-
-
-		    shapeRenderer.end();
-		}
-		
-		private void dibujarEnemigos() {
-
-		    Sala salaActual =
-		        juego.getSalaActual();
-
-
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Filled
-		    );
-
-		    shapeRenderer.setColor(
-		        Color.RED
-		    );
-
-
-		    for (Enemigo enemigo :
-		        salaActual.getEnemigos()) {
-
-			    Rectangle hitbox =
-			        obtenerHitboxEnemigo(
-			            enemigo
-			        );
-	
-			    shapeRenderer.rect(
-			        hitbox.x,
-			        hitbox.y,
-			        hitbox.width,
-			        hitbox.height
-			    );
-			}
-
-
-		    shapeRenderer.end();
-	}
-	 
-	// --------------------------------------------------
-	// DIBUJAR ITEM - PROVISIONAL
-	// --------------------------------------------------
-
-	 private void dibujarItems() {
-
-		    Sala salaActual =
-		        juego.getSalaActual();
-
-
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Filled
-		    );
-
-		    shapeRenderer.setColor(
-		        Color.YELLOW
-		    );
-
-
-		    // --------------------------------------------------
-		    // ITEM NORMAL DE LA SALA
-		    // --------------------------------------------------
-
-		    if (salaActual.tieneItem()) {
-
-		        Item item =
-		            salaActual.getItem();
-
-		        Rectangle hitboxItem =
-		            obtenerHitboxItem(item);
-
-
-		        shapeRenderer.rect(
-		            hitboxItem.x,
-		            hitboxItem.y,
-		            hitboxItem.width,
-		            hitboxItem.height
-		        );
-		    }
-
-
-		    // --------------------------------------------------
-		    // ITEMS DE LA TIENDA
-		    // --------------------------------------------------
-
-		    for (OfertaTienda oferta :
-		            salaActual.getOfertasTienda()) {
-
-		        Item item =
-		            oferta.getItem();
-
-		        Rectangle hitboxItem =
-		            obtenerHitboxItem(item);
-
-
-		        shapeRenderer.rect(
-		            hitboxItem.x,
-		            hitboxItem.y,
-		            hitboxItem.width,
-		            hitboxItem.height
-		        );
-		    }
-
-
-		    shapeRenderer.end();
-		}
-	
-	 private void dibujarPlataformas() {
-
-	     shapeRenderer.begin(
-	         ShapeRenderer.ShapeType.Filled
-	     );
-
-	     shapeRenderer.setColor(
-	         Color.GRAY
-	     );
-
-
-	     for (Plataforma plataforma :
-	             juego.getSalaActual().getPlataformas()) {
-
-	         shapeRenderer.rect(
-	             plataforma.getX(),
-	             plataforma.getY(),
-	             plataforma.getAncho(),
-	             plataforma.getAlto()
-	         );
-	     }
-
-
-	     shapeRenderer.end();
-	 }
-	 
-	 private void dibujarHitboxAtaque(float delta) {
-
-		    // Si ya terminó el tiempo de visualización,
-		    // no dibujamos nada.
-		    if (tiempoHitboxAtaqueDebug <= 0) {
-		        return;
-		    }
-
-
-		    // Reducimos el tiempo cada frame.
-		    tiempoHitboxAtaqueDebug -= delta;
-
-
-		    // Activamos transparencia.
-		    Gdx.gl.glEnable(GL20.GL_BLEND);
-
-		    Gdx.gl.glBlendFunc(
-		        GL20.GL_SRC_ALPHA,
-		        GL20.GL_ONE_MINUS_SRC_ALPHA
-		    );
-
-
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Filled
-		    );
-
-
-		    // Celeste con poca opacidad.
-		    // El último valor es el alpha:
-		    // 0 = invisible
-		    // 1 = totalmente sólido
-		    shapeRenderer.setColor(
-		        0.2f,
-		        0.7f,
-		        1f,
-		        0.25f
-		    );
-
-
-		    shapeRenderer.rect(
-		        hitboxAtaqueDebug.x,
-		        hitboxAtaqueDebug.y,
-		        hitboxAtaqueDebug.width,
-		        hitboxAtaqueDebug.height
-		    );
-
-
-		    shapeRenderer.end();
-
-
-		    // Desactivamos el blending porque solamente
-		    // lo necesitábamos para esta visualización.
-		    Gdx.gl.glDisable(GL20.GL_BLEND);
-		}
-	 
-	 private void dibujarHitboxAtaqueEnemigo(
-		        float delta) {
-
-		    if (tiempoHitboxAtaqueEnemigoDebug <= 0) {
-		        return;
-		    }
-
-
-		    tiempoHitboxAtaqueEnemigoDebug -= delta;
-
-
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Line
-		    );
-
-		    shapeRenderer.setColor(
-		        Color.RED
-		    );
-
-
-		    shapeRenderer.rect(
-		        hitboxAtaqueEnemigoDebug.x,
-		        hitboxAtaqueEnemigoDebug.y,
-		        hitboxAtaqueEnemigoDebug.width,
-		        hitboxAtaqueEnemigoDebug.height
-		    );
-
-
-		    shapeRenderer.end();
-		}
-		 
-		// --------------------------------------------------
-		// DIBUJAR PROYECTILES
-		// --------------------------------------------------
-	
-		private void dibujarProyectiles() {
-	
-		    Sala salaActual =
-		        juego.getSalaActual();
-	
-	
-		    if (salaActual.getProyectiles().isEmpty()) {
-		        return;
-		    }
-	
-	
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Filled
-		    );
-	
-	
-		    // PROVISIONAL:
-		    // solo para distinguir visualmente los proyectiles.
-		    shapeRenderer.setColor(
-		        Color.ORANGE
-		    );
-	
-	
-		    for (Proyectil proyectil :
-		            salaActual.getProyectiles()) {
-	
-		        Rectangle hitbox =
-		            obtenerHitboxProyectil(
-		                proyectil
-		            );
-	
-	
-		        shapeRenderer.rect(
-		            hitbox.x,
-		            hitbox.y,
-		            hitbox.width,
-		            hitbox.height
-		        );
-		    }
-	
-	
-		    shapeRenderer.end();
-		}
-		 
-		private boolean jugadorTocaEnemigo(
-		        Enemigo enemigo) {
-
-		    Rectangle hitboxEnemigo =
-		        obtenerHitboxEnemigo(
-		            enemigo
-		        );
-
-
-		    return rectanguloTocaHurtboxJugador(
-		        hitboxEnemigo
-		    );
-		}
-		 
-		private void comprobarDañoEnemigos(
-		        float delta) {
-	
-			    // Reducimos el tiempo de invulnerabilidad.
-			    if (tiempoInvulnerable > 0) {
-	
-			        tiempoInvulnerable -= delta;
-			    }
-	
-	
-			    // Si todavía somos invulnerables,
-			    // no recibimos otro golpe.
-			    if (tiempoInvulnerable > 0) {
-	
-			        return;
-			    }
-	
-	
-			    Sala salaActual =
-			        juego.getSalaActual();
-	
-	
-			    for (Enemigo enemigo :
-			            salaActual.getEnemigos()) {
-	
-			        if (jugadorTocaEnemigo(enemigo)) {
-	
-			            // El enemigo daña al jugador.
-			            jugador.recibirDaño(
-			                enemigo.getDaño()
-			            );
-			            
-				         // Si la vida llegó a 0,
-				         // activamos el Game Over.
-				         if (!jugador.estaVivo()) {
-		
-				             gameOver = true;
-		
-				             System.out.println("GAME OVER");
-				         }
-	
-	
-			            System.out.println(
-			                "El jugador recibiÃ³ "
-			                + enemigo.getDaño()
-			                + " de daÃ±o."
-			            );
-	
-	
-			            System.out.println(
-			                "Vida jugador: "
-			                + jugador.getVidaActual()
-			                + "/"
-			                + jugador.getVidaMax()
-			            );
-	
-	
-			            // Comienza la invulnerabilidad.
-			            tiempoInvulnerable =
-			                duracionInvulnerabilidad;
-	
-	
-			            // Solamente permitimos un golpe
-			            // en este frame.
-			            break;
-			        }
-			    }
-		 }
-	 
-	 private void actualizarMovimientoEnemigos(float delta) {
-
-		    Sala salaActual =
-		        juego.getSalaActual();
-
-
-		    for (Enemigo enemigo : salaActual.getEnemigos()) {
-		    	
-		    	enemigo.actualizarCooldowns(delta);
-
-		        if (!enemigo.estaVivo()) {
-		            continue;
-		        }
-			        
-			    // --------------------------------------------------
-			    // ENEMIGO VOLADOR
-			    // --------------------------------------------------
-	
-			    if (enemigo instanceof EnemigoVolador) {
-	
-			        EnemigoVolador enemigoVolador =
-			            (EnemigoVolador) enemigo;
-	
-	
-			        enemigoVolador.perseguir(
-			            jugador.getPosicion(),
-			            delta
-			        );
-	
-	
-			        // No ejecutamos la IA normal
-			        // QUIETO / PERSEGUIR / ATACAR.
-			        continue;
-			    }
-			        
-
-
-		        Rectangle hitboxJugador =
-		        	    obtenerHitboxJugador();
-
-		        Rectangle hitboxEnemigo =
-		        	    obtenerHitboxEnemigo(enemigo);
-		        
-		        // Diferencia vertical permitida para iniciar un ataque.
-		        float margenAlturaAtaque = 20f;
-
-		        boolean mismaAltura =
-		            Math.abs(hitboxJugador.y - hitboxEnemigo.y)
-		                <= margenAlturaAtaque;
-
-
-		        	// Calculamos los centros reales.
-		        	float centroJugadorX =
-		        	    hitboxJugador.x
-		        	    + hitboxJugador.width / 2f;
-
-		        	float centroEnemigoX =
-		        	    hitboxEnemigo.x
-		        	    + hitboxEnemigo.width / 2f;
-
-
-		        	// Determinamos de qué lado está el jugador.
-		        	boolean jugadorALaDerecha =
-		        	    centroJugadorX >= centroEnemigoX;
-
-
-		        	// Distancia REAL entre los bordes de ambos cuerpos.
-		        	float distanciaX;
-
-		        	if (jugadorALaDerecha) {
-
-		        	    distanciaX =
-		        	        hitboxJugador.x
-		        	        - (
-		        	            hitboxEnemigo.x
-		        	            + hitboxEnemigo.width
-		        	        );
-		        	}
-		        	else {
-
-		        	    distanciaX =
-		        	        hitboxEnemigo.x
-		        	        - (
-		        	            hitboxJugador.x
-		        	            + hitboxJugador.width
-		        	        );
-		        	}
-
-
-		        	// Si ya se están tocando o superponiendo,
-		        	// la distancia entre cuerpos es 0.
-		        	if (distanciaX < 0) {
-		        	    distanciaX = 0;
-		        	}
-		        	
-		        	
-		        	// --------------------------------------------------
-		        	// RANGOS DEL ENEMIGO
-		        	// --------------------------------------------------
-
-		        	// PROVISIONAL:
-		        	// distancia máxima a la que detecta al jugador.
-		        	float rangoDeteccion = 500f;
-
-
-		        	// El alcance se obtiene del ancho del ataque de cada enemigo.
-		        	float rangoPreparacion =
-		        	    enemigo.getAtaqueNormal().getAncho();
-
-
-		        	// PROVISIONAL:
-		        	// Restamos este margen al alcance del ataque
-		        	// para decidir cuándo comienza la preparación.
-		        	float margenAtaque = 20f;
-
-		        	float rangoAtaqueEfectivo =
-		        	    Math.max(
-		        	        0f,
-		        	        rangoPreparacion - margenAtaque
-		        	    );
-		        	
-		        	
-		        // --------------------------------------------------
-		        // DECIDIR ESTADO
-		        // --------------------------------------------------
-
-		        	// Mientras ataca, no cambiamos su estado
-		        	// aunque el jugador salga del rango.
-		        	if (enemigo.getEstado() != EstadoEnemigo.ATACAR) {
-
-		        	    boolean esJefeFinal =
-		        	        juego.getEtapaActual().getNumeroPiso()
-		        	            == GeneracionEtapa.ULTIMO_PISO
-		        	        && enemigo == juego.getEtapaActual().getJefe();
-
-		        	    boolean puedeAtacarHaciaArriba = false;
-
-		        	    if (esJefeFinal) {
-		        	        Rectangle golpeArriba = enemigo.getAtaqueNormal()
-		        	            .obtenerHitboxHaciaArriba(hitboxEnemigo);
-
-		        	        boolean encimaDelCuerpo =
-		        	            hitboxJugador.x < hitboxEnemigo.x + hitboxEnemigo.width
-		        	            && hitboxJugador.x + hitboxJugador.width > hitboxEnemigo.x;
-
-		        	        float alturaCabeza = hitboxEnemigo.y + hitboxEnemigo.height;
-
-		        	        puedeAtacarHaciaArriba =
-		        	            encimaDelCuerpo
-		        	            && hitboxJugador.y >= alturaCabeza - margenAlturaAtaque
-		        	            && golpeArriba.overlaps(hitboxJugador);
-		        	    }
-
-		        	    boolean puedeAtacarDeCostado =
-		        	        mismaAltura && distanciaX <= rangoAtaqueEfectivo;
-
-		        	    if (puedeAtacarHaciaArriba || puedeAtacarDeCostado) {
-		        	        if (enemigo.getAtaqueNormal().estaDisponible()) {
-		        	            enemigo.iniciarAtaque(puedeAtacarHaciaArriba);
-		        	        } else {
-		        	            enemigo.setEstado(EstadoEnemigo.QUIETO);
-		        	        }
-		        	    } else if (distanciaX <= rangoDeteccion) {
-		        	        enemigo.setEstado(EstadoEnemigo.PERSEGUIR);
-		        	    } else {
-		        	        enemigo.setEstado(EstadoEnemigo.QUIETO);
-		        	    }
-		        	}
-
-
-		        // --------------------------------------------------
-		        // ACTUAR SEGÚN EL ESTADO
-		        // --------------------------------------------------
-
-		        switch (enemigo.getEstado()) {
-
-		            case QUIETO:
-
-		                // No hace nada.
-		                break;
-
-
-		            case PERSEGUIR:
-
-		                if (jugadorALaDerecha) {
-
-		                    enemigo.getPosicion().moverX(
-		                        enemigo.getVelocidad()
-		                        * delta
-		                    );
-		                }
-		                else {
-
-		                    enemigo.getPosicion().moverX(
-		                        -enemigo.getVelocidad()
-		                        * delta
-		                    );
-		                }
-
-		                break;
-
-
-		            case ATACAR:
-
-		                if (enemigo.actualizarSecuenciaAtaque(delta)) {
-
-		                    intentarAtaqueEnemigo(enemigo);
-		                }
-
-		                break;
-		        }
-		        
-		        actualizarGravedadEnemigo(
-		                enemigo,
-		                delta
-		            );
-		    }
-		}
-		 
-		// --------------------------------------------------
-		// ACTUALIZACIÓN DE PROYECTILES
-		// --------------------------------------------------
-	
-		private void actualizarProyectiles(
-		        float delta) {
-	
-		    Sala salaActual =
-		        juego.getSalaActual();
-	
-	
-		    ArrayList<Proyectil> proyectiles =
-		        salaActual.getProyectiles();
-	
-	
-		    // Recorremos desde el final porque podemos
-		    // eliminar proyectiles durante el recorrido.
-		    for (int i = proyectiles.size() - 1;
-		            i >= 0;
-		            i--) {
-	
-		        Proyectil proyectil =
-		            proyectiles.get(i);
-	
-	
-		        // --------------------------------------------------
-		        // MOVIMIENTO
-		        // --------------------------------------------------
-	
-		        proyectil.actualizar(
-		            delta
-		        );
-	
-	
-		        Rectangle hitboxProyectil =
-		            obtenerHitboxProyectil(
-		                proyectil
-		            );
-	
-	
-		        // --------------------------------------------------
-		        // FUERA DE LA HABITACIÓN
-		        // --------------------------------------------------
-	
-		        boolean fueraDePantalla =
-		            hitboxProyectil.x + hitboxProyectil.width < 0
-		            || hitboxProyectil.x > ANCHO_MUNDO
-		            || hitboxProyectil.y + hitboxProyectil.height < 0
-		            || hitboxProyectil.y > ALTO_MUNDO;
-	
-	
-		        if (fueraDePantalla ||
-		                !proyectil.estaActivo()) {
-	
-		            proyectiles.remove(i);
-	
-		            continue;
-		        }
-	
-	
-		        // --------------------------------------------------
-		        // COLISIÓN CON EL JUGADOR
-		        // --------------------------------------------------
-	
-		        Rectangle hitboxJugador =
-		            obtenerHitboxJugador();
-	
-	
-		        if (!rectanguloTocaHurtboxJugador(
-		                hitboxProyectil)) {
-
-		            continue;
-		        }
-	
-	
-		        // El proyectil desaparece al tocar al jugador,
-		        // incluso si está momentáneamente invulnerable.
-		        proyectil.destruir();
-	
-		        proyectiles.remove(i);
-	
-	
-		        // El jugador todavía está en sus frames
-		        // de invulnerabilidad.
-		        if (tiempoInvulnerable > 0) {
-		            continue;
-		        }
-	
-	
-		        jugador.recibirDaño(
-		            proyectil.getDaño()
-		        );
-	
-	
-		        tiempoInvulnerable =
-		            duracionInvulnerabilidad;
-	
-	
-		        System.out.println(
-		            "El proyectil del jefe hizo "
-		            + proyectil.getDaño()
-		            + " de daÃ±o."
-		        );
-	
-	
-		        if (!jugador.estaVivo()) {
-	
-		            gameOver = true;
-	
-		            System.out.println(
-		                "GAME OVER"
-		            );
-		        }
-		    }
-		}
-	 
-	 // --------------------------------------------------
-	 // RECOGER ITEM DE LA SALA
-	 // --------------------------------------------------
-
-	 private void comprobarRecogerItem() {
-
-	     Sala salaActual =
-	         juego.getSalaActual();
-
-
-	     // Si la sala no tiene ningún item,
-	     // no hay nada que comprobar.
-	     if (!salaActual.tieneItem()) {
-	         return;
-	     }
-
-
-	     Item item =
-	         salaActual.getItem();
-
-
-	     Rectangle hitboxJugador =
-	         obtenerHitboxJugador();
-
-	     Rectangle hitboxItem =
-	         obtenerHitboxItem(item);
-
-	     
-		 // Los pies del jugador tienen que haber llegado
-		 // como mínimo a la altura donde comienza el item.
-		 boolean jugadorALaAlturaDelItem =
-		     hitboxJugador.y
-		         >= hitboxItem.y - 5;
-	
-		 // Si el jugador toca el objeto...
-		 if (hitboxJugador.overlaps(hitboxItem)
-		         && jugadorALaAlturaDelItem) {
-	
-		     jugador.recogerItem(
-		         item
-		     );
-		     
-		     System.out.println(
-		             "Item obtenido: "
-		             + item.getNombre()
-		         );
-	
-		     salaActual.eliminarItem();
-		 }
-		 
-		 
-	 }
-	 
-	 // COMPRUEBA SI EL SALDO ES SUFICIENTE
-	 
-	 private void comprobarCompraTienda() {
-
-		    Sala salaActual =
-		        juego.getSalaActual();
-
-
-		    // Solamente hacemos estas comprobaciones
-		    // dentro de una tienda.
-		    if (salaActual.getTipo() != TipoSala.TIENDA) {
-		        return;
-		    }
-
-
-		    Rectangle hitboxJugador =
-		        obtenerHitboxJugador();
-
-
-		    ArrayList<OfertaTienda> ofertas =
-		        salaActual.getOfertasTienda();
-
-
-		    for (int i = 0; i < ofertas.size(); i++) {
-
-		        OfertaTienda oferta =
-		            ofertas.get(i);
-
-		        Item item =
-		            oferta.getItem();
-
-
-		        Rectangle hitboxItem =
-		            obtenerHitboxItem(item);
-
-
-		        // Todavía no tocamos este objeto.
-		        if (!hitboxJugador.overlaps(hitboxItem)) {
-		            continue;
-		        }
-
-
-		        // Intentamos pagar.
-		        boolean pudoComprar =
-		            jugador.gastarMonedas(
-		                oferta.getPrecio()
-		            );
-
-
-		        // No alcanza el dinero.
-		        if (!pudoComprar) {
-		            return;
-		        }
-
-
-		        // Pagó correctamente:
-		        // obtiene el objeto y se aplica su efecto.
-		        jugador.recogerItem(
-		            item
-		        );
-
-
-		        System.out.println(
-		            "Compraste "
-		            + item.getNombre()
-		            + " por "
-		            + oferta.getPrecio()
-		            + " monedas."
-		        );
-
-
-		        // El objeto desaparece de la tienda.
-		        ofertas.remove(i);
-
-		        return;
-		    }
-		}
-	 
-	 private void dibujarGameOver() {
-
-		    // --------------------------------------------------
-		    // FONDO
-		    // --------------------------------------------------
-
-		    shapeRenderer.begin(
-		        ShapeRenderer.ShapeType.Filled
-		    );
-
-		    shapeRenderer.setColor(Color.BLACK);
-
-		    shapeRenderer.rect(
-		        0,
-		        0,
-		        ANCHO_MUNDO,
-		        ALTO_MUNDO
-		    );
-
-		    shapeRenderer.end();
-
-
-		    // --------------------------------------------------
-		    // TEXTO GAME OVER
-		    // --------------------------------------------------
-
-		    batch.begin();
-
-
-		    // Hacemos temporalmente la letra más grande.
-		    font.getData().setScale(3f);
-
-		    layout.setText(
-		        font,
-		        "GAME OVER"
-		    );
-
-		    float gameOverX =
-		        (ANCHO_MUNDO - layout.width) / 2;
-
-		    float gameOverY =
-		        ALTO_MUNDO / 2 + 50;
-
-
-		    font.draw(
-		        batch,
-		        layout,
-		        gameOverX,
-		        gameOverY
-		    );
-
-
-		    // --------------------------------------------------
-		    // TEXTO REINICIAR
-		    // --------------------------------------------------
-
-		    font.getData().setScale(1.5f);
-
-		    layout.setText(
-		        font,
-		        "Presiona ENTER para volver a jugar"
-		    );
-
-		    float reiniciarX =
-		        (ANCHO_MUNDO - layout.width) / 2;
-
-		    float reiniciarY =
-		        ALTO_MUNDO / 2 - 30;
-
-
-		    font.draw(
-		        batch,
-		        layout,
-		        reiniciarX,
-		        reiniciarY
-		    );
-
-
-		    // Volvemos al tamaño normal que usás en el HUD.
-		    font.getData().setScale(1.2f);
-
-
-		    batch.end();
-		}
-	 
-	 private void reiniciarPartida() {
-
-		    // --------------------------------------------------
-		    // JUGADOR
-		    // --------------------------------------------------
-
-		    jugador.reiniciarJugador(
-		        140,
-		        pisoY,
-		        100
-		    );
-
-
-		    // --------------------------------------------------
-		    // NUEVA PARTIDA
-		    // --------------------------------------------------
-
-		    // Creamos nuevamente la lógica de la partida
-		    // utilizando el mismo jugador.
-		    juego = new Juego(jugador);
-
-		    juego.iniciarJuego();
-		    
-		    // --------------------------------------------------
-		    // FÍSICA
-		    // --------------------------------------------------
-
-		    velocidadX = 0;
-		    velocidadY = 0;
-
-		    tiempoInvulnerable = 0;
-
-
-		    // --------------------------------------------------
-		    // SALTO
-		    // --------------------------------------------------
-
-		    saltosDisponibles = 2;
-
-
-		    // --------------------------------------------------
-		    // DASH
-		    // --------------------------------------------------
-
-		    haciendoDash = false;
-
-		    dashDisponibleAire = 1;
-
-		    tiempoDashRestante = 0;
-
-		    tiempoCooldownDash = 0;
-
-		    direccionDash = 1;
-
-
-		    // --------------------------------------------------
-		    // OTROS ESTADOS
-		    // --------------------------------------------------
-
-		    mirandoIzquierda = false;
-
-		    transicionBloqueada = false;
-
-
-		    // Finalmente salimos del Game Over.
-		    gameOver = false;
-		    
-		    pausado = false;
-		    viendoControles = false;
-		    opcionPausa = 0;
-		}
+        tiempoHitboxAtaqueDebug -= delta;
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.2f, 0.7f, 1f, 0.25f);
+        shapeRenderer.rect(hitboxAtaqueDebug.x, hitboxAtaqueDebug.y, hitboxAtaqueDebug.width, hitboxAtaqueDebug.height);
+        shapeRenderer.end();
+
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+    }
+
+    private void dibujarHitboxAtaqueEnemigo(float delta) {
+        if (tiempoHitboxAtaqueEnemigoDebug <= 0) {
+            return;
+        }
+
+        tiempoHitboxAtaqueEnemigoDebug -= delta;
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(hitboxAtaqueEnemigoDebug.x, hitboxAtaqueEnemigoDebug.y, hitboxAtaqueEnemigoDebug.width, hitboxAtaqueEnemigoDebug.height);
+        shapeRenderer.end();
+    }
+
+    private void dibujarProyectiles() {
+        Sala salaActual = juego.getSalaActual();
+        if (salaActual.getProyectiles().isEmpty()) {
+            return;
+        }
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(Color.ORANGE);
+
+        for (Proyectil proyectil : salaActual.getProyectiles()) {
+            Rectangle hitbox = obtenerHitboxProyectil(proyectil);
+            shapeRenderer.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+        }
+
+        shapeRenderer.end();
+    }
+
+    private boolean jugadorTocaEnemigo(Enemigo enemigo) {
+        Rectangle hitboxEnemigo = obtenerHitboxEnemigo(enemigo);
+        return rectanguloTocaHurtboxJugador(hitboxEnemigo);
+    }
+
+    private void comprobarDañoEnemigos(float delta) {
+        if (tiempoInvulnerable > 0) {
+            tiempoInvulnerable -= delta;
+        }
+
+        if (tiempoInvulnerable > 0) {
+            return;
+        }
+
+        Sala salaActual = juego.getSalaActual();
+
+        for (Enemigo enemigo : salaActual.getEnemigos()) {
+            if (jugadorTocaEnemigo(enemigo)) {
+                jugador.recibirDaño(enemigo.getDaño());
+
+                if (!jugador.estaVivo()) {
+                    gameOver = true;
+                }
+
+                tiempoInvulnerable = duracionInvulnerabilidad;
+                break;
+            }
+        }
+    }
+
+    private void actualizarMovimientoEnemigos(float delta) {
+        Sala salaActual = juego.getSalaActual();
+
+        for (Enemigo enemigo : salaActual.getEnemigos()) {
+            enemigo.actualizarCooldowns(delta);
+
+            if (!enemigo.estaVivo()) {
+                continue;
+            }
+
+            if (enemigo instanceof EnemigoVolador) {
+                EnemigoVolador enemigoVolador = (EnemigoVolador) enemigo;
+                enemigoVolador.perseguir(jugador.getPosicion(), delta);
+                continue;
+            }
+
+            Rectangle hitboxJugador = obtenerHitboxJugador();
+            Rectangle hitboxEnemigo = obtenerHitboxEnemigo(enemigo);
+
+            float margenAlturaAtaque = 20f;
+            boolean mismaAltura = Math.abs(hitboxJugador.y - hitboxEnemigo.y) <= margenAlturaAtaque;
+
+            float centroJugadorX = hitboxJugador.x + hitboxJugador.width / 2f;
+            float centroEnemigoX = hitboxEnemigo.x + hitboxEnemigo.width / 2f;
+            boolean jugadorALaDerecha = centroJugadorX >= centroEnemigoX;
+
+            float distanciaX;
+            if (jugadorALaDerecha) {
+                distanciaX = hitboxJugador.x - (hitboxEnemigo.x + hitboxEnemigo.width);
+            } else {
+                distanciaX = hitboxEnemigo.x - (hitboxJugador.x + hitboxJugador.width);
+            }
+
+            if (distanciaX < 0) {
+                distanciaX = 0;
+            }
+
+            float rangoDeteccion = 500f;
+            float rangoPreparacion = enemigo.getAtaqueNormal().getAncho();
+            float margenAtaque = 20f;
+            float rangoAtaqueEfectivo = Math.max(0f, rangoPreparacion - margenAtaque);
+
+            if (enemigo.getEstado() != EstadoEnemigo.ATACAR) {
+                boolean esJefeFinal = juego.getEtapaActual().getNumeroPiso() == GeneracionEtapa.ULTIMO_PISO
+                    && enemigo == juego.getEtapaActual().getJefe();
+
+                boolean puedeAtacarHaciaArriba = false;
+
+                if (esJefeFinal) {
+                    Rectangle golpeArriba = enemigo.getAtaqueNormal().obtenerHitboxHaciaArriba(hitboxEnemigo);
+                    boolean encimaDelCuerpo = hitboxJugador.x < hitboxEnemigo.x + hitboxEnemigo.width
+                        && hitboxJugador.x + hitboxJugador.width > hitboxEnemigo.x;
+                    float alturaCabeza = hitboxEnemigo.y + hitboxEnemigo.height;
+
+                    puedeAtacarHaciaArriba = encimaDelCuerpo
+                        && hitboxJugador.y >= alturaCabeza - margenAlturaAtaque
+                        && golpeArriba.overlaps(hitboxJugador);
+                }
+
+                boolean puedeAtacarDeCostado = mismaAltura && distanciaX <= rangoAtaqueEfectivo;
+
+                if (puedeAtacarHaciaArriba || puedeAtacarDeCostado) {
+                    if (enemigo.getAtaqueNormal().estaDisponible()) {
+                        enemigo.iniciarAtaque(puedeAtacarHaciaArriba);
+                    } else {
+                        enemigo.setEstado(EstadoEnemigo.QUIETO);
+                    }
+                } else if (distanciaX <= rangoDeteccion) {
+                    enemigo.setEstado(EstadoEnemigo.PERSEGUIR);
+                } else {
+                    enemigo.setEstado(EstadoEnemigo.QUIETO);
+                }
+            }
+
+            switch (enemigo.getEstado()) {
+                case QUIETO:
+                    break;
+
+                case PERSEGUIR:
+                    if (jugadorALaDerecha) {
+                        enemigo.getPosicion().moverX(enemigo.getVelocidad() * delta);
+                    } else {
+                        enemigo.getPosicion().moverX(-enemigo.getVelocidad() * delta);
+                    }
+                    break;
+
+                case ATACAR:
+                    if (enemigo.actualizarSecuenciaAtaque(delta)) {
+                        intentarAtaqueEnemigo(enemigo);
+                    }
+                    break;
+            }
+
+            actualizarGravedadEnemigo(enemigo, delta);
+        }
+    }
+
+    private void actualizarProyectiles(float delta) {
+        Sala salaActual = juego.getSalaActual();
+        ArrayList<Proyectil> proyectiles = salaActual.getProyectiles();
+
+        for (int i = proyectiles.size() - 1; i >= 0; i--) {
+            Proyectil proyectil = proyectiles.get(i);
+            proyectil.actualizar(delta);
+
+            Rectangle hitboxProyectil = obtenerHitboxProyectil(proyectil);
+
+            boolean fueraDePantalla = hitboxProyectil.x + hitboxProyectil.width < 0
+                || hitboxProyectil.x > ANCHO_MUNDO
+                || hitboxProyectil.y + hitboxProyectil.height < 0
+                || hitboxProyectil.y > ALTO_MUNDO;
+
+            if (fueraDePantalla || !proyectil.estaActivo()) {
+                proyectiles.remove(i);
+                continue;
+            }
+
+            Rectangle hitboxJugador = obtenerHitboxJugador();
+
+            if (!rectanguloTocaHurtboxJugador(hitboxProyectil)) {
+                continue;
+            }
+
+            proyectil.destruir();
+            proyectiles.remove(i);
+
+            if (tiempoInvulnerable > 0) {
+                continue;
+            }
+
+            jugador.recibirDaño(proyectil.getDaño());
+            tiempoInvulnerable = duracionInvulnerabilidad;
+
+            if (!jugador.estaVivo()) {
+                gameOver = true;
+            }
+        }
+    }
+
+    private void comprobarRecogerItem() {
+        Sala salaActual = juego.getSalaActual();
+        if (!salaActual.tieneItem()) {
+            return;
+        }
+
+        Item item = salaActual.getItem();
+        Rectangle hitboxJugador = obtenerHitboxJugador();
+        Rectangle hitboxItem = obtenerHitboxItem(item);
+
+        boolean jugadorALaAlturaDelItem = hitboxJugador.y >= hitboxItem.y - 5;
+
+        if (hitboxJugador.overlaps(hitboxItem) && jugadorALaAlturaDelItem) {
+            jugador.recogerItem(item);
+            salaActual.eliminarItem();
+        }
+    }
+
+    private void comprobarCompraTienda() {
+        Sala salaActual = juego.getSalaActual();
+        if (salaActual.getTipo() != TipoSala.TIENDA) {
+            return;
+        }
+
+        Rectangle hitboxJugador = obtenerHitboxJugador();
+        ArrayList<OfertaTienda> ofertas = salaActual.getOfertasTienda();
+
+        for (int i = 0; i < ofertas.size(); i++) {
+            OfertaTienda oferta = ofertas.get(i);
+            Item item = oferta.getItem();
+            Rectangle hitboxItem = obtenerHitboxItem(item);
+
+            if (!hitboxJugador.overlaps(hitboxItem)) {
+                continue;
+            }
+
+            boolean pudoComprar = jugador.gastarMonedas(oferta.getPrecio());
+            if (!pudoComprar) {
+                return;
+            }
+
+            jugador.recogerItem(item);
+            ofertas.remove(i);
+            return;
+        }
+    }
+
+    private void dibujarGameOver() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(Color.BLACK);
+        shapeRenderer.rect(0, 0, ANCHO_MUNDO, ALTO_MUNDO);
+        shapeRenderer.end();
+
+        batch.begin();
+        font.getData().setScale(3f);
+        layout.setText(font, "GAME OVER");
+        float gameOverX = (ANCHO_MUNDO - layout.width) / 2;
+        float gameOverY = ALTO_MUNDO / 2 + 50;
+        font.draw(batch, layout, gameOverX, gameOverY);
+
+        font.getData().setScale(1.5f);
+        layout.setText(font, "Presiona ENTER para volver a jugar");
+        float reiniciarX = (ANCHO_MUNDO - layout.width) / 2;
+        float reiniciarY = ALTO_MUNDO / 2 - 30;
+        font.draw(batch, layout, reiniciarX, reiniciarY);
+
+        font.getData().setScale(1.2f);
+        batch.end();
+    }
+
+    private void reiniciarPartida() {
+        jugador.reiniciarJugador(140, pisoY, 100);
+
+        juego = new Juego(jugador);
+        juego.iniciarJuego();
+
+        velocidadX = 0;
+        velocidadY = 0;
+        tiempoInvulnerable = 0;
+        saltosDisponibles = 2;
+        haciendoDash = false;
+        dashDisponibleAire = 1;
+        tiempoDashRestante = 0;
+        tiempoCooldownDash = 0;
+        direccionDash = 1;
+        mirandoIzquierda = false;
+        transicionBloqueada = false;
+        gameOver = false;
+        pausado = false;
+        viendoControles = false;
+        opcionPausa = 0;
+    }
 }

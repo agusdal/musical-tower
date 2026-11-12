@@ -10,13 +10,13 @@ public class Jugador extends Entidad {
     private int monedas;
     private Inventario inventario;
     private Item objetoActivo;
-    
+
     // Desfase únicamente visual.
     //
     // Valor PROVISIONAL.
     // Ajustalo mirando dónde quedan exactamente los pies.
     private static final float OFFSET_SPRITE_Y = -45f;
-    
+
 	// Tamaño visual con el que dibujamos al jugador.
 	// Ajustalo si después agrandás o achicás el personaje.
 	private static final float ANCHO_SPRITE = 160f;
@@ -24,7 +24,7 @@ public class Jugador extends Entidad {
 
     // Frames individuales
     private TextureRegion frameQuieto;
-    
+
     private TextureRegion frameSaltoDerecha;
     private TextureRegion frameCaidaDerechaInicio;
     private TextureRegion frameCaidaDerechaEstatico;
@@ -45,10 +45,10 @@ public class Jugador extends Entidad {
     private boolean mirandoIzquierda = false;
     private boolean enElPiso = true;
     private float velocidadY = 0f;
-    
+
     private Ataque ataqueNormal;
     private Ataque ataquePogo;
-    
+
     private static final float FUERZA_POGO_INICIAL = 500f;
     private static final float VELOCIDAD_DASH_INICIAL = 900f;
     private static final float ANCHO_ATAQUE_INICIAL = 130f;
@@ -58,24 +58,24 @@ public class Jugador extends Entidad {
 
     private float fuerzaPogo = FUERZA_POGO_INICIAL;
     private float velocidadDash = VELOCIDAD_DASH_INICIAL;
-    
+
     private static final int CARGAS_MAXIMAS_POCIMA = 3;
     private static final int CURACION_POCIMA = 30;
 
     private int cargasPocima = CARGAS_MAXIMAS_POCIMA;
-    
+
 
     public Jugador(String nombre, Posicion posicion, int vidaMax, float velocidad, int daño) { // CONSTRUCTOR
-    	
+
         super(nombre, posicion, vidaMax, velocidad, daño);
-        
+
         this.monedas = 0;
         this.inventario = new Inventario();
-        
+
 	    // --------------------------------------------------
 	    // ATAQUES DEL JUGADOR
 	    // --------------------------------------------------
-	
+
         ataqueNormal = new Ataque(
         	    "Ataque normal",
         	    daño,
@@ -83,8 +83,8 @@ public class Jugador extends Entidad {
         	    ALTO_ATAQUE_INICIAL,
         	    COOLDOWN_ATAQUE_INICIAL
         	);
-	
-	
+
+
 	    ataquePogo = new Ataque(
 	        "Pogo",
 	        daño,
@@ -92,8 +92,8 @@ public class Jugador extends Entidad {
 	        80f,
 	        0.25f
 	    );
-	
-	
+
+
 	     // Registramos ambos ataques también
 	     // en la lista general de Entidad.
 	    agregarAtaque(ataqueNormal);
@@ -104,8 +104,8 @@ public class Jugador extends Entidad {
         int FRAME_ROWS = 1;
 
         TextureRegion[][] tmp = TextureRegion.split(
-            walkSheet, 
-            walkSheet.getWidth() / FRAME_COLS, 
+            walkSheet,
+            walkSheet.getWidth() / FRAME_COLS,
             walkSheet.getHeight() / FRAME_ROWS
         );
 
@@ -146,7 +146,7 @@ public class Jugador extends Entidad {
             stateTime = 0f;
             tiempoCaida = 0f;
         }
-        
+
         this.moviendose = moviendose;
         this.mirandoIzquierda = mirandoIzquierda;
         this.enElPiso = enElPiso;
@@ -196,9 +196,9 @@ public class Jugador extends Entidad {
         	    ALTO_SPRITE
         	);
     }
-    
+
     //----------------------------\/POCIMA CURATIVA\/-----------------------------
-    
+
     public int getCargasPocima() {
         return cargasPocima;
     }
@@ -212,11 +212,11 @@ public class Jugador extends Entidad {
             cargasPocima--;
         }
     }
-    
+
     //----------------------------/\POCIMA CURATIVA/\-----------------------------
 
 	//----------------------------\/EFECTOS ATAQUES\/-----------------------------
-    
+
 	public Ataque getAtaqueNormal() {
 
 	    return ataqueNormal;
@@ -227,7 +227,7 @@ public class Jugador extends Entidad {
 
 	    return ataquePogo;
 	}
-	
+
 	public float getFuerzaPogo() {
 	    return fuerzaPogo;
 	}
@@ -235,19 +235,19 @@ public class Jugador extends Entidad {
 	public float getVelocidadDash() {
 	    return velocidadDash;
 	}
-	
+
 	//----------------------------/\EFECTOS ATAQUES/\-----------------------------
-	
+
 	//----------------------------\/MONEDAS\/-----------------------------
-	
+
 	public int agarrarMonedas(int monedasGanadas) {
 		return monedas += monedasGanadas;
 	}
-	
+
 	public int getMonedas() {
 		return monedas;
 	}
-	
+
 	public boolean gastarMonedas(int cantidad) {
 
 	    // Una compra inválida no se realiza.
@@ -266,25 +266,25 @@ public class Jugador extends Entidad {
 
 	    return true;
 	}
-	
+
 	//----------------------------/\MONEDAS/\-----------------------------
-	
+
 	//----------------------------\/OBJETO ACTIVO\/-----------------------------
-	
+
 	public Item getObjetoActivo() {
 		return objetoActivo;
 	}
-	
+
 	//----------------------------/\OBJETO ACTIVO/\-----------------------------
-	
+
 	//----------------------------\/INVENTARIO\/-----------------------------
-	
+
 	public Inventario getInventario() {
 		return inventario;
 	}
-	
+
 	//----------------------------/\INVENTARIO/\-----------------------------
-	
+
 	// -------------------- SPRITE VISUAL --------------------
 
 	public float getSpriteX() {
@@ -302,12 +302,12 @@ public class Jugador extends Entidad {
 	public float getAltoSprite() {
 	    return ALTO_SPRITE;
 	}
-	
-	
+
+
 	// --------------------------------------------------
 	// REINICIAR JUGADOR
 	// --------------------------------------------------
-	
+
 	//----------------------------\/MUERTE\/-----------------------------
 
 	public void reiniciarJugador(
@@ -317,17 +317,17 @@ public class Jugador extends Entidad {
 
 	    // Restauramos la vida.
 	    reiniciarVida(vidaMaxInicial);
-	    
+
 	    // Volvemos a la posición inicial.
 	    getPosicion().setX(xInicial);
 	    getPosicion().setY(yInicial);
-	    
+
 	    // Reiniciamos las monedas.
 	    monedas = 0;
-	    
+
 	    // Reiniciamos inventario y objeto activo.
 	    inventario = new Inventario();
-	    
+
 	    fuerzaPogo = FUERZA_POGO_INICIAL;
 	    velocidadDash = VELOCIDAD_DASH_INICIAL;
 
@@ -339,13 +339,13 @@ public class Jugador extends Entidad {
 	    ));
 
 	    ataqueNormal.setCooldown(COOLDOWN_ATAQUE_INICIAL);
-	    
+
 	    objetoActivo = null;
-	    
+
 	    // Reiniciamos estados de animación.
 	    stateTime = 0f;
 	    tiempoCaida = 0f;
-	    
+
 	    moviendose = false;
 	    mirandoIzquierda = false;
 	    enElPiso = true;
@@ -353,7 +353,7 @@ public class Jugador extends Entidad {
 	}
 
 	//----------------------------/\MUERTE/\-----------------------------
-	
+
     public void recogerItem(Item item) {
 
         // Primero guardamos el objeto.
@@ -366,67 +366,67 @@ public class Jugador extends Entidad {
     private void aplicarEfectoItem(Item item) {
 
 	    switch (item.getModificador()) {
-	
+
 	        case VIDA_MAX:
-	
+
 	            aumentarVidaMax(
 	                (int) item.getValor()
 	            );
-	
+
 	            break;
-	
-	
+
+
 	        case VELOCIDAD:
-	
+
 	            setVelocidad(
 	                getVelocidad() + item.getValor()
 	            );
-	
+
 	            break;
-	        
+
 	        case DAÑO_ATAQUE:
-	
+
 	            getAtaqueNormal().aumentarDaño(
 	                (int) item.getValor()
 	            );
-	
+
 	            break;
-	        
+
 	        case FUERZA_POGO:
-	        	
+
 	            fuerzaPogo += item.getValor();
-	            
+
 	            break;
 
 	        case VELOCIDAD_DASH:
-	        	
+
 	            velocidadDash += item.getValor();
-	            
+
 	            break;
 
 	        case ANCHO_ATAQUE:
-	        	
+
 	            ataqueNormal.getHitbox().ampliar(item.getValor(), 0f);
-	            
+
 	            break;
 
 	        case ALTO_ATAQUE:
-	        	
+
 	            ataqueNormal.getHitbox().ampliar(0f, item.getValor());
-	            
+
 	            break;
 
 	        case COOLDOWN_ATAQUE:
-	        	
+
 	            ataqueNormal.setCooldown(Math.max(
 	                COOLDOWN_ATAQUE_MINIMO,
 	                ataqueNormal.getCooldown() - Math.abs(item.getValor())
 	            ));
-	            
+
 	            break;
-	
+
 	        default:
-	
+
 	            break;
 	    }
 	}

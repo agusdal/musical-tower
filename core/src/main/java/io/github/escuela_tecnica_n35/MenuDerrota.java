@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -38,7 +37,7 @@ public class MenuDerrota implements Disposable {
     private final GlyphLayout layout = new GlyphLayout();
 
     private final Rectangle[] botones = new Rectangle[3];
-    private final Vector2 raton = new Vector2();
+    private final MouseMenu mouseMenu = new MouseMenu();
 
     private final Texture fondo;
     private final Texture titulo;
@@ -48,7 +47,7 @@ public class MenuDerrota implements Disposable {
 
     public MenuDerrota(BitmapFont fuente) {
         this.fuente = fuente;
-
+        
         fondo = cargarTextura("menu/derrota_fondo.png");
         titulo = cargarTextura("menu/derrota_titulo.png");
         selector = cargarTextura("menu/derrota_selector.png");
@@ -85,40 +84,22 @@ public class MenuDerrota implements Disposable {
             seleccion = (seleccion + 1) % OPCIONES.length;
         }
 
-        boolean aceptar =
-            Gdx.input.isKeyJustPressed(Input.Keys.ENTER);
+        int bajoMouse = mouseMenu.obtenerOpcion(
+        	    viewport,
+        	    botones,
+        	    botones.length
+        	);
 
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            float x = Gdx.input.getX();
+        	boolean clic =
+        	    Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
 
-            float y =
-                Gdx.graphics.getHeight() - Gdx.input.getY();
+        	if (bajoMouse >= 0 && (mouseMenu.seMovio() || clic)) {
+        	    seleccion = bajoMouse;
+        	}
 
-            boolean dentroDelViewport =
-                x >= viewport.getScreenX()
-                && x < viewport.getScreenX()
-                    + viewport.getScreenWidth()
-                && y >= viewport.getScreenY()
-                && y < viewport.getScreenY()
-                    + viewport.getScreenHeight();
-
-            if (dentroDelViewport) {
-                viewport.unproject(
-                    raton.set(
-                        Gdx.input.getX(),
-                        Gdx.input.getY()
-                    )
-                );
-
-                for (int i = 0; i < botones.length; i++) {
-                    if (botones[i].contains(raton)) {
-                        seleccion = i;
-                        aceptar = true;
-                        break;
-                    }
-                }
-            }
-        }
+        	boolean aceptar =
+        	    Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+        	    || (clic && bajoMouse >= 0);
 
         if (!aceptar) {
             return Accion.NINGUNA;
@@ -230,6 +211,17 @@ public class MenuDerrota implements Disposable {
                     boton.y,
                     boton.width,
                     boton.height
+                );
+            }
+            
+            if (i == seleccion && selector == null) {
+                fuente.setColor(Color.ORANGE);
+
+                fuente.draw(
+                    batch,
+                    ">",
+                    boton.x + 12f,
+                    boton.y + 34f
                 );
             }
 

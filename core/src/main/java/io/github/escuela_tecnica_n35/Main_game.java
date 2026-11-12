@@ -139,10 +139,30 @@ public class Main_game extends ApplicationAdapter {
     private boolean pausado;
     private boolean viendoControles;
     private int opcionPausa;
+    
+    private final MouseMenu mousePausa = new MouseMenu();
+
+    private final Rectangle[] botonesPausa =
+        new Rectangle[OPCIONES_PAUSA.length];
+
+    private final Rectangle[] botonVolverControles = {
+        new Rectangle(470f, 160f, 340f, 40f)
+    };
+
+    private boolean sobreVolverControles;
 
     @Override
     public void create() {
         gameOver = false;
+        
+        for (int i = 0; i < botonesPausa.length; i++) {
+            botonesPausa[i] = new Rectangle(
+                380f,
+                395f - i * 55f,
+                520f,
+                40f
+            );
+        }
 
         batch = new SpriteBatch();
 
@@ -655,6 +675,7 @@ public class Main_game extends ApplicationAdapter {
     }
 
     private void actualizarMenuPausa() {
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (viendoControles) {
                 viendoControles = false;
@@ -662,28 +683,69 @@ public class Main_game extends ApplicationAdapter {
                 pausado = !pausado;
                 opcionPausa = 0;
             }
+
             return;
         }
 
-        if (viendoControles) return;
+        boolean clic =
+            Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+
+        if (viendoControles) {
+
+            sobreVolverControles = mousePausa.obtenerOpcion(
+                viewport,
+                botonVolverControles,
+                1
+            ) == 0;
+
+            if (sobreVolverControles && clic) {
+                viendoControles = false;
+            }
+
+            return;
+        }
 
         int cantidad = OPCIONES_PAUSA.length;
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-            opcionPausa = (opcionPausa + cantidad - 1) % cantidad;
+            opcionPausa =
+                (opcionPausa + cantidad - 1) % cantidad;
+
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
             opcionPausa = (opcionPausa + 1) % cantidad;
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+        int bajoMouse = mousePausa.obtenerOpcion(
+            viewport,
+            botonesPausa,
+            cantidad
+        );
+
+        if (bajoMouse >= 0 && (mousePausa.seMovio() || clic)) {
+            opcionPausa = bajoMouse;
+        }
+
+        boolean aceptar =
+            Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+            || (clic && bajoMouse >= 0);
+
+        if (aceptar) {
             switch (opcionPausa) {
-                case 0: pausado = false; break;
-                
-                case 1: viendoControles = true; break;
-                
-                case 2: reiniciarPartida(); break;
-                
-                case 3:volverAlMenuPrincipal(); break;
+                case 0:
+                    pausado = false;
+                    break;
+
+                case 1:
+                    viendoControles = true;
+                    break;
+
+                case 2:
+                    reiniciarPartida();
+                    break;
+
+                case 3:
+                    volverAlMenuPrincipal();
+                    break;
             }
         }
     }
@@ -731,7 +793,13 @@ public class Main_game extends ApplicationAdapter {
             dibujarTextoCentrado("F: usar puertas verticales", 295f, Color.WHITE);
             dibujarTextoCentrado("Q: usar la pócima", 265f, Color.WHITE);
             dibujarTextoCentrado("ENTER: avanzar tras derrotar al jefe", 235f, Color.WHITE);
-            dibujarTextoCentrado("ESC: volver al menú", 185f, Color.LIGHT_GRAY);
+            dibujarTextoCentrado(
+            	    sobreVolverControles ? "> VOLVER" : "VOLVER",
+            	    185f,
+            	    sobreVolverControles
+            	        ? Color.ORANGE
+            	        : Color.LIGHT_GRAY
+            	);
         } else {
             dibujarTextoCentrado("PAUSA", 505f, Color.ORANGE);
 

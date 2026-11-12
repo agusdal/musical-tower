@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -24,7 +23,7 @@ public class MenuPrincipal implements Disposable {
     private final BitmapFont fuente;
 
     private final Rectangle[] botones = new Rectangle[4];
-    private final Vector2 raton = new Vector2();
+    private final MouseMenu mouseMenu = new MouseMenu();
 
     private final Texture fondo;
     private final Texture logo;
@@ -120,42 +119,22 @@ public class MenuPrincipal implements Disposable {
             seleccion = (seleccion + 1) % cantidad;
         }
 
-        boolean aceptar =
-            Gdx.input.isKeyJustPressed(Input.Keys.ENTER);
+        int bajoMouse = mouseMenu.obtenerOpcion(
+        	    viewport,
+        	    botones,
+        	    cantidad
+        	);
 
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+        	boolean clic =
+        	    Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
 
-            float mouseX = Gdx.input.getX();
+        	if (bajoMouse >= 0 && (mouseMenu.seMovio() || clic)) {
+        	    seleccion = bajoMouse;
+        	}
 
-            float mouseY =
-                Gdx.graphics.getHeight() - Gdx.input.getY();
-
-            boolean dentroDelViewport =
-                mouseX >= viewport.getScreenX()
-                && mouseX < viewport.getScreenX()
-                    + viewport.getScreenWidth()
-                && mouseY >= viewport.getScreenY()
-                && mouseY < viewport.getScreenY()
-                    + viewport.getScreenHeight();
-
-            if (dentroDelViewport) {
-
-                viewport.unproject(
-                    raton.set(
-                        Gdx.input.getX(),
-                        Gdx.input.getY()
-                    )
-                );
-
-                for (int i = 0; i < cantidad; i++) {
-                    if (botones[i].contains(raton)) {
-                        seleccion = i;
-                        aceptar = true;
-                        break;
-                    }
-                }
-            }
-        }
+        	boolean aceptar =
+        	    Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+        	    || (clic && bajoMouse >= 0);
 
         if (!aceptar) {
             return false;

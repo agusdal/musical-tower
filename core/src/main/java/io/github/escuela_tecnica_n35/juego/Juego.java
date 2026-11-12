@@ -20,21 +20,21 @@ public class Juego {
     private Jugador jugador;
     private Etapa etapaActual;
     private GeneracionEtapa generador;
-    
+
     // NUEVO:
     // Guarda la habitación en la que estamos actualmente.
     private Sala salaActual;
-    
+
     // Items que todavía pueden aparecer durante esta partida.
     private ArrayList<Item> poolItems;
 
     private Random random;
-    
+
     public Juego(Jugador jugador) {
 
         this.jugador = jugador;
         this.generador = new GeneracionEtapa();
-        
+
         poolItems = new ArrayList<Item>();
 
         random = new Random();
@@ -49,7 +49,7 @@ public class Juego {
     	// Al sacarlo también desaparece de la pool.
     	Item itemSala =
     	    sacarItemAleatorio();
-    	
+
     	ArrayList<OfertaTienda> ofertasTienda =
     		    generarOfertasTienda(2);
 
@@ -71,9 +71,9 @@ public class Juego {
                 "La etapa generada no contiene una sala INICIAL."
             );
         }
-        
+
         jugador.recargarPocima();
-        
+
         anunciarSalaActual();
     }
 
@@ -85,7 +85,7 @@ public class Juego {
     }
 
     public boolean avanzarEtapa() {
-    	
+
         if (!puedeAvanzarEtapa()) {
             return false;
         }
@@ -93,7 +93,7 @@ public class Juego {
         int siguientePiso = etapaActual.getNumeroPiso() + 1;
 
         Item itemSala = sacarItemAleatorio();
-        
+
         ArrayList<OfertaTienda> ofertasTienda = generarOfertasTienda(2);
 
         Etapa nuevaEtapa = generador.generarEtapa(
@@ -112,11 +112,11 @@ public class Juego {
 
         etapaActual = nuevaEtapa;
         salaActual = nuevaSalaInicial;
-        
+
         jugador.recargarPocima();
 
         anunciarSalaActual();
-        
+
         return true;
     }
 
@@ -309,9 +309,10 @@ public class Juego {
     public Sala getSalaActual() {
         return salaActual;
     }
-    
+
     private void cargarPoolItems() {
 
+        // 1. VIDA_MAX
         poolItems.add(
             new Item(
                 "Corazon Amplificado",
@@ -320,115 +321,96 @@ public class Juego {
                 1,
                 TipoItem.PASIVO,
                 TipoModificadorItem.VIDA_MAX,
-                20
+                20f,
+                "steelheart.png"
             )
         );
 
-
+// 2. VELOCIDAD
         poolItems.add(
             new Item(
-                "Botas Ligeras",
+                "Prisma Astral",
                 new Posicion(600, 100),
                 "Aumenta la velocidad de movimiento.",
                 1,
                 TipoItem.PASIVO,
                 TipoModificadorItem.VELOCIDAD,
-                30
+                50f,
+                "pink floyd.png"
             )
         );
 
-
+// 3. DAÑO_ATAQUE
         poolItems.add(
             new Item(
-                "Pua Afilada",
+                "Mascara del Villano",
                 new Posicion(600, 100),
-                "Aumenta el daño del ataque normal.",
-                1,
+                "Incrementa el dano de tus ataques.",
+                2,
                 TipoItem.ARMA,
                 TipoModificadorItem.DAÑO_ATAQUE,
-                2
+                15f,
+                "mfdoom.png"
             )
         );
-        
-	    poolItems.add(
-	        new Item(
-	            "Botas Rebotadoras",
-	            new Posicion(600, 100),
-	            "Aumenta el daño del ataque.",
-	            1,
-	            TipoItem.ARMA,
-	            TipoModificadorItem.FUERZA_SALTO,
-	            2/*,
-	            "items/botas_rebotadoras.png"*/
-	        )
-	    );
-	    
-	    poolItems.add(
-	        new Item(
-	            "Bombo de Rebote",
-	            new Posicion(600, 100),
-	            "Cada golpe hacia abajo te lanza más alto.",
-	            1,
-	            TipoItem.ARMA,
-	            TipoModificadorItem.FUERZA_SALTO,
-	            2/*,
-	            "items/bombo_rebote.png"*/
-	        )
-	    );
-	    
-	    poolItems.add(
-	        new Item(
-	            "Pedal Turbo",
-	            new Posicion(600, 100),
-	            "Pisá el pedal y cruzá más distancia en el mismo tiempo.",
-	            1,
-	            TipoItem.ARMA,
-	            TipoModificadorItem.VELOCIDAD_DASH,
-	            2/*,
-	            "items/pedal_turbo.png"*/
-	        )
-	    );
-	    
-	    poolItems.add(
-	        new Item(
-	            "Parlantes Estéreo",
-	            new Posicion(600, 100),
-	            "Tu golpe se expande hacia los lados.",
-	            1,
-	            TipoItem.ARMA,
-	            TipoModificadorItem.ANCHO_ATAQUE,
-	            2/*,
-	            "items/parlantes_estereo.png"*/
-	        )
-	    );
-	    
-	    poolItems.add(
-	        new Item(
-	            "Torre de Amplis",
-	            new Posicion(600, 100),
-	            "Tus golpes alcanzan enemigos que vuelan más alto.",
-	            1,
-	            TipoItem.ARMA,
-	            TipoModificadorItem.ALTO_ATAQUE,
-	            2/*,
-	            "items/torre_amplis.png"*/
-	        )
-	    );
-	    
-	    poolItems.add(
-	        new Item(
-	            "Metrónomo Acelerado",
-	            new Posicion(600, 100),
-	            "Acortá el silencio entre un golpe y el siguiente.",
-	            1,
-	            TipoItem.ARMA,
-	            TipoModificadorItem.COOLDOWN_ATAQUE,
-	            2/*,
-	            "items/metronomo_acelerado.png"*/
-	        )
-	    );
+
+// 4. FUERZA_POGO
+        poolItems.add(
+            new Item(
+                "Amuleto Pogo",
+                new Posicion(600, 100),
+                "Potencia el salto hacia abajo (pogo).",
+                2,
+                TipoItem.PASIVO,
+                TipoModificadorItem.FUERZA_POGO,
+                100f,
+                "la vida era mas corta.png"
+            )
+        );
+
+// 5. VELOCIDAD_DASH
+        poolItems.add(
+            new Item(
+                "Reliquia Ameri",
+                new Posicion(600, 100),
+                "Mejora la velocidad de tu dash.",
+                2,
+                TipoItem.PASIVO,
+                TipoModificadorItem.VELOCIDAD_DASH,
+                200f,
+                "ameri.png"
+            )
+        );
+
+// 6. ANCHO_ATAQUE
+        poolItems.add(
+            new Item(
+                "Hoja Destructiva",
+                new Posicion(600, 100),
+                "Amplia el ancho de tu hitbox de ataque.",
+                3,
+                TipoItem.ARMA,
+                TipoModificadorItem.ANCHO_ATAQUE,
+                30f,
+                "appetite.png"
+            )
+        );
+
+// 7. COOLDOWN_ATAQUE
+        poolItems.add(
+            new Item(
+                "Reloj Verde",
+                new Posicion(600, 100),
+                "Reduce el tiempo de recarga entre ataques.",
+                2,
+                TipoItem.PASIVO,
+                TipoModificadorItem.COOLDOWN_ATAQUE,
+                0.05f,
+                "green day.png"
+            )
+        );
     }
-    
+
     private Item sacarItemAleatorio() {
 
         if (poolItems.isEmpty()) {
@@ -445,7 +427,7 @@ public class Juego {
         // al mismo tiempo.
         return poolItems.remove(indice);
     }
-    
+
     private ArrayList<OfertaTienda> generarOfertasTienda(
             int cantidad) {
 

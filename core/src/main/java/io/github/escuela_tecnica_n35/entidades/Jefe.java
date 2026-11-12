@@ -33,8 +33,8 @@ public class Jefe extends Enemigo {
 		
 		getAtaqueNormal().setHitbox(
 			    new Hitbox(
-			        220f,   // ancho del golpe del jefe
-			        180f,   // alto del golpe del jefe
+			        200f,   // ancho del golpe del jefe
+			        100f,   // alto del golpe del jefe
 			        0f,     // desplazamiento horizontal
 			        0f      // desplazamiento vertical
 			    )

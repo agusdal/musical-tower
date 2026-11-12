@@ -97,8 +97,6 @@ public class Main_game extends ApplicationAdapter {
     private static final float ANCHO_JUGADOR = 80;
     private static final float ALTO_JUGADOR = 80;
 
-    private Texture texturaMosca;
-
     private static final float ANCHO_HITBOX_JUGADOR = 80f;
     private static final float ALTO_HITBOX_JUGADOR = 150f;
 
@@ -145,7 +143,6 @@ public class Main_game extends ApplicationAdapter {
         Posicion posicionInicial = new Posicion(140, 50);
 
         jugador = new Jugador("KMD", posicionInicial, 100, 250, 999);
-        texturaMosca = new Texture("mosca.png");
 
         hitboxAtaqueDebug = new Rectangle();
         tiempoHitboxAtaqueDebug = 0;
@@ -398,7 +395,6 @@ public class Main_game extends ApplicationAdapter {
         texturaMoneda.dispose();
         texturaBicho.dispose(); // <--- LIBERAMOS LA TEXTURA DEL BICHO
         texturaPlataforma.dispose();
-        texturaMosca.dispose();
     }
 
     private boolean botonSaltoPresionado() {
@@ -1228,71 +1224,43 @@ public class Main_game extends ApplicationAdapter {
     private void dibujarEnemigos() {
         Sala salaActual = juego.getSalaActual();
 
-        // Abrimos el batch para dibujar las texturas de todos los enemigos
         batch.begin();
 
         for (Enemigo enemigo : salaActual.getEnemigos()) {
-            if (!enemigo.estaVivo()) {
-                continue;
-            }
+            Rectangle hitboxEnemigo = obtenerHitboxEnemigo(enemigo);
+            Rectangle hitboxJugador = obtenerHitboxJugador();
 
-            Rectangle hitbox = obtenerHitboxEnemigo(enemigo);
+            boolean jugadorDerecha = hitboxJugador.x >= hitboxEnemigo.x;
+            enemigo.actualizarAnimacionYFrame(Gdx.graphics.getDeltaTime(), jugadorDerecha);
 
-            if (enemigo instanceof EnemigoVolador) {
-                EnemigoVolador volador = (EnemigoVolador) enemigo;
-                // Actualizamos la animación de vuelo de la mosca
-                volador.actualizarAnimacionVoladora(Gdx.graphics.getDeltaTime());
+            int anchoImg = texturaBicho.getWidth();
+            int altoImg = texturaBicho.getHeight();
 
-                // Dibujamos la mosca (mosca.png)
-                batch.draw(
-                    texturaMosca,
-                    hitbox.x,
-                    hitbox.y,
-                    hitbox.width,
-                    hitbox.height,
-                    volador.getSourceX(texturaMosca.getWidth()),
-                    volador.getSourceY(texturaMosca.getHeight()),
-                    volador.getAnchoFrame(texturaMosca.getWidth()),
-                    volador.getAltoFrame(texturaMosca.getHeight()),
-                    false,
-                    false
-                );
-            } else {
-                // Calculamos si el jugador está a la derecha para la animación del enemigo terrestre
-                Rectangle hitboxJugador = obtenerHitboxJugador();
-                boolean jugadorALaDerecha = (hitboxJugador.x + hitboxJugador.width / 2f) >= (hitbox.x + hitbox.width / 2f);
+            // Centramos horizontalmente respecto a la hitbox
+            float offsetX = (ANCHO_ENEMIGO - hitboxEnemigo.width) / 2f;
 
-                // Actualizamos la animación del enemigo terrestre (bicho.jpg)
-                enemigo.actualizarAnimacionYFrame(Gdx.graphics.getDeltaTime(), jugadorALaDerecha);
+            // Alineamos la parte inferior del sprite exactamente con los pies de la hitbox
+            float drawX = hitboxEnemigo.x - offsetX;
+            float drawY = hitboxEnemigo.y; // Los pies quedan apoyados en la base física
 
-                // Obtenemos las medidas reales del frame del bicho
-                float anchoFrame = enemigo.getAnchoFrame(texturaBicho.getWidth());
-                float altoFrame = enemigo.getAltoFrame(texturaBicho.getHeight());
-
-                // Factor de escala (puedes cambiarlo a 0.8f si lo quieres más chico o 0.9f si lo quieres más grande)
-                float escala = 0.85f;
-                float anchoVisual = anchoFrame * escala;
-                float altoVisual = altoFrame * escala;
-
-                // Dibujamos el enemigo terrestre (bicho.jpg) escalado y centrado respecto a su hitbox
-                batch.draw(
-                    texturaBicho,
-                    hitbox.x + (hitbox.width - anchoVisual) / 2f, // Centrado horizontalmente con la hitbox
-                    hitbox.y,                                  // Alineado a la base de la hitbox
-                    anchoVisual,
-                    altoVisual,
-                    enemigo.getSourceX(texturaBicho.getWidth()),
-                    enemigo.getSourceY(texturaBicho.getHeight()),
-                    (int) anchoFrame, // Casteado a int
-                    (int) altoFrame,  // Casteado a int
-                    false,
-                    false
-                );
-            }
+            batch.draw(
+                texturaBicho,
+                drawX,
+                drawY,
+                ANCHO_ENEMIGO,
+                ALTO_ENEMIGO,
+                enemigo.getSourceX(anchoImg),
+                enemigo.getSourceY(altoImg),
+                enemigo.getAnchoFrame(anchoImg),
+                enemigo.getAltoFrame(altoImg),
+                false,
+                false
+            );
         }
 
         batch.end();
     }
+
     private void dibujarItems() {
         Sala salaActual = juego.getSalaActual();
 
@@ -1493,25 +1461,6 @@ public class Main_game extends ApplicationAdapter {
                     puedeAtacarHaciaArriba = encimaDelCuerpo
                         && hitboxJugador.y >= alturaCabeza - margenAlturaAtaque
                         && golpeArriba.overlaps(hitboxJugador);
-                }if (enemigo instanceof EnemigoVolador) {
-
-                    EnemigoVolador enemigoVolador =
-                        (EnemigoVolador) enemigo;
-
-
-                    enemigoVolador.perseguir(
-                        jugador.getPosicion(),
-                        delta
-                    );
-
-
-                    // <--- AQUÍ DEBES COLOCAR LA ACTUALIZACIÓN DE LA ANIMACIÓN --->
-                    enemigoVolador.actualizarAnimacionVoladora(delta);
-
-
-                    // No ejecutamos la IA normal
-                    // QUIETO / PERSEGUIR / ATACAR.
-                    continue;
                 }
 
                 boolean puedeAtacarDeCostado = mismaAltura && distanciaX <= rangoAtaqueEfectivo;

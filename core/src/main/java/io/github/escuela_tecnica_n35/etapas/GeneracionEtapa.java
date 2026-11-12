@@ -15,19 +15,19 @@ import io.github.escuela_tecnica_n35.entidades.OfertaTienda;
 import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 public class GeneracionEtapa {
-	
+
 	public static final int ULTIMO_PISO = 4;
-	
+
 	// Items que todavía pueden aparecer durante la partida.
 	private ArrayList<Item> poolItems;
-	
+
 	public GeneracionEtapa() {
 
 	    poolItems = new ArrayList<Item>();
 
 	    cargarPoolItems();
 	}
-	
+
 	public Etapa generarEtapa(
 	        int numeroPiso,
 	        Item itemSala,
@@ -40,10 +40,10 @@ public class GeneracionEtapa {
         Random random = new Random();
 
         int variante = random.nextInt(2);
-        
+
         if(numeroPiso == 1) {
 	        if (variante == 0) {
-	
+
 	            return generarVarianteDisco(
 	                numeroPiso,
 	                itemSala,
@@ -51,7 +51,7 @@ public class GeneracionEtapa {
 	            );
 	        }
 	        else {
-	
+
 	            return generarVarianteRock(
 	                numeroPiso,
 	                itemSala,
@@ -59,10 +59,10 @@ public class GeneracionEtapa {
 	            );
 	        }
         }
-        
+
         if(numeroPiso == 2) {
 	        if (variante == 0) {
-	
+
 	            return generarVarianteElectro(
 	                numeroPiso,
 	                itemSala,
@@ -70,7 +70,7 @@ public class GeneracionEtapa {
 	            );
 	        }
 	        else {
-	
+
 	            return generarVarianteRegge(
 	                numeroPiso,
 	                itemSala,
@@ -78,10 +78,10 @@ public class GeneracionEtapa {
 	            );
 	        }
         }
-        
+
         if(numeroPiso == 3) {
 	        if (variante == 0) {
-	
+
 	            return generarVarianteRap(
 	                numeroPiso,
 	                itemSala,
@@ -89,7 +89,7 @@ public class GeneracionEtapa {
 	            );
 	        }
 	        else {
-	
+
 	            return generarVarianteJazz(
 	                numeroPiso,
 	                itemSala,
@@ -97,10 +97,10 @@ public class GeneracionEtapa {
 	            );
 	        }
         }
-        
+
         return null;
     }
-	
+
 	private Etapa generarVarianteDisco(
 	        int numeroPiso,
 	        Item itemSala,
@@ -170,7 +170,7 @@ public class GeneracionEtapa {
             mapa
         );
     }
-	
+
 	private Etapa generarVarianteElectro(
 	        int numeroPiso,
 	        Item itemSala,
@@ -205,7 +205,7 @@ public class GeneracionEtapa {
             mapa
         );
     }
-	
+
 	private Etapa generarVarianteRegge(
 	        int numeroPiso,
 	        Item itemSala,
@@ -240,7 +240,7 @@ public class GeneracionEtapa {
             mapa
         );
     }
-	
+
 	private Etapa generarVarianteRap(
 	        int numeroPiso,
 	        Item itemSala,
@@ -275,7 +275,7 @@ public class GeneracionEtapa {
             mapa
         );
     }
-	
+
 	private Etapa generarVarianteJazz(
 	        int numeroPiso,
 	        Item itemSala,
@@ -312,7 +312,7 @@ public class GeneracionEtapa {
     }
 
 	private Etapa generarPisoFinal() {
-		
+
 	    Sala inicial = new Sala(0, 0, TipoSala.INICIAL);
 	    Sala salaJefe = new Sala(0, 1, TipoSala.JEFE);
 
@@ -417,14 +417,14 @@ public class GeneracionEtapa {
             itemSala,
             ofertasTienda
         );
-        
+
         configurarSalasEnemigos(mapa);
-        
+
         return mapa;
     }
-    
+
     // GENERA ESTRUCTURA DEL MAPA
-    
+
     private Sala[][] generarEstructuraMapa(int numeroPiso) {
 
         int tamaño = obtenerTamañoMapa(numeroPiso);
@@ -502,9 +502,9 @@ public class GeneracionEtapa {
 
         return mapa;
     }
-    
+
     // COMPRUEBA SI EL MAPA TIENE 3 SALAS CONECTADAS A UNA SALA NOMAS
-    
+
     private boolean mapaEsValido(Sala[][] mapa) {
 
         int salasConUnVecino = 0;
@@ -649,8 +649,8 @@ public class GeneracionEtapa {
                         800,
                         50
                     ),
-                    300,    // vida
-                    80,     // velocidad
+                    150,    // vida
+                    70,     // velocidad
                     20,     // daño
                     15,     // monedas mínimas
                     25,     // monedas máximas
@@ -815,48 +815,48 @@ public class GeneracionEtapa {
             System.out.println();
         }
     }
-    
+
 	// NUEVO:
 	// Cuenta cuántas salas existen directamente alrededor de una sala.
 	// La sala del jefe deberá tener exactamente 1 vecino.
 	private int contarVecinos(Sala[][] mapa, Sala sala) {
-	
+
 	    int cantidadVecinos = 0;
-	
+
 	    int fila = sala.getFila();
 	    int columna = sala.getColumna();
-	
+
 	    // Revisamos ARRIBA
 	    if (fila - 1 >= 0 &&
 	        mapa[fila - 1][columna] != null) {
-	
+
 	        cantidadVecinos++;
 	    }
-	
+
 	    // Revisamos ABAJO
 	    if (fila + 1 < mapa.length &&
 	        mapa[fila + 1][columna] != null) {
-	
+
 	        cantidadVecinos++;
 	    }
-	
+
 	    // Revisamos IZQUIERDA
 	    if (columna - 1 >= 0 &&
 	        mapa[fila][columna - 1] != null) {
-	
+
 	        cantidadVecinos++;
 	    }
-	
+
 	    // Revisamos DERECHA
 	    if (columna + 1 < mapa[fila].length &&
 	        mapa[fila][columna + 1] != null) {
-	
+
 	    	cantidadVecinos++;
 	    }
-	
+
 	    return cantidadVecinos;
 	}
-	
+
 	// NUEVO:
 	// Como la sala JEFE tiene exactamente un vecino,
 	// este método busca esa única sala conectada a ella.
@@ -895,7 +895,7 @@ public class GeneracionEtapa {
 
 	    return null;
 	}
-	
+
 	// NUEVO:
 	// Busca todas las salas que pueden convertirse
 	// en ITEM o TIENDA.
@@ -953,7 +953,7 @@ public class GeneracionEtapa {
 
 	    return disponibles;
 	}
-	
+
 	// --------------------------------------------------
 	// POOL DE ITEMS
 	// --------------------------------------------------
@@ -961,33 +961,33 @@ public class GeneracionEtapa {
 	private void cargarPoolItems() {
 
 	    // ITEM 1
-	    poolItems.add(
-	        new Item(
-	            "Corazon Amplificado",
-	            new Posicion(600, 100),
-	            "Aumenta la vida maxima.",
-	            1,
-	            TipoItem.PASIVO,
-	            TipoModificadorItem.VIDA_MAX,
-	            20/*,
-	            "items/corazon_amplificado.png"*/
-	        )
+        poolItems.add(
+            new Item(
+                "Corazon Amplificado",
+                new Posicion(600, 100),
+                "Aumenta la vida maxima.",
+                1,
+                TipoItem.PASIVO,
+                TipoModificadorItem.VIDA_MAX,
+                20f,
+                "steelheart.png" // Asegúrate de pasar la ruta o el nombre del archivo de imagen
+            )
 	    );
 
 
 	    // ITEM 2
 	    poolItems.add(
-	        new Item(
-	            "Botas Ligeras",
-	            new Posicion(600, 100),
-	            "Aumenta la velocidad de movimiento.",
-	            1,
-	            TipoItem.PASIVO,
-	            TipoModificadorItem.VELOCIDAD,
-	            30/*,
-	            "items/botas_ligeras.png"*/
-	        )
-	    );
+            new Item(
+                "Botas Ligeras",
+                new Posicion(600, 100),
+                "Aumenta la velocidad de movimiento.",
+                1,
+                TipoItem.PASIVO,
+                TipoModificadorItem.VELOCIDAD,
+                30f,
+	            "items/botas_ligeras.png"
+            )
+        );
 
 
 	    // ITEM 3
@@ -999,11 +999,11 @@ public class GeneracionEtapa {
 	            1,
 	            TipoItem.ARMA,
 	            TipoModificadorItem.DAÑO_ATAQUE,
-	            2/*,
-	            "items/pua_afilada.png"*/
+	            2f,
+	            "items/pua_afilada.png"
 	        )
 	    );
-	    
+
 	    // ITEM 4
 	    poolItems.add(
 	        new Item(
@@ -1013,11 +1013,11 @@ public class GeneracionEtapa {
 	            1,
 	            TipoItem.ARMA,
 	            TipoModificadorItem.FUERZA_SALTO,
-	            2/*,
-	            "items/botas_rebotadoras.png"*/
+	            2f,
+	            "items/botas_rebotadoras.png"
 	        )
 	    );
-	    
+
 	    // ITEM 5
 	    poolItems.add(
 	        new Item(
@@ -1027,11 +1027,11 @@ public class GeneracionEtapa {
 	            1,
 	            TipoItem.ARMA,
 	            TipoModificadorItem.FUERZA_SALTO,
-	            2/*,
-	            "items/bombo_rebote.png"*/
+	            2f,
+	            "items/bombo_rebote.png"
 	        )
 	    );
-	    
+
 	    // ITEM 6
 	    poolItems.add(
 	        new Item(
@@ -1041,11 +1041,11 @@ public class GeneracionEtapa {
 	            1,
 	            TipoItem.ARMA,
 	            TipoModificadorItem.VELOCIDAD_DASH,
-	            2/*,
-	            "items/pedal_turbo.png"*/
+	            2f,
+	            "items/pedal_turbo.png"
 	        )
 	    );
-	    
+
 	    // ITEM 7
 	    poolItems.add(
 	        new Item(
@@ -1055,11 +1055,11 @@ public class GeneracionEtapa {
 	            1,
 	            TipoItem.ARMA,
 	            TipoModificadorItem.ANCHO_ATAQUE,
-	            2/*,
-	            "items/parlantes_estereo.png"*/
+	            2f,
+	            "items/parlantes_estereo.png"
 	        )
 	    );
-	    
+
 	    // ITEM 7
 	    poolItems.add(
 	        new Item(
@@ -1069,11 +1069,11 @@ public class GeneracionEtapa {
 	            1,
 	            TipoItem.ARMA,
 	            TipoModificadorItem.ALTO_ATAQUE,
-	            2/*,
-	            "items/torre_amplis.png"*/
+	            2f,
+	            "items/torre_amplis.png"
 	        )
 	    );
-	    
+
 	    // ITEM 8
 	    poolItems.add(
 	        new Item(
@@ -1083,12 +1083,12 @@ public class GeneracionEtapa {
 	            1,
 	            TipoItem.ARMA,
 	            TipoModificadorItem.COOLDOWN_ATAQUE,
-	            2/*,
-	            "items/metronomo_acelerado.png"*/
+	            2f,
+	            "items/metronomo_acelerado.png"
 	        )
 	    );
 	}
-	
+
 	private Item sacarItemAleatorio() {
 
 	    // Si ya usamos todos los objetos,
@@ -1112,7 +1112,7 @@ public class GeneracionEtapa {
 	    // permanentemente de la pool.
 	    return poolItems.remove(indice);
 	}
-	
+
 	// NUEVO:
 	// Asigna exactamente una sala ITEM y una TIENDA.
 	private void asignarSalasEspeciales(
@@ -1143,11 +1143,11 @@ public class GeneracionEtapa {
 	    Sala salaItem = disponibles.get(indiceItem);
 
 	    salaItem.setTipo(TipoSala.ITEM);
-	    
+
 	    // --------------------------------------------------
 	 	// PEDESTAL DEL ITEM
 	 	// --------------------------------------------------
-	 	
+
 	 	// El piso está actualmente en Y = 50.
 	 	// La plataforma mide 50 de alto,
 	 	// por lo que su parte superior queda en Y = 100,
@@ -1159,12 +1159,12 @@ public class GeneracionEtapa {
 	            120,
 	            50
 	        );
-	 	
+
 	 	salaItem.agregarPlataforma(
 	 		pedestal
 	 	);
-	 	
-	 	
+
+
 	 	if (itemSala != null) {
 
 	 	    float anchoItem = 40f;
@@ -1197,8 +1197,8 @@ public class GeneracionEtapa {
 	 	        itemSala
 	 	    );
 	 	}
-	 		
-	    
+
+
 	    // El item ya fue seleccionado por Juego.
 	    if (itemSala != null) {
 
@@ -1211,13 +1211,13 @@ public class GeneracionEtapa {
 	            + itemSala.getNombre()
 	        );
 	    }
-	    
-		
-	    
+
+
+
 	    // La eliminamos de disponibles para que la TIENDA
 	    // no pueda elegir exactamente la misma habitación.
 	    disponibles.remove(salaItem);
-	    
+
 		// Sacamos un item aleatorio de la pool.
 		// Al hacerlo también queda eliminado de ella.
 		Item itemElegido = sacarItemAleatorio();
@@ -1230,7 +1230,7 @@ public class GeneracionEtapa {
 	    Sala salaTienda = disponibles.get(indiceTienda);
 
 	    salaTienda.setTipo(TipoSala.TIENDA);
-	    
+
 	    Plataforma plataformaIzquierda =
 	    	    new Plataforma(
 	    	        200,
@@ -1256,7 +1256,7 @@ public class GeneracionEtapa {
 	    	salaTienda.agregarPlataforma(
 	    	    plataformaDerecha
 	    	);
-	    
+
 	    	if (ofertasTienda.size() >= 1) {
 
 	    	    OfertaTienda oferta =
@@ -1285,7 +1285,7 @@ public class GeneracionEtapa {
 	    	        oferta
 	    	    );
 	    	}
-	    
+
 	    	if (ofertasTienda.size() >= 2) {
 
 	    	    OfertaTienda oferta =
@@ -1315,7 +1315,7 @@ public class GeneracionEtapa {
 	    	    );
 	    	}
 	}
-	
+
 	private void configurarSalasEnemigos(
 	        Sala[][] mapa) {
 
@@ -1365,7 +1365,7 @@ public class GeneracionEtapa {
 	        }
 	    }
 	}
-	
+
 	// --------------------------------------------------
 	// MOLDE 1: TRES VOLADORES, SIN PLATAFORMAS
 	// --------------------------------------------------

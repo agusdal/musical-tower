@@ -15,12 +15,12 @@ public class Item {
 
     // Cuánto la modifica.
     private float valor;
-    
+
     // Ruta de la imagen dentro de assets.
-    //private String imagen;
+    private String imagen;
 
     public Item(String nombre, Posicion posicion, String descripcion,
-            int tier, TipoItem tipo, TipoModificadorItem modificador, float valor/*, String imagen*/) {
+                int tier, TipoItem tipo, TipoModificadorItem modificador, float valor, String imagen) {
 
         this.nombre = nombre;
         this.posicion = posicion;
@@ -29,9 +29,9 @@ public class Item {
         this.tipo = tipo;
         this.modificador = modificador;
         this.valor = valor;
-        //this.imagen = imagen;
+        this.imagen = imagen;
     }
-    
+
     public String getNombre() {
         return nombre;
     }
@@ -59,9 +59,8 @@ public class Item {
     public float getValor() {
         return valor;
     }
-    
-    /*public String getImagen() {
+
+    public String getImagen() {
         return imagen;
-    }*/
-    
+    }
 }

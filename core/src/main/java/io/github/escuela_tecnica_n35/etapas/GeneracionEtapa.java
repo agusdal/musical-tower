@@ -649,8 +649,8 @@ public class GeneracionEtapa {
                         800,
                         50
                     ),
-                    300,    // vida
-                    80,     // velocidad
+                    150,    // vida
+                    70,     // velocidad
                     20,     // daño
                     15,     // monedas mínimas
                     25,     // monedas máximas

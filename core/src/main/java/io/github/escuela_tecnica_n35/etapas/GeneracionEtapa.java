@@ -334,7 +334,7 @@ public class GeneracionEtapa {
         Jefe jefe = new Jefe(
             "Jefe final",
             new Posicion(800f, 50f),
-            300,
+            250,
             80f,
             20,
             15,

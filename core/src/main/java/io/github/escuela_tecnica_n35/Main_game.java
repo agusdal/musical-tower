@@ -185,7 +185,7 @@ public class Main_game extends ApplicationAdapter {
 
         Posicion posicionInicial = new Posicion(140, 50);
 
-        jugador = new Jugador("KMD", posicionInicial, 100, 250, 999);
+        jugador = new Jugador("KMD", posicionInicial, 100, 250, 7);
 
         hitboxAtaqueDebug = new Rectangle();
         tiempoHitboxAtaqueDebug = 0;
@@ -1535,9 +1535,25 @@ public class Main_game extends ApplicationAdapter {
             batch.draw(textura, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
 
             // Opcional: Dibuja el precio encima del ítem en la tienda
-            font.getData().setScale(0.8f);
-            font.draw(batch, "$" + oferta.getPrecio(), hitboxItem.x, hitboxItem.y + hitboxItem.height + 15);
-            font.getData().setScale(1.2f);
+            float escalaX = font.getData().scaleX;
+            float escalaY = font.getData().scaleY;
+            Color colorAnterior = new Color(font.getColor());
+
+            font.getData().setScale(1f);
+            font.setColor(Color.GOLD);
+
+            layout.setText(font, String.valueOf(oferta.getPrecio()));
+
+            float precioX =
+                hitboxItem.x + (hitboxItem.width - layout.width) / 2f;
+
+            float precioY =
+                hitboxItem.y + hitboxItem.height + layout.height + 10f;
+
+            font.draw(batch, layout, precioX, precioY);
+
+            font.getData().setScale(escalaX, escalaY);
+            font.setColor(colorAnterior);
         }
 
         batch.end();

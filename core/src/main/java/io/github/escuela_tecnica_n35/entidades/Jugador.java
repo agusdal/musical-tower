@@ -355,12 +355,13 @@ public class Jugador extends Entidad {
 	//----------------------------/\MUERTE/\-----------------------------
 
     public void recogerItem(Item item) {
-
-        // Primero guardamos el objeto.
         inventario.agregarItem(item);
-
-        // Después aplicamos su efecto.
         aplicarEfectoItem(item);
+
+        // Mensaje por consola con los detalles del ítem
+        System.out.println("¡Ítem adquirido: " + item.getNombre() + "!");
+        System.out.println("Descripción: " + item.getDescripcion());
+        System.out.println("Efecto aplicado: " + item.getModificador() + " (" + item.getValor() + ")");
     }
 
     private void aplicarEfectoItem(Item item) {

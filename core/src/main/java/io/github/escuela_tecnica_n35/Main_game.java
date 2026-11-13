@@ -40,6 +40,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.Texture;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Main_game extends ApplicationAdapter {
 
@@ -70,6 +71,7 @@ public class Main_game extends ApplicationAdapter {
     private Texture texturaBicho;
     private Texture texturaMosca;
     private Texture texturaPlataforma;
+    private HashMap<String, Texture> texturasItems;
 
     // --- TEXTURAS Y REGIONES PARA LOS ASCENSORES ---
     private Texture texturaAscensor;
@@ -187,6 +189,7 @@ public class Main_game extends ApplicationAdapter {
         texturaBicho = new Texture("bicho.jpg");
         texturaMosca = new Texture("mosca.png");
         texturaPlataforma = new Texture("plataforma.jpg");
+        texturasItems = new HashMap<>();
 
         // --- CARGA DE LA TEXTURA DE ASCENSOR Y CORTE EN DOS REGIONES ---
         texturaAscensor = new Texture("ascensor.png");
@@ -429,9 +432,9 @@ public class Main_game extends ApplicationAdapter {
         comprobarCambioSala();
 
         dibujarHabitacion();
+        dibujarPlataformas(); // Se dibujan primero para que queden de fondo
         dibujarEnemigos();
-        dibujarItems();
-        dibujarPlataformas();
+        dibujarItems();       // Se dibujan después para que no queden tapados
 
         dibujarHitboxAtaque(delta);
         dibujarHitboxAtaqueEnemigo(delta);
@@ -467,6 +470,11 @@ public class Main_game extends ApplicationAdapter {
         texturaMosca.dispose();
         texturaPlataforma.dispose();
         texturaAscensor.dispose(); // <--- LIBERAMOS LA TEXTURA DEL ASCENSOR
+
+        // Liberar todas las texturas de ítems cargadas
+        for (Texture t : texturasItems.values()) {
+            t.dispose();
+        }
     }
 
     private boolean botonSaltoPresionado() {
@@ -748,9 +756,9 @@ public class Main_game extends ApplicationAdapter {
 
     private void dibujarEscenaPausada() {
         dibujarHabitacion();
+        dibujarPlataformas(); // Se dibujan primero para que queden de fondo
         dibujarEnemigos();
-        dibujarItems();
-        dibujarPlataformas();
+        dibujarItems();       // Se dibujan después para que no queden tapados
         dibujarProyectiles();
 
         batch.begin();
@@ -1144,7 +1152,8 @@ public class Main_game extends ApplicationAdapter {
     }
 
     private Rectangle obtenerHitboxItem(Item item) {
-        return new Rectangle(item.getPosicion().getX(), item.getPosicion().getY(), 40, 40);
+        // Aumentamos el tamaño de 40x40 a 64x64 para que se vean mejor
+        return new Rectangle(item.getPosicion().getX(), item.getPosicion().getY(), 64, 64);
     }
 
     private Enemigo buscarEnemigoGolpeado(Sala sala, Rectangle hitboxAtaque) {
@@ -1422,25 +1431,41 @@ public class Main_game extends ApplicationAdapter {
         batch.end();
     }
 
+    private Texture obtenerTexturaItem(String ruta) {
+        // Carga la textura solo si no fue cargada antes (optimización)
+        if (!texturasItems.containsKey(ruta)) {
+            texturasItems.put(ruta, new Texture(ruta));
+        }
+        return texturasItems.get(ruta);
+    }
+
     private void dibujarItems() {
         Sala salaActual = juego.getSalaActual();
 
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.YELLOW);
+        batch.begin();
 
+        // Dibujar ítem suelto en la sala
         if (salaActual.tieneItem()) {
             Item item = salaActual.getItem();
             Rectangle hitboxItem = obtenerHitboxItem(item);
-            shapeRenderer.rect(hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+            Texture textura = obtenerTexturaItem(item.getImagen());
+            batch.draw(textura, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
         }
 
+        // Dibujar ítems de la tienda
         for (OfertaTienda oferta : salaActual.getOfertasTienda()) {
             Item item = oferta.getItem();
             Rectangle hitboxItem = obtenerHitboxItem(item);
-            shapeRenderer.rect(hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+            Texture textura = obtenerTexturaItem(item.getImagen());
+            batch.draw(textura, hitboxItem.x, hitboxItem.y, hitboxItem.width, hitboxItem.height);
+
+            // Opcional: Dibuja el precio encima del ítem en la tienda
+            font.getData().setScale(0.8f);
+            font.draw(batch, "$" + oferta.getPrecio(), hitboxItem.x, hitboxItem.y + hitboxItem.height + 15);
+            font.getData().setScale(1.2f);
         }
 
-        shapeRenderer.end();
+        batch.end();
     }
 
     private Rectangle obtenerHitboxPlataforma(Plataforma plataforma) {

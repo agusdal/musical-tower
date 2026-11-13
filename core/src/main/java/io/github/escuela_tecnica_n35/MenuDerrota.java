@@ -5,8 +5,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
@@ -27,35 +27,47 @@ public class MenuDerrota implements Disposable {
         "SALIR DEL JUEGO"
     };
 
-    private static final Color COLOR_SELECCION =
-        new Color(0.40f, 0.025f, 0.08f, 1f);
-
-    private static final Color COLOR_BOTON =
-        new Color(0.08f, 0.025f, 0.10f, 1f);
-
     private final BitmapFont fuente;
-    private final GlyphLayout layout = new GlyphLayout();
-
     private final Rectangle[] botones = new Rectangle[3];
     private final MouseMenu mouseMenu = new MouseMenu();
 
-    private final Texture fondo;
-    private final Texture titulo;
-    private final Texture selector;
+    private Texture fondoTexture;
+    private final TextureRegion[] regionesFondo = new TextureRegion[3];
 
     private int seleccion;
 
     public MenuDerrota(BitmapFont fuente) {
         this.fuente = fuente;
-        
-        fondo = cargarTextura("menu/derrota_fondo.png");
-        titulo = cargarTextura("menu/derrota_titulo.png");
-        selector = cargarTextura("menu/derrota_selector.png");
 
+        // Cargamos la imagen vertical con las 3 variantes de derrota
+        fondoTexture = cargarTextura("derrota.png");
+        if (fondoTexture == null) {
+            fondoTexture = cargarTextura("derrota.png");
+        }
+
+        if (fondoTexture != null) {
+            // Cuadrícula de 1 columna x 3 filas (3 paneles verticales)
+            int columnas = 1;
+            int filas = 3;
+            int anchoFrame = fondoTexture.getWidth() / columnas;
+            int altoFrame = fondoTexture.getHeight() / filas;
+
+            TextureRegion[][] tmp = TextureRegion.split(fondoTexture, anchoFrame, altoFrame);
+            int index = 0;
+            for (int i = 0; i < filas; i++) {
+                for (int j = 0; j < columnas; j++) {
+                    if (index < regionesFondo.length) {
+                        regionesFondo[index++] = tmp[i][j];
+                    }
+                }
+            }
+        }
+
+        // Definimos las zonas interactivas (hitboxes) para que el mouse y las flechas detecten los botones
         for (int i = 0; i < botones.length; i++) {
             botones[i] = new Rectangle(
                 455f,
-                365f - i * 65f,
+                365f - (i * 65f),
                 370f,
                 50f
             );
@@ -66,7 +78,6 @@ public class MenuDerrota implements Disposable {
         if (Gdx.files.internal(ruta).exists()) {
             return new Texture(Gdx.files.internal(ruta));
         }
-
         return null;
     }
 
@@ -77,29 +88,28 @@ public class MenuDerrota implements Disposable {
     public Accion actualizar(Viewport viewport) {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-            seleccion =
-                (seleccion + OPCIONES.length - 1) % OPCIONES.length;
+            seleccion = (seleccion + OPCIONES.length - 1) % OPCIONES.length;
 
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
             seleccion = (seleccion + 1) % OPCIONES.length;
         }
 
         int bajoMouse = mouseMenu.obtenerOpcion(
-        	    viewport,
-        	    botones,
-        	    botones.length
-        	);
+            viewport,
+            botones,
+            botones.length
+        );
 
-        	boolean clic =
-        	    Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+        boolean clic =
+            Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
 
-        	if (bajoMouse >= 0 && (mouseMenu.seMovio() || clic)) {
-        	    seleccion = bajoMouse;
-        	}
+        if (bajoMouse >= 0 && (mouseMenu.seMovio() || clic)) {
+            seleccion = bajoMouse;
+        }
 
-        	boolean aceptar =
-        	    Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
-        	    || (clic && bajoMouse >= 0);
+        boolean aceptar =
+            Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+                || (clic && bajoMouse >= 0);
 
         if (!aceptar) {
             return Accion.NINGUNA;
@@ -118,168 +128,29 @@ public class MenuDerrota implements Disposable {
     }
 
     public void dibujar(
-            SpriteBatch batch,
-            ShapeRenderer formas) {
-
-        formas.begin(ShapeRenderer.ShapeType.Filled);
-        formas.setColor(0.035f, 0.02f, 0.06f, 1f);
-        formas.rect(0f, 0f, 1280f, 720f);
-        formas.end();
+        SpriteBatch batch,
+        ShapeRenderer formas) {
 
         batch.setColor(Color.WHITE);
         batch.begin();
 
-        if (fondo != null) {
-            batch.draw(fondo, 0f, 0f, 1280f, 720f);
+        // Dibujamos únicamente el fondo dinámico correspondiente a la opción seleccionada (0, 1 o 2)
+        if (regionesFondo[0] != null) {
+            int indiceFondo = Math.min(seleccion, regionesFondo.length - 1);
+            TextureRegion fondoActual = regionesFondo[indiceFondo];
+
+            if (fondoActual != null) {
+                batch.draw(fondoActual, 0f, 0f, 1280f, 720f);
+            }
         }
 
         batch.end();
-
-        // Fondo de los botones.
-        formas.begin(ShapeRenderer.ShapeType.Filled);
-
-        for (int i = 0; i < botones.length; i++) {
-            Rectangle boton = botones[i];
-
-            formas.setColor(
-                i == seleccion
-                    ? COLOR_SELECCION
-                    : COLOR_BOTON
-            );
-
-            formas.rect(
-                boton.x,
-                boton.y,
-                boton.width,
-                boton.height
-            );
-        }
-
-        formas.end();
-
-        // Bordes de los botones.
-        formas.begin(ShapeRenderer.ShapeType.Line);
-        formas.setColor(1f, 0.65f, 0.55f, 1f);
-
-        for (Rectangle boton : botones) {
-            formas.rect(
-                boton.x,
-                boton.y,
-                boton.width,
-                boton.height
-            );
-        }
-
-        formas.end();
-
-        float escalaX = fuente.getData().scaleX;
-        float escalaY = fuente.getData().scaleY;
-        Color colorAnterior = new Color(fuente.getColor());
-
-        batch.begin();
-
-        if (titulo != null) {
-            batch.draw(titulo, 280f, 515f, 720f, 140f);
-
-        } else {
-            fuente.getData().setScale(3.5f);
-            fuente.setColor(1f, 0.35f, 0.30f, 1f);
-
-            dibujarTextoCentrado(
-                batch,
-                "HAS CAÍDO",
-                610f
-            );
-        }
-
-        fuente.getData().setScale(1.5f);
-        fuente.setColor(1f, 0.75f, 0.70f, 1f);
-
-        dibujarTextoCentrado(
-            batch,
-            "¿No pudiste seguir el ritmo?",
-            495f
-        );
-
-        for (int i = 0; i < botones.length; i++) {
-            Rectangle boton = botones[i];
-
-            if (i == seleccion && selector != null) {
-                batch.draw(
-                    selector,
-                    boton.x,
-                    boton.y,
-                    boton.width,
-                    boton.height
-                );
-            }
-            
-            if (i == seleccion && selector == null) {
-                fuente.setColor(Color.ORANGE);
-
-                fuente.draw(
-                    batch,
-                    ">",
-                    boton.x + 12f,
-                    boton.y + 34f
-                );
-            }
-
-            fuente.setColor(
-                i == seleccion
-                    ? Color.ORANGE
-                    : Color.LIGHT_GRAY
-            );
-
-            dibujarTextoCentrado(
-                batch,
-                OPCIONES[i],
-                boton.y + 34f
-            );
-        }
-
-        fuente.getData().setScale(1.1f);
-        fuente.setColor(Color.LIGHT_GRAY);
-
-        dibujarTextoCentrado(
-            batch,
-            "Flechas y ENTER / clic izquierdo",
-            45f
-        );
-
-        batch.end();
-
-        fuente.getData().setScale(escalaX, escalaY);
-        fuente.setColor(colorAnterior);
-    }
-
-    private void dibujarTextoCentrado(
-            SpriteBatch batch,
-            String texto,
-            float y) {
-
-        layout.setText(fuente, texto);
-
-        fuente.draw(
-            batch,
-            layout,
-            (1280f - layout.width) / 2f,
-            y
-        );
     }
 
     @Override
     public void dispose() {
-        if (fondo != null) {
-            fondo.dispose();
-        }
-
-        if (titulo != null) {
-            titulo.dispose();
-        }
-
-        if (selector != null) {
-            selector.dispose();
+        if (fondoTexture != null) {
+            fondoTexture.dispose();
         }
     }
 }

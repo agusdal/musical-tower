@@ -53,6 +53,8 @@ public class Main_game extends ApplicationAdapter {
     private boolean viendoVolumen;
     
     private MenuDerrota menuDerrota;
+    
+    private MenuVictoria menuVictoria;
 
     private static final float ANCHO_MUNDO = 1280f;
     private static final float ALTO_MUNDO = 720f;
@@ -219,6 +221,8 @@ public class Main_game extends ApplicationAdapter {
         menuPrincipal = new MenuPrincipal(font, menuVolumen);
         
         menuDerrota = new MenuDerrota(font);
+        
+        menuVictoria = new MenuVictoria(font);
 
         shapeRenderer = new ShapeRenderer();
 
@@ -299,6 +303,28 @@ public class Main_game extends ApplicationAdapter {
                     return;
                 default:
                     menuDerrota.dibujar(batch, shapeRenderer);
+                    return;
+            }
+        }
+        
+        if (juego.partidaGanada()) {
+
+            switch (menuVictoria.actualizar(viewport)) {
+
+                case REINICIAR:
+                    reiniciarPartida();
+                    return;
+
+                case MENU_PRINCIPAL:
+                    volverAlMenuPrincipal();
+                    return;
+
+                case SALIR:
+                    Gdx.app.exit();
+                    return;
+
+                default:
+                    menuVictoria.dibujar(batch, shapeRenderer);
                     return;
             }
         }
@@ -442,6 +468,12 @@ public class Main_game extends ApplicationAdapter {
         jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
 
         comprobarAtaqueJugador();
+        
+        if (juego.partidaGanada()) {
+            menuVictoria.dibujar(batch, shapeRenderer);
+            return;
+        }
+        
         comprobarRecogerItem();
         comprobarCompraTienda();
         actualizarPuertas();
@@ -481,6 +513,7 @@ public class Main_game extends ApplicationAdapter {
         
         menuPrincipal.dispose();
         menuDerrota.dispose();
+        menuVictoria.dispose();
 
         font.dispose();
         shapeRenderer.dispose();
@@ -1822,6 +1855,7 @@ public class Main_game extends ApplicationAdapter {
 
         menuPrincipal.restablecer();
         menuDerrota.reiniciarSeleccion();
+        menuVictoria.reiniciarSeleccion();
     }
 
     private void reiniciarPartida() {
@@ -1845,6 +1879,7 @@ public class Main_game extends ApplicationAdapter {
 
         enMenuPrincipal = false;
         menuDerrota.reiniciarSeleccion();
+        menuVictoria.reiniciarSeleccion();
 
         pausado = false;
         viendoControles = false;

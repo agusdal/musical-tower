@@ -3,6 +3,7 @@ import io.github.escuela_tecnica_n35.etapas.Plataforma;
 
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import io.github.escuela_tecnica_n35.entidades.Enemigo;
 import io.github.escuela_tecnica_n35.entidades.EnemigoVolador;
@@ -16,18 +17,27 @@ import io.github.escuela_tecnica_n35.entidades.TipoModificadorItem;
 
 public class GeneracionEtapa {
 
-	public static final int ULTIMO_PISO = 4;
+    public static final int ULTIMO_PISO = 4; // 3 pisos de biomas + 1 piso final de jefe
 
-	// Items que todavía pueden aparecer durante la partida.
-	private ArrayList<Item> poolItems;
+    // Items que todavía pueden aparecer durante la partida.
+    private ArrayList<Item> poolItems;
 
-	public GeneracionEtapa() {
+    // Pool de biomas disponibles para evitar repeticiones en la partida actual
+    private ArrayList<Bioma> poolBiomasDisponibles;
 
-	    poolItems = new ArrayList<Item>();
+    public GeneracionEtapa() {
+        poolItems = new ArrayList<Item>();
+        cargarPoolItems();
 
-	    cargarPoolItems();
-	}
+        poolBiomasDisponibles = new ArrayList<Bioma>();
+        poolBiomasDisponibles.add(new Bioma("Sendero Verde", "sendero_verde.png"));
+        poolBiomasDisponibles.add(new Bioma("Mazmorra", "mazmorra.png"));
+        poolBiomasDisponibles.add(new Bioma("Lava", "lava.png"));
+        poolBiomasDisponibles.add(new Bioma("Ciudadela", "ciudadela.png"));
+        poolBiomasDisponibles.add(new Bioma("Abismo", "tearcity.png"));
 
+        Collections.shuffle(poolBiomasDisponibles);
+    }
 	public Etapa generarEtapa(
 	        int numeroPiso,
 	        Item itemSala,
@@ -385,32 +395,42 @@ public class GeneracionEtapa {
     // -------------------- GENERACIÓN DEL MAPA --------------------
 
     private Sala[][] generarMapa(
-            int numeroPiso,
-            Item itemSala,
-            ArrayList<OfertaTienda> ofertasTienda) {
+        int numeroPiso,
+        Item itemSala,
+        ArrayList<OfertaTienda> ofertasTienda) {
 
         Sala[][] mapa;
 
+        // 1. Extraemos un bioma único del pool para este piso
+        Bioma biomaPiso = null;
+        if (!poolBiomasDisponibles.isEmpty()) {
+            biomaPiso = poolBiomasDisponibles.remove(0);
+        } else {
+            biomaPiso = new Bioma("Sendero Verde", "sendero_verde.png"); // Fallback de seguridad
+        }
 
         do {
-
             mapa =
                 generarEstructuraMapa(
                     numeroPiso
                 );
-
-            // Si el mapa no cumple las condiciones,
-            // se genera nuevamente.
         }
         while (!mapaEsValido(mapa));
 
+        // 2. RECORREMOS EL MAPA Y ASIGNAMOS EL BIOMA A CADA SALA CREADA
+        for (int fila = 0; fila < mapa.length; fila++) {
+            for (int columna = 0; columna < mapa[fila].length; columna++) {
+                if (mapa[fila][columna] != null) {
+                    mapa[fila][columna].setBioma(biomaPiso);
+                }
+            }
+        }
 
         // Una vez que el mapa es válido,
         // asignamos las salas especiales.
         asignarSalaJefe(
             mapa
         );
-
 
         asignarSalasEspeciales(
             mapa,

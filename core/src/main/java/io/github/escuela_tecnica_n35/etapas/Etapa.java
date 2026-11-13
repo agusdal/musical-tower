@@ -22,7 +22,7 @@ public class Etapa {
         this.numeroPiso = numeroPiso;
         this.enemigos = enemigos;
         this.jefe = jefe;
-        
+
         this.mapa = mapa;
     }
 
@@ -45,8 +45,25 @@ public class Etapa {
     public Jefe getJefe() {
         return jefe;
     }
-    
+
     public Sala[][] getMapa() {
         return mapa;
+    }
+    private Bioma bioma;
+
+    // Modifica o sobrecarga el constructor para recibir el bioma:
+    public Etapa(String nombre, int dificultad, int numeroPiso,
+                 ArrayList<Enemigo> enemigos, Jefe jefe, Sala[][] mapa, Bioma bioma) {
+        this.nombre = nombre;
+        this.dificultad = dificultad;
+        this.numeroPiso = numeroPiso;
+        this.enemigos = enemigos;
+        this.jefe = jefe;
+        this.mapa = mapa;
+        this.bioma = bioma;
+    }
+
+    public Bioma getBioma() {
+        return bioma;
     }
 }

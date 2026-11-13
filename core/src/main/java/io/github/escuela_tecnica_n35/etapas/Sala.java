@@ -12,7 +12,7 @@ public class Sala {
     private int fila;
     private int columna;
     private TipoSala tipo;
-    
+
     // Una sala puede tener varias plataformas
     private ArrayList<Plataforma> plataformas;
 
@@ -22,30 +22,30 @@ public class Sala {
     // Guarda cuántas salas hay que recorrer desde la sala inicial
     // para llegar hasta esta sala.
     private int distanciaInicial;
-    
+
     private Item item;
-    
+
     private ArrayList<OfertaTienda> ofertasTienda;
-    
+
     private ArrayList<Proyectil> proyectiles;
-    
+
     public Sala(int fila, int columna, TipoSala tipo) {
-    	
+
         this.fila = fila;
         this.columna = columna;
         this.tipo = tipo;
-        
+
         this.plataformas = new ArrayList<Plataforma>();
-        
+
         this.enemigos = new ArrayList<Enemigo>();
-        
+
         this.distanciaInicial = 0;
-        
+
         this.item = null;
-        
+
         this.ofertasTienda =
         	    new ArrayList<OfertaTienda>();
-        
+
         this.proyectiles =
         	    new ArrayList<Proyectil>();
     }
@@ -68,7 +68,7 @@ public class Sala {
     public void setTipo(TipoSala tipo) {
         this.tipo = tipo;
     }
-    
+
     public void agregarPlataforma(
             Plataforma plataforma) {
 
@@ -90,7 +90,7 @@ public class Sala {
     public void agregarEnemigo(Enemigo enemigo) {
         enemigos.add(enemigo);
     }
-    
+
     public void eliminarEnemigo(Enemigo enemigo) {
         enemigos.remove(enemigo);
     }
@@ -104,7 +104,7 @@ public class Sala {
     public void setDistanciaInicial(int distanciaInicial) {
         this.distanciaInicial = distanciaInicial;
     }
-    
+
     // Devuelve true solamente cuando no queda ningún enemigo vivo.
     //
     // Por ahora, como las salas están vacías,
@@ -120,7 +120,7 @@ public class Sala {
 
         return true;
     }
-    
+
     public Item getItem() {
         return item;
     }
@@ -139,7 +139,7 @@ public class Sala {
     public boolean tieneItem() {
         return item != null;
     }
-    
+
     public void agregarOfertaTienda(
             OfertaTienda oferta) {
 
@@ -158,7 +158,7 @@ public class Sala {
 
         ofertasTienda.remove(oferta);
     }
-    
+
     public void agregarProyectil(
             Proyectil proyectil) {
 
@@ -180,5 +180,15 @@ public class Sala {
         proyectiles.remove(
             proyectil
         );
+    }
+    // Campo para guardar el bioma de la sala
+    private Bioma bioma;
+
+    public void setBioma(Bioma bioma) {
+        this.bioma = bioma;
+    }
+
+    public Bioma getBioma() {
+        return bioma;
     }
 }

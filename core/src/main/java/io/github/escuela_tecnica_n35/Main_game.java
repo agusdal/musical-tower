@@ -1,6 +1,7 @@
 package io.github.escuela_tecnica_n35;
 
 import com.badlogic.gdx.ApplicationAdapter;
+import io.github.escuela_tecnica_n35.etapas.Bioma;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -926,61 +927,64 @@ public class Main_game extends ApplicationAdapter {
         float anchoPantalla = ANCHO_MUNDO;
         float altoPantalla = ALTO_MUNDO;
 
+        batch.begin();
 
-        // 1. Dibujamos las líneas de la habitación y las puertas laterales/centrales con ShapeRenderer
+        // Obtenemos la sala actual y su bioma asignado
+        Sala salaActual = juego.getSalaActual();
+        if (salaActual != null && salaActual.getBioma() != null) {
+            Bioma bioma = salaActual.getBioma();
+
+            boolean hayIzq = juego.haySalaEnDireccion(0, -1);
+            boolean hayDer = juego.haySalaEnDireccion(0, 1);
+
+            // Seleccionamos la región correspondiente usando el archivo único recortado
+            TextureRegion texturaFondoSala = bioma.getTexturaDosPuertas(); // Por defecto
+
+            if (hayIzq && !hayDer) {
+                texturaFondoSala = bioma.getTexturaPuertaIzquierda();
+            } else if (hayDer && !hayIzq) {
+                texturaFondoSala = bioma.getTexturaPuertaDerecha();
+            } else if (hayIzq && hayDer) {
+                texturaFondoSala = bioma.getTexturaDosPuertas();
+            }
+
+            // Se dibuja exactamente el tercio que le corresponde a la sala
+            batch.draw(texturaFondoSala, 0, 0, anchoPantalla, altoPantalla);
+        }
+
+        batch.end();
+
+        // Líneas de colisión y puertas con ShapeRenderer (para depuración/debug)
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.WHITE);
-
-        shapeRenderer.rect(1, pisoY, anchoPantalla - 2, altoPantalla - pisoY - 2);
 
         if (juego.haySalaEnDireccion(0, -1)) {
             shapeRenderer.rect(puertaIzquierda.x, puertaIzquierda.y, puertaIzquierda.width, puertaIzquierda.height);
         }
-
         if (juego.haySalaEnDireccion(0, 1)) {
             shapeRenderer.rect(puertaDerecha.x, puertaDerecha.y, puertaDerecha.width, puertaDerecha.height);
         }
-
         if (juego.haySalaEnDireccion(-1, 0)) {
             shapeRenderer.rect(puertaArriba.x, puertaArriba.y, puertaArriba.width, puertaArriba.height);
         }
-
         if (juego.haySalaEnDireccion(1, 0)) {
             shapeRenderer.rect(puertaAbajo.x, puertaAbajo.y, puertaAbajo.width, puertaAbajo.height);
         }
 
         shapeRenderer.end();
 
-        // 2. Dibujamos las texturas de los ascensores con un ancho mayor para que no se vean delgados
+        // Dibujo de texturas de los ascensores (puertas verticales)
         batch.begin();
-
-        // Definimos un ancho mayor al de la hitbox de la puerta (por ejemplo, 140 píxeles en vez de 80)
-
-// Cambia este número a mano para darle el ancho que quieras a la vista del ascensor:
-        float anchoAscensorVisual = 300f; // Puedes probar con 140f, 180f, 200f, etc.
+        float anchoAscensorVisual = 300f;
 
         if (juego.haySalaEnDireccion(-1, 0)) {
-            // Centramos la textura visualmente respecto al centro de la puertaArriba
             float centroX = puertaArriba.x + (puertaArriba.width / 2f) - (anchoAscensorVisual / 2f);
-            batch.draw(
-                regionAscensorArriba,
-                centroX,
-                puertaArriba.y,
-                anchoAscensorVisual,
-                puertaArriba.height
-            );
+            batch.draw(regionAscensorArriba, centroX, puertaArriba.y, anchoAscensorVisual, puertaArriba.height);
         }
 
         if (juego.haySalaEnDireccion(1, 0)) {
-            // Centramos la textura visualmente respecto al centro de la puertaAbajo
             float centroX = puertaAbajo.x + (puertaAbajo.width / 2f) - (anchoAscensorVisual / 2f);
-            batch.draw(
-                regionAscensorAbajo,
-                centroX,
-                puertaAbajo.y,
-                anchoAscensorVisual,
-                puertaAbajo.height
-            );
+            batch.draw(regionAscensorAbajo, centroX, puertaAbajo.y, anchoAscensorVisual, puertaAbajo.height);
         }
 
         batch.end();

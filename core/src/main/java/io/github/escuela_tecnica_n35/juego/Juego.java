@@ -465,4 +465,14 @@ public class Juego {
 
         return ofertas;
     }
+    
+    public boolean partidaGanada() {
+        return etapaActual != null
+            && salaActual != null
+            && etapaActual.getNumeroPiso()
+                == GeneracionEtapa.ULTIMO_PISO
+            && salaActual.getTipo() == TipoSala.JEFE
+            && etapaActual.getJefe() != null
+            && !etapaActual.getJefe().estaVivo();
+    }
 }

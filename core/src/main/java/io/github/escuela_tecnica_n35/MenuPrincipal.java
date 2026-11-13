@@ -36,9 +36,16 @@ public class MenuPrincipal implements Disposable {
 
     private int anchoVentana;
     private int altoVentana;
+    
+    private final MenuVolumen menuVolumen;
+    private boolean viendoVolumen;
 
-    public MenuPrincipal(BitmapFont fuente) {
+    public MenuPrincipal(
+            BitmapFont fuente,
+            MenuVolumen menuVolumen) {
         this.fuente = fuente;
+        
+        this.menuVolumen = menuVolumen;
 
         anchoVentana = Gdx.graphics.isFullscreen()
             ? 960 : Gdx.graphics.getWidth();
@@ -105,6 +112,7 @@ public class MenuPrincipal implements Disposable {
                         ? "MODO VENTANA"
                         : "PANTALLA COMPLETA",
                     "CONTROLES",
+                    "MUSICA",
                     "VOLVER"
                 };
 
@@ -121,7 +129,15 @@ public class MenuPrincipal implements Disposable {
     }
 
     public boolean actualizar(Viewport viewport) {
+    	
+    	if (viendoVolumen) {
+    	    if (menuVolumen.actualizar(viewport)) {
+    	        viendoVolumen = false;
+    	    }
 
+    	    return false;
+    	}
+    	
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             cambiarPantalla(
                 pantalla == Pantalla.CONTROLES
@@ -196,6 +212,11 @@ public class MenuPrincipal implements Disposable {
                         break;
 
                     case 2:
+                        menuVolumen.restablecer();
+                        viendoVolumen = true;
+                        break;
+
+                    case 3:
                         cambiarPantalla(Pantalla.PRINCIPAL);
                         break;
                 }
@@ -236,6 +257,11 @@ public class MenuPrincipal implements Disposable {
     public void dibujar(
         SpriteBatch batch,
         ShapeRenderer formas) {
+    	
+    	if (viendoVolumen) {
+    	    menuVolumen.dibujar(batch, formas);
+    	    return;
+    	}
 
         float escalaX = fuente.getData().scaleX;
         float escalaY = fuente.getData().scaleY;
@@ -380,6 +406,9 @@ public class MenuPrincipal implements Disposable {
     }
 
     public void restablecer() {
+    	
+    	viendoVolumen = false;
+    	
         cambiarPantalla(Pantalla.PRINCIPAL);
     }
 }

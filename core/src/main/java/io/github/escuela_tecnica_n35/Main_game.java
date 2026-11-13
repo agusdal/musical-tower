@@ -47,7 +47,11 @@ public class Main_game extends ApplicationAdapter {
 
     private MenuPrincipal menuPrincipal;
     private boolean enMenuPrincipal = true;
-
+    
+    private GestorMusica musica;
+    private MenuVolumen menuVolumen;
+    private boolean viendoVolumen;
+    
     private MenuDerrota menuDerrota;
 
     private static final float ANCHO_MUNDO = 1280f;
@@ -140,11 +144,12 @@ public class Main_game extends ApplicationAdapter {
     private boolean transicionBloqueada;
 
     private static final String[] OPCIONES_PAUSA = {
-        "Continuar",
-        "Ver controles",
-        "Reiniciar partida",
-        "Volver al menú principal"
-    };
+    	    "Continuar",
+    	    "Ver controles",
+    	    "Volumen de musica",
+    	    "Reiniciar partida",
+    	    "Volver al menú principal"
+    	};
 
     private boolean pausado;
     private boolean viendoControles;
@@ -168,7 +173,7 @@ public class Main_game extends ApplicationAdapter {
         for (int i = 0; i < botonesPausa.length; i++) {
             botonesPausa[i] = new Rectangle(
                 380f,
-                395f - i * 55f,
+                420f - i * 50f,
                 520f,
                 40f
             );
@@ -204,8 +209,15 @@ public class Main_game extends ApplicationAdapter {
         font.getData().setScale(1.2f);
 
         layout = new GlyphLayout();
+        
 
-        menuPrincipal = new MenuPrincipal(font);
+        musica = new GestorMusica();
+
+        menuVolumen = new MenuVolumen(font, musica);
+        
+
+        menuPrincipal = new MenuPrincipal(font, menuVolumen);
+        
         menuDerrota = new MenuDerrota(font);
 
         shapeRenderer = new ShapeRenderer();
@@ -250,7 +262,11 @@ public class Main_game extends ApplicationAdapter {
     @Override
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
-
+        
+        musica.actualizar(
+        	    enMenuPrincipal ? null : juego.getEtapaActual()
+        	);
+        
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
         viewport.apply();
@@ -258,7 +274,7 @@ public class Main_game extends ApplicationAdapter {
 
         batch.setProjectionMatrix(camara.combined);
         shapeRenderer.setProjectionMatrix(camara.combined);
-
+        
         if (enMenuPrincipal) {
             if (menuPrincipal.actualizar(viewport)) {
                 reiniciarPartida();
@@ -286,7 +302,7 @@ public class Main_game extends ApplicationAdapter {
                     return;
             }
         }
-
+        
         if (pausado || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             actualizarMenuPausa();
 
@@ -461,6 +477,8 @@ public class Main_game extends ApplicationAdapter {
     public void dispose() {
         batch.dispose();
 
+        musica.dispose();
+        
         menuPrincipal.dispose();
         menuDerrota.dispose();
 
@@ -680,7 +698,16 @@ public class Main_game extends ApplicationAdapter {
     }
 
     private void actualizarMenuPausa() {
+    	
+    	if (viendoVolumen) {
+    	    if (menuVolumen.actualizar(viewport)) {
+    	        viendoVolumen = false;
+    	    }
 
+    	    return;
+    	}
+    	
+    	
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (viendoControles) {
                 viendoControles = false;
@@ -735,23 +762,28 @@ public class Main_game extends ApplicationAdapter {
                 || (clic && bajoMouse >= 0);
 
         if (aceptar) {
-            switch (opcionPausa) {
-                case 0:
-                    pausado = false;
-                    break;
-
-                case 1:
-                    viendoControles = true;
-                    break;
-
-                case 2:
-                    reiniciarPartida();
-                    break;
-
-                case 3:
-                    volverAlMenuPrincipal();
-                    break;
-            }
+        	switch (opcionPausa) {
+	            case 0:
+	                pausado = false;
+	                break;
+	
+	            case 1:
+	                viendoControles = true;
+	                break;
+	
+	            case 2:
+	                menuVolumen.restablecer();
+	                viendoVolumen = true;
+	                break;
+	
+	            case 3:
+	                reiniciarPartida();
+	                break;
+	
+	            case 4:
+	                volverAlMenuPrincipal();
+	                break;
+	        }
         }
     }
 
@@ -770,6 +802,12 @@ public class Main_game extends ApplicationAdapter {
     }
 
     private void dibujarMenuPausa() {
+    	
+    	if (viendoVolumen) {
+    	    menuVolumen.dibujar(batch, shapeRenderer);
+    	    return;
+    	}
+    	
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -811,7 +849,7 @@ public class Main_game extends ApplicationAdapter {
             for (int i = 0; i < OPCIONES_PAUSA.length; i++) {
                 boolean seleccionada = i == opcionPausa;
                 String texto = seleccionada ? "> " + OPCIONES_PAUSA[i] : OPCIONES_PAUSA[i];
-                dibujarTextoCentrado(texto, 420f - i * 55f, seleccionada ? Color.ORANGE : Color.WHITE);
+                dibujarTextoCentrado(texto, 445f - i * 50f, seleccionada ? Color.ORANGE : Color.WHITE);
             }
 
             dibujarTextoCentrado("Arriba / abajo para elegir - ENTER para aceptar", 205f, Color.LIGHT_GRAY);
@@ -1779,6 +1817,8 @@ public class Main_game extends ApplicationAdapter {
         pausado = false;
         viendoControles = false;
         opcionPausa = 0;
+        
+        viendoVolumen = false;
 
         menuPrincipal.restablecer();
         menuDerrota.reiniciarSeleccion();
@@ -1809,5 +1849,7 @@ public class Main_game extends ApplicationAdapter {
         pausado = false;
         viendoControles = false;
         opcionPausa = 0;
+        
+        viendoVolumen = false;
     }
 }

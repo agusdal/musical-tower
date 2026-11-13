@@ -321,38 +321,43 @@ public class GeneracionEtapa {
         );
     }
 
-	private Etapa generarPisoFinal() {
+    private Etapa generarPisoFinal() {
 
-	    Sala inicial = new Sala(0, 0, TipoSala.INICIAL);
-	    Sala salaJefe = new Sala(0, 1, TipoSala.JEFE);
+        Sala inicial = new Sala(0, 0, TipoSala.INICIAL);
+        Sala salaJefe = new Sala(0, 1, TipoSala.JEFE);
 
-	    Jefe jefe = new Jefe(
-	        "Jefe final",
-	        new Posicion(800f, 50f),
-	        300,
-	        80f,
-	        20,
-	        15,
-	        25,
-	        180f,
-	        220f
-	    );
+        // --- SOLUCIÓN: Asignamos un bioma al piso final para que cargue los sprites de fondo ---
+        Bioma biomaFinal = new Bioma("Ciudadela", "ciudadela.png");
+        inicial.setBioma(biomaFinal);
+        salaJefe.setBioma(biomaFinal);
 
-	    salaJefe.agregarEnemigo(jefe);
+        Jefe jefe = new Jefe(
+            "Jefe final",
+            new Posicion(800f, 50f),
+            300,
+            80f,
+            20,
+            15,
+            25,
+            180f,
+            220f
+        );
 
-	    Sala[][] mapa = {
-	        { inicial, salaJefe }
-	    };
+        salaJefe.agregarEnemigo(jefe);
 
-	    return new Etapa(
-	        "PISO FINAL",
-	        ULTIMO_PISO,
-	        ULTIMO_PISO,
-	        new ArrayList<Enemigo>(),
-	        jefe,
-	        mapa
-	    );
-	}
+        Sala[][] mapa = {
+            { inicial, salaJefe }
+        };
+
+        return new Etapa(
+            "PISO FINAL",
+            ULTIMO_PISO,
+            ULTIMO_PISO,
+            new ArrayList<Enemigo>(),
+            jefe,
+            mapa
+        );
+    }
 
     // -------------------- TAMAÑO DEL MAPA --------------------
 

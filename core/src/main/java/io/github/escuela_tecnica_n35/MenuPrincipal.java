@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
@@ -25,7 +26,8 @@ public class MenuPrincipal implements Disposable {
     private final Rectangle[] botones = new Rectangle[4];
     private final MouseMenu mouseMenu = new MouseMenu();
 
-    private final Texture fondo;
+    private Texture fondoTexture;
+    private final TextureRegion[] regionesFondo = new TextureRegion[6];
     private final Texture logo;
     private final Texture selector;
 
@@ -44,14 +46,36 @@ public class MenuPrincipal implements Disposable {
         altoVentana = Gdx.graphics.isFullscreen()
             ? 540 : Gdx.graphics.getHeight();
 
-        fondo = cargarTextura("menu/fondo.png");
+        fondoTexture = cargarTextura("menu/menu.png");
+        if (fondoTexture == null) {
+            fondoTexture = cargarTextura("menu.png");
+        }
+
+        if (fondoTexture != null) {
+            // Cuadrícula de 2 columnas x 3 filas (6 paneles)
+            int columnas = 2;
+            int filas = 3;
+            int anchoFrame = fondoTexture.getWidth() / columnas;
+            int altoFrame = fondoTexture.getHeight() / filas;
+
+            TextureRegion[][] tmp = TextureRegion.split(fondoTexture, anchoFrame, altoFrame);
+            int index = 0;
+            for (int i = 0; i < filas; i++) {
+                for (int j = 0; j < columnas; j++) {
+                    if (index < regionesFondo.length) {
+                        regionesFondo[index++] = tmp[i][j];
+                    }
+                }
+            }
+        }
+
         logo = cargarTextura("menu/logo.png");
         selector = cargarTextura("menu/selector.png");
 
         for (int i = 0; i < botones.length; i++) {
             botones[i] = new Rectangle(
                 90f,
-                365f - i * 45f,
+                365f - (i * 45f),
                 290f,
                 38f
             );
@@ -62,7 +86,6 @@ public class MenuPrincipal implements Disposable {
         if (Gdx.files.internal(ruta).exists()) {
             return new Texture(Gdx.files.internal(ruta));
         }
-
         return null;
     }
 
@@ -71,8 +94,8 @@ public class MenuPrincipal implements Disposable {
             case PRINCIPAL:
                 return new String[] {
                     "JUGAR",
+                    "PARTIDAS",
                     "CONFIGURACION",
-                    "CREDITOS",
                     "SALIR"
                 };
 
@@ -97,7 +120,6 @@ public class MenuPrincipal implements Disposable {
         seleccion = 0;
     }
 
-    // Devuelve true cuando se elige Jugar.
     public boolean actualizar(Viewport viewport) {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
@@ -120,21 +142,21 @@ public class MenuPrincipal implements Disposable {
         }
 
         int bajoMouse = mouseMenu.obtenerOpcion(
-        	    viewport,
-        	    botones,
-        	    cantidad
-        	);
+            viewport,
+            botones,
+            cantidad
+        );
 
-        	boolean clic =
-        	    Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+        boolean clic =
+            Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
 
-        	if (bajoMouse >= 0 && (mouseMenu.seMovio() || clic)) {
-        	    seleccion = bajoMouse;
-        	}
+        if (bajoMouse >= 0 && (mouseMenu.seMovio() || clic)) {
+            seleccion = bajoMouse;
+        }
 
-        	boolean aceptar =
-        	    Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
-        	    || (clic && bajoMouse >= 0);
+        boolean aceptar =
+            Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
+                || (clic && bajoMouse >= 0);
 
         if (!aceptar) {
             return false;
@@ -148,11 +170,11 @@ public class MenuPrincipal implements Disposable {
                         return true;
 
                     case 1:
-                        cambiarPantalla(Pantalla.CONFIGURACION);
+                        // PARTIDAS (puedes enlazarlo o dejarlo temporal)
                         break;
 
                     case 2:
-                        cambiarPantalla(Pantalla.CREDITOS);
+                        cambiarPantalla(Pantalla.CONFIGURACION);
                         break;
 
                     case 3:
@@ -212,16 +234,8 @@ public class MenuPrincipal implements Disposable {
     }
 
     public void dibujar(
-            SpriteBatch batch,
-            ShapeRenderer formas) {
-
-        // Fondo provisional hasta incorporar la ilustración.
-        if (fondo == null) {
-            formas.begin(ShapeRenderer.ShapeType.Filled);
-            formas.setColor(0.06f, 0.05f, 0.10f, 1f);
-            formas.rect(0f, 0f, 480f, 720f);
-            formas.end();
-        }
+        SpriteBatch batch,
+        ShapeRenderer formas) {
 
         float escalaX = fuente.getData().scaleX;
         float escalaY = fuente.getData().scaleY;
@@ -231,31 +245,42 @@ public class MenuPrincipal implements Disposable {
         batch.setColor(Color.WHITE);
         batch.begin();
 
-        if (fondo != null) {
-            batch.draw(fondo, 0f, 0f, 1280f, 720f);
+        // 1. DIBUJAR EL FONDO DINÁMICO
+        if (regionesFondo[0] != null) {
+            TextureRegion fondoActual;
+
+            if (pantalla == Pantalla.PRINCIPAL) {
+                // Cambia entre las primeras 5 imágenes según la opción seleccionada (índices 0 al 4)
+                int indiceFondo = Math.min(seleccion, 4);
+                fondoActual = regionesFondo[indiceFondo];
+            } else {
+                // En submenús usa la 6ª imagen (la que NO tiene letras, índice 4 o 5 dependiendo del orden,
+                // por tu imagen la 6ª celda corresponde al índice 4 o 5 de la matriz 2x3. Probemos con la 4 o 5).
+                // Como es la última de la grilla de 6 elementos (fila 3, columna 1), su índice es 4 (en base 0: 0,1,2,3,4).
+                fondoActual = regionesFondo[4];
+            }
+
+            if (fondoActual != null) {
+                batch.draw(fondoActual, 0f, 0f, 1280f, 720f);
+            }
         }
 
-        if (pantalla == Pantalla.PRINCIPAL && logo != null) {
-            batch.draw(logo, 65f, 435f, 350f, 245f);
-
-        } else {
+        // 2. TÍTULO / LOGO (Solo se dibuja en submenús, ya que en el menú principal ya viene en el fondo)
+        if (pantalla != Pantalla.PRINCIPAL) {
             fuente.getData().setScale(2.5f);
-
-            String titulo = pantalla == Pantalla.PRINCIPAL
-                ? "MUSIC TOWER"
-                : pantalla.name();
-
+            String titulo = pantalla.name();
             fuente.setColor(1f, 0.90f, 0.69f, 1f);
             fuente.draw(batch, titulo, 65f, 635f);
         }
 
         fuente.getData().setScale(1.5f);
-
         String[] textos = opciones();
 
+        // 3. BOTONES Y TEXTOS
         for (int i = 0; i < textos.length; i++) {
             Rectangle boton = botones[i];
 
+            // Selector gráfico si lo hay
             if (i == seleccion && selector != null) {
                 batch.draw(
                     selector,
@@ -266,26 +291,30 @@ public class MenuPrincipal implements Disposable {
                 );
             }
 
-            fuente.setColor(
-                i == seleccion
-                    ? Color.ORANGE
-                    : Color.LIGHT_GRAY
-            );
+            // SOLO dibujamos las letras por código si ESTAMOS EN SUBMENÚS.
+            // En el menú principal el fondo ya trae las letras dibujadas.
+            if (pantalla != Pantalla.PRINCIPAL) {
+                fuente.setColor(
+                    i == seleccion
+                        ? Color.ORANGE
+                        : Color.LIGHT_GRAY
+                );
 
-            fuente.draw(
-                batch,
-                textos[i],
-                boton.x + 28f,
-                boton.y + 28f
-            );
-
-            if (i == seleccion && selector == null) {
                 fuente.draw(
                     batch,
-                    ">",
-                    boton.x + 5f,
+                    textos[i],
+                    boton.x + 28f,
                     boton.y + 28f
                 );
+
+                if (selector == null && i == seleccion) {
+                    fuente.draw(
+                        batch,
+                        ">",
+                        boton.x + 5f,
+                        boton.y + 28f
+                    );
+                }
             }
         }
 
@@ -293,7 +322,6 @@ public class MenuPrincipal implements Disposable {
         fuente.setColor(Color.WHITE);
 
         if (pantalla == Pantalla.CONTROLES) {
-
             String[] controles = {
                 "Izquierda / derecha: mover",
                 "Z: salto / doble salto",
@@ -311,13 +339,11 @@ public class MenuPrincipal implements Disposable {
                     batch,
                     controles[i],
                     65f,
-                    325f - i * 28f
+                    325f - (i * 28f)
                 );
             }
 
         } else if (pantalla == Pantalla.CREDITOS) {
-
-            // Agregar aquí los nombres y funciones del equipo.
             fuente.draw(
                 batch,
                 "MUSICAL TOWER",
@@ -327,7 +353,6 @@ public class MenuPrincipal implements Disposable {
         }
 
         fuente.setColor(Color.LIGHT_GRAY);
-
         fuente.draw(
             batch,
             "Flechas y ENTER / clic izquierdo",
@@ -343,19 +368,17 @@ public class MenuPrincipal implements Disposable {
 
     @Override
     public void dispose() {
-        if (fondo != null) {
-            fondo.dispose();
+        if (fondoTexture != null) {
+            fondoTexture.dispose();
         }
-
         if (logo != null) {
             logo.dispose();
         }
-
         if (selector != null) {
             selector.dispose();
         }
     }
-    
+
     public void restablecer() {
         cambiarPantalla(Pantalla.PRINCIPAL);
     }

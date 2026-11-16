@@ -36,17 +36,17 @@ public class MenuPrincipal implements Disposable {
 
     private int anchoVentana;
     private int altoVentana;
-    
+
     private final MenuVolumen menuVolumen;
     private boolean viendoVolumen;
-    
+
     private boolean solicitarPartidas;
 
     public MenuPrincipal(
             BitmapFont fuente,
             MenuVolumen menuVolumen) {
         this.fuente = fuente;
-        
+
         this.menuVolumen = menuVolumen;
 
         anchoVentana = Gdx.graphics.isFullscreen()
@@ -131,7 +131,7 @@ public class MenuPrincipal implements Disposable {
     }
 
     public boolean actualizar(Viewport viewport) {
-    	
+
     	if (viendoVolumen) {
     	    if (menuVolumen.actualizar(viewport)) {
     	        viendoVolumen = false;
@@ -139,7 +139,7 @@ public class MenuPrincipal implements Disposable {
 
     	    return false;
     	}
-    	
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             cambiarPantalla(
                 pantalla == Pantalla.CONTROLES
@@ -259,95 +259,52 @@ public class MenuPrincipal implements Disposable {
     public void dibujar(
         SpriteBatch batch,
         ShapeRenderer formas) {
-    	
-    	if (viendoVolumen) {
-    	    menuVolumen.dibujar(batch, formas);
-    	    return;
-    	}
 
         float escalaX = fuente.getData().scaleX;
         float escalaY = fuente.getData().scaleY;
-
         Color colorAnterior = new Color(fuente.getColor());
 
         batch.setColor(Color.WHITE);
         batch.begin();
 
-        // 1. DIBUJAR EL FONDO DINÁMICO
-        if (regionesFondo[0] != null) {
+        if (regionesFondo != null && regionesFondo[0] != null) {
             TextureRegion fondoActual;
 
             if (pantalla == Pantalla.PRINCIPAL) {
-                // Cambia entre las primeras 5 imágenes según la opción seleccionada (índices 0 al 4)
-                int indiceFondo = Math.min(seleccion, 4);
+                int indiceFondo = Math.min(seleccion, regionesFondo.length - 2);
                 fondoActual = regionesFondo[indiceFondo];
             } else {
-                // En submenús usa la 6ª imagen (la que NO tiene letras, índice 4 o 5 dependiendo del orden,
-                // por tu imagen la 6ª celda corresponde al índice 4 o 5 de la matriz 2x3. Probemos con la 4 o 5).
-                // Como es la última de la grilla de 6 elementos (fila 3, columna 1), su índice es 4 (en base 0: 0,1,2,3,4).
-                fondoActual = regionesFondo[4];
+                // Último panel de la grilla (sin opciones pre-renderizadas)
+                fondoActual = regionesFondo[regionesFondo.length - 1];
             }
 
             if (fondoActual != null) {
                 batch.draw(fondoActual, 0f, 0f, 1280f, 720f);
             }
         }
-        
-        if (pantalla == Pantalla.PRINCIPAL) {
 
-            batch.end();
-
-            formas.begin(
-                ShapeRenderer.ShapeType.Filled
-            );
-
-            formas.setColor(
-                0.04f, 0.04f, 0.08f, 1f
-            );
-
-            Rectangle boton = botones[0];
-
-            formas.rect(
-                boton.x,
-                boton.y,
-                boton.width,
-                boton.height
-            );
-
-            formas.end();
-
-            batch.begin();
-        }
-
-        // 2. TÍTULO / LOGO (Solo se dibuja en submenús, ya que en el menú principal ya viene en el fondo)
+        // En el menú principal el fondo ya trae el título y las opciones
         if (pantalla != Pantalla.PRINCIPAL) {
             fuente.getData().setScale(2.5f);
-            String titulo = pantalla.name();
             fuente.setColor(1f, 0.90f, 0.69f, 1f);
-            fuente.draw(batch, titulo, 65f, 635f);
-        }
+            fuente.draw(batch, pantalla.name(), 65f, 635f);
 
-        fuente.getData().setScale(1.5f);
-        String[] textos = opciones();
+            fuente.getData().setScale(1.5f);
+            String[] textos = opciones();
 
-        // 3. BOTONES Y TEXTOS
-        for (int i = 0; i < textos.length; i++) {
-            Rectangle boton = botones[i];
+            for (int i = 0; i < textos.length; i++) {
+                Rectangle boton = botones[i];
 
-            // Selector gráfico si lo hay
-            if (i == seleccion && selector != null) {
-                batch.draw(
-                    selector,
-                    boton.x,
-                    boton.y,
-                    boton.width,
-                    boton.height
-                );
-            }
+                if (i == seleccion && selector != null) {
+                    batch.draw(
+                        selector,
+                        boton.x,
+                        boton.y,
+                        boton.width,
+                        boton.height
+                    );
+                }
 
-            // SOLO dibujamos las letras por código si ESTAMOS EN SUBMENÚS.
-            // En el menú principal el fondo ya trae las letras dibujadas.
-            if (pantalla != Pantalla.PRINCIPAL || i == 0) {
                 fuente.setColor(
                     i == seleccion
                         ? Color.ORANGE
@@ -361,7 +318,7 @@ public class MenuPrincipal implements Disposable {
                     boton.y + 28f
                 );
 
-                if (selector == null && i == seleccion) {
+                if (i == seleccion && selector == null) {
                     fuente.draw(
                         batch,
                         ">",
@@ -370,42 +327,42 @@ public class MenuPrincipal implements Disposable {
                     );
                 }
             }
+
+            fuente.getData().setScale(1.2f);
+            fuente.setColor(Color.WHITE);
+
+            if (pantalla == Pantalla.CONTROLES) {
+                String[] controles = {
+                    "Izquierda / derecha: mover",
+                    "Z: salto / doble salto",
+                    "C: dash",
+                    "X: ataque",
+                    "Arriba + X: golpe superior",
+                    "Abajo + X en el aire: pogo",
+                    "F: puertas verticales",
+                    "A: pocima",
+                    "ESC: pausa"
+                };
+
+                for (int i = 0; i < controles.length; i++) {
+                    fuente.draw(
+                        batch,
+                        controles[i],
+                        65f,
+                        325f - (i * 28f)
+                    );
+                }
+            } else if (pantalla == Pantalla.CREDITOS) {
+                fuente.draw(
+                    batch,
+                    "MUSICAL TOWER",
+                    65f,
+                    320f
+                );
+            }
         }
 
         fuente.getData().setScale(1.2f);
-        fuente.setColor(Color.WHITE);
-
-        if (pantalla == Pantalla.CONTROLES) {
-            String[] controles = {
-                "Izquierda / derecha: mover",
-                "Z: salto / doble salto",
-                "C: dash",
-                "X: ataque",
-                "Arriba + X: golpe superior",
-                "Abajo + X en el aire: pogo",
-                "F: puertas verticales",
-                "A: pocima",
-                "ESC: pausa"
-            };
-
-            for (int i = 0; i < controles.length; i++) {
-                fuente.draw(
-                    batch,
-                    controles[i],
-                    65f,
-                    325f - (i * 28f)
-                );
-            }
-
-        } else if (pantalla == Pantalla.CREDITOS) {
-            fuente.draw(
-                batch,
-                "MUSICAL TOWER",
-                65f,
-                320f
-            );
-        }
-
         fuente.setColor(Color.LIGHT_GRAY);
         fuente.draw(
             batch,
@@ -434,12 +391,12 @@ public class MenuPrincipal implements Disposable {
     }
 
     public void restablecer() {
-    	
+
     	viendoVolumen = false;
-    	
+
         cambiarPantalla(Pantalla.PRINCIPAL);
     }
-    
+
     public boolean consumirSolicitudPartidas() {
 
         boolean solicitud = solicitarPartidas;

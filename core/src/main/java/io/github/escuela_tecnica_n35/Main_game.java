@@ -1090,9 +1090,18 @@ public class Main_game extends ApplicationAdapter {
         float superficieApoyo = pisoY;
 
         for (Plataforma plataforma : juego.getSalaActual().getPlataformas()) {
-            float superficiePlataforma = plataforma.getY() + plataforma.getAlto();
-            boolean coincideEnX = cuerpoActual.x < plataforma.getX() + plataforma.getAncho()
-                && cuerpoActual.x + cuerpoActual.width > plataforma.getX();
+        	Rectangle hitboxPlataforma =
+        		    obtenerHitboxPlataforma(plataforma);
+
+        	float superficiePlataforma =
+        		    hitboxPlataforma.y + hitboxPlataforma.height;
+
+        	boolean coincideEnX =
+        		    cuerpoActual.x
+        		        < hitboxPlataforma.x + hitboxPlataforma.width
+        		    && cuerpoActual.x + cuerpoActual.width
+        		        > hitboxPlataforma.x;
+        		        
             boolean cruzaSuperficie = cuerpoAnterior.y >= superficiePlataforma && cuerpoActual.y <= superficiePlataforma;
 
             if (coincideEnX && cruzaSuperficie) {
@@ -1372,8 +1381,9 @@ public class Main_game extends ApplicationAdapter {
             float piesAhora = hitboxActual.y;
             float cabezaAhora = hitboxActual.y + hitboxActual.height;
 
-            float arribaPlataforma = plataforma.getY() + plataforma.getAlto();
-            float abajoPlataforma = plataforma.getY();
+            float arribaPlataforma = hitboxPlataforma.y + hitboxPlataforma.height;
+
+            float abajoPlataforma = hitboxPlataforma.y;
 
             if (velocidadY <= 0 && piesAntes >= arribaPlataforma && piesAhora <= arribaPlataforma) {
                 float correccionY = arribaPlataforma - piesAhora;
@@ -1559,36 +1569,24 @@ public class Main_game extends ApplicationAdapter {
         batch.end();
     }
 
-    private Rectangle obtenerHitboxPlataforma(Plataforma plataforma) {
-        float altoFisico = 15f;
-        float ySuperficie = plataforma.getY() + plataforma.getAlto();
-        float offsetY = 60f;
-        float yFisica = (ySuperficie - altoFisico) + offsetY;
+    private Rectangle obtenerHitboxPlataforma(
+            Plataforma plataforma) {
 
-        return new Rectangle(
-            plataforma.getX(),
-            yFisica,
-            plataforma.getAncho(),
-            altoFisico
-        );
+        return plataforma.getHitbox();
     }
 
     private void dibujarPlataformas() {
         batch.begin();
 
-        for (Plataforma plataforma : juego.getSalaActual().getPlataformas()) {
-            float ySuperficie = plataforma.getY() + plataforma.getAlto();
-            float altoVisual = 140f;
-            float anchoVisual = plataforma.getAncho();
-            float offsetY = 60f;
-            float yVisual = (ySuperficie - altoVisual) + offsetY;
+        for (Plataforma plataforma :
+                juego.getSalaActual().getPlataformas()) {
 
             batch.draw(
                 texturaPlataforma,
                 plataforma.getX(),
-                yVisual,
-                anchoVisual,
-                altoVisual
+                plataforma.getYVisual(),
+                plataforma.getAncho(),
+                plataforma.getAltoVisual()
             );
         }
 

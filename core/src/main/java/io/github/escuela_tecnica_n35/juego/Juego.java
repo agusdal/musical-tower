@@ -51,7 +51,7 @@ public class Juego {
     	    sacarItemAleatorio();
 
     	ArrayList<OfertaTienda> ofertasTienda =
-    		    generarOfertasTienda(2);
+    		    generarOfertasTienda(2, 1);
 
     		etapaActual =
     		    generador.generarEtapa(
@@ -94,7 +94,7 @@ public class Juego {
 
         Item itemSala = sacarItemAleatorio();
 
-        ArrayList<OfertaTienda> ofertasTienda = generarOfertasTienda(2);
+        ArrayList<OfertaTienda> ofertasTienda = generarOfertasTienda(2, siguientePiso);
 
         Etapa nuevaEtapa = generador.generarEtapa(
             siguientePiso,
@@ -429,39 +429,32 @@ public class Juego {
     }
 
     private ArrayList<OfertaTienda> generarOfertasTienda(
-            int cantidad) {
+            int cantidad,
+            int numeroPiso) {
 
         ArrayList<OfertaTienda> ofertas =
             new ArrayList<OfertaTienda>();
 
+        int precio =
+            20 + (numeroPiso - 1) * 15;
 
         for (int i = 0; i < cantidad; i++) {
 
             Item item =
                 sacarItemAleatorio();
 
-
-            // Si la pool quedó vacía,
-            // simplemente dejamos de generar ofertas.
             if (item == null) {
                 break;
             }
 
-
-            // PRECIO PROVISIONAL:
-            // por ahora todos cuestan 20.
             OfertaTienda oferta =
                 new OfertaTienda(
                     item,
-                    20
+                    precio
                 );
 
-
-            ofertas.add(
-                oferta
-            );
+            ofertas.add(oferta);
         }
-
 
         return ofertas;
     }

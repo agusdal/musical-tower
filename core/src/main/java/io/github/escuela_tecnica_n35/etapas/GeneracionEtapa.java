@@ -1192,21 +1192,18 @@ public class GeneracionEtapa {
 
 	 	if (itemSala != null) {
 
-	 	    float anchoItem = 40f;
+	 		float anchoItem = 64f;
 
 	 	    // Centramos el item horizontalmente
 	 	    // respecto del pedestal.
-	 	    float itemX =
-	 	    	pedestal.getX()
-	 	        + pedestal.getAncho() / 2
-	 	        - anchoItem / 2;
+	 		float itemX =
+	 			    pedestal.getCentroX() - anchoItem / 2f;
 
 
 	 	    // Lo colocamos justo sobre
 	 	    // la superficie del pedestal.
-	 	    float itemY =
-	 	    	pedestal.getY()
-	 	        + pedestal.getAlto();
+	 		float itemY =
+	 			    pedestal.getSuperficieY();
 
 
 	 	    itemSala.getPosicion().setX(
@@ -1292,14 +1289,10 @@ public class GeneracionEtapa {
 
 
 	    	    float itemX =
-	    	        plataformaIzquierda.getX()
-	    	        + plataformaIzquierda.getAncho() / 2
-	    	        - 40f / 2;
-
+	    	    	    plataformaIzquierda.getCentroX() - 64f / 2f;
 
 	    	    float itemY =
-	    	        plataformaIzquierda.getY()
-	    	        + plataformaIzquierda.getAlto();
+	    	    	    plataformaIzquierda.getSuperficieY();
 
 
 	    	    item.getPosicion().setX(itemX);
@@ -1321,14 +1314,10 @@ public class GeneracionEtapa {
 
 
 	    	    float itemX =
-	    	        plataformaDerecha.getX()
-	    	        + plataformaDerecha.getAncho() / 2
-	    	        - 40f / 2;
-
+	    	    	    plataformaDerecha.getCentroX() - 64f / 2f;
 
 	    	    float itemY =
-	    	        plataformaDerecha.getY()
-	    	        + plataformaDerecha.getAlto();
+	    	    	    plataformaDerecha.getSuperficieY();
 
 
 	    	    item.getPosicion().setX(itemX);
@@ -1510,12 +1499,11 @@ public class GeneracionEtapa {
 
 	    // Centramos el cuerpo sobre la plataforma.
 	    float enemigoX =
-	        plataforma.getX()
-	        + (plataforma.getAncho() - hitbox.getAncho()) / 2f;
+	    	    plataforma.getCentroX() - hitbox.getAncho() / 2f;
 
 	    // Los pies quedan sobre la superficie.
 	    float enemigoY =
-	        plataforma.getY() + plataforma.getAlto();
+	    	    plataforma.getSuperficieY();
 
 	    Enemigo enemigo = new Enemigo(
 	        "Enemigo normal",

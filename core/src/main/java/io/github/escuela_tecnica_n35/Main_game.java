@@ -55,6 +55,15 @@ public class Main_game extends ApplicationAdapter {
     private MenuDerrota menuDerrota;
     
     private MenuVictoria menuVictoria;
+    
+    private GestorPartidas gestorPartidas;
+    private MenuPartidas menuPartidas;
+
+    private boolean viendoPartidas;
+
+    private int slotActual = -1;
+
+    private String mensajeGuardado = "";
 
     private static final float ANCHO_MUNDO = 1280f;
     private static final float ALTO_MUNDO = 720f;
@@ -220,6 +229,13 @@ public class Main_game extends ApplicationAdapter {
 
         menuPrincipal = new MenuPrincipal(font, menuVolumen);
         
+        gestorPartidas = new GestorPartidas();
+
+        menuPartidas = new MenuPartidas(
+            font,
+            gestorPartidas
+        );
+        
         menuDerrota = new MenuDerrota(font);
         
         menuVictoria = new MenuVictoria(font);
@@ -280,13 +296,70 @@ public class Main_game extends ApplicationAdapter {
         shapeRenderer.setProjectionMatrix(camara.combined);
         
         if (enMenuPrincipal) {
-            if (menuPrincipal.actualizar(viewport)) {
-                reiniciarPartida();
-                enMenuPrincipal = false;
+
+            if (viendoPartidas) {
+
+                actualizarPartidas();
+
+                if (enMenuPrincipal && viendoPartidas) {
+
+                    menuPartidas.dibujar(
+                        batch,
+                        shapeRenderer
+                    );
+                }
+
                 return;
             }
 
-            menuPrincipal.dibujar(batch, shapeRenderer);
+            boolean continuar =
+                menuPrincipal.actualizar(viewport);
+
+            if (menuPrincipal.consumirSolicitudPartidas()) {
+
+                menuPartidas.abrir();
+                viendoPartidas = true;
+
+            } else if (continuar) {
+
+                int slot =
+                    gestorPartidas.masReciente();
+
+                if (slot >= 0) {
+
+                    cargarPartida(slot);
+
+                } else {
+
+                    menuPartidas.abrir();
+
+                    menuPartidas.mostrarMensaje(
+                        "No hay partidas guardadas. "
+                        + "Elegí un slot y Nueva partida."
+                    );
+
+                    viendoPartidas = true;
+                }
+            }
+
+            if (enMenuPrincipal) {
+
+                if (viendoPartidas) {
+
+                    menuPartidas.dibujar(
+                        batch,
+                        shapeRenderer
+                    );
+
+                } else {
+
+                    menuPrincipal.dibujar(
+                        batch,
+                        shapeRenderer
+                    );
+                }
+            }
+
             return;
         }
 
@@ -503,6 +576,8 @@ public class Main_game extends ApplicationAdapter {
 
         dibujarHUD();
         dibujarAvisoAvanzarEtapa();
+        
+        dibujarMensajeGuardado();
     }
 
     @Override
@@ -514,6 +589,7 @@ public class Main_game extends ApplicationAdapter {
         menuPrincipal.dispose();
         menuDerrota.dispose();
         menuVictoria.dispose();
+        gestorPartidas.dispose();
 
         font.dispose();
         shapeRenderer.dispose();
@@ -1859,6 +1935,16 @@ public class Main_game extends ApplicationAdapter {
 
     private void volverAlMenuPrincipal() {
         enMenuPrincipal = true;
+        
+        if (!guardarPartidaActual()) {
+
+            pausado = true;
+
+            return;
+        }
+
+        viendoPartidas = false;
+        
         gameOver = false;
 
         pausado = false;
@@ -1900,5 +1986,240 @@ public class Main_game extends ApplicationAdapter {
         opcionPausa = 0;
         
         viendoVolumen = false;
+    }
+    
+    private void actualizarPartidas() {
+
+        switch (menuPartidas.actualizar(viewport)) {
+
+            case NUEVA:
+
+                slotActual =
+                    menuPartidas.getSlotElegido();
+
+                reiniciarPartida();
+
+                if (!guardarPartidaActual()) {
+
+                    enMenuPrincipal = true;
+                    viendoPartidas = true;
+
+                    menuPartidas.mostrarMensaje(
+                        mensajeGuardado
+                    );
+
+                } else {
+
+                    viendoPartidas = false;
+                }
+
+                break;
+
+            case CONTINUAR:
+
+                cargarPartida(
+                    menuPartidas.getSlotElegido()
+                );
+
+                break;
+
+            case VOLVER:
+
+                viendoPartidas = false;
+
+                menuPrincipal.restablecer();
+
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private boolean guardarPartidaActual() {
+
+        if (juego == null) {
+            return true;
+        }
+
+        if (slotActual < 0) {
+
+            slotActual =
+                gestorPartidas.primerLibre();
+        }
+
+        if (slotActual < 0) {
+
+            mensajeGuardado =
+                "No hay un slot libre para guardar.";
+
+            return false;
+        }
+
+        DatosPartida datos =
+            DatosPartida.capturar(juego);
+
+        datos.velocidadX = velocidadX;
+        datos.velocidadY = velocidadY;
+
+        datos.tiempoInvulnerable =
+            tiempoInvulnerable;
+
+        datos.saltosDisponibles =
+            saltosDisponibles;
+
+        datos.haciendoDash =
+            haciendoDash;
+
+        datos.dashDisponibleAire =
+            dashDisponibleAire;
+
+        datos.tiempoDashRestante =
+            tiempoDashRestante;
+
+        datos.tiempoCooldownDash =
+            tiempoCooldownDash;
+
+        datos.direccionDash =
+            direccionDash;
+
+        datos.mirandoIzquierda =
+            mirandoIzquierda;
+
+        datos.transicionBloqueada =
+            transicionBloqueada;
+
+        try {
+
+            gestorPartidas.guardar(
+                slotActual,
+                datos
+            );
+
+            mensajeGuardado = "";
+
+            return true;
+
+        } catch (RuntimeException error) {
+
+            Gdx.app.error(
+                "Partidas",
+                "No se pudo guardar.",
+                error
+            );
+
+            mensajeGuardado =
+                "No se pudo guardar. Volvé a intentarlo.";
+
+            return false;
+        }
+    }
+
+    private void cargarPartida(int slot) {
+
+        try {
+
+            DatosPartida datos =
+                gestorPartidas.cargar(
+                    slot,
+                    jugador
+                );
+
+            Juego restaurado =
+                new Juego(jugador);
+
+            restaurado.restaurarPartida(datos);
+
+            juego = restaurado;
+
+            slotActual = slot;
+
+            velocidadX = datos.velocidadX;
+            velocidadY = datos.velocidadY;
+
+            tiempoInvulnerable =
+                datos.tiempoInvulnerable;
+
+            saltosDisponibles =
+                datos.saltosDisponibles;
+
+            haciendoDash =
+                datos.haciendoDash;
+
+            dashDisponibleAire =
+                datos.dashDisponibleAire;
+
+            tiempoDashRestante =
+                datos.tiempoDashRestante;
+
+            tiempoCooldownDash =
+                datos.tiempoCooldownDash;
+
+            direccionDash =
+                datos.direccionDash;
+
+            mirandoIzquierda =
+                datos.mirandoIzquierda;
+
+            transicionBloqueada =
+                datos.transicionBloqueada;
+
+            gameOver = !jugador.estaVivo();
+
+            pausado = false;
+            viendoControles = false;
+            viendoVolumen = false;
+
+            opcionPausa = 0;
+
+            tiempoHitboxAtaqueDebug = 0;
+            tiempoHitboxAtaqueEnemigoDebug = 0;
+
+            mensajeGuardado = "";
+
+            viendoPartidas = false;
+            enMenuPrincipal = false;
+
+            menuDerrota.reiniciarSeleccion();
+            menuVictoria.reiniciarSeleccion();
+
+            actualizarPuertas();
+
+        } catch (RuntimeException error) {
+
+            Gdx.app.error(
+                "Partidas",
+                "No se pudo cargar.",
+                error
+            );
+
+            menuPartidas.abrir();
+
+            menuPartidas.mostrarMensaje(
+                "No se pudo cargar la partida."
+            );
+
+            viendoPartidas = true;
+            enMenuPrincipal = true;
+        }
+    }
+
+    private void dibujarMensajeGuardado() {
+
+        if (mensajeGuardado.isEmpty()) {
+            return;
+        }
+
+        batch.begin();
+
+        dibujarTextoCentrado(
+            mensajeGuardado,
+            90f,
+            Color.ORANGE
+        );
+
+        font.setColor(Color.WHITE);
+
+        batch.end();
     }
 }

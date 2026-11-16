@@ -66,4 +66,31 @@ public class Etapa {
     public Bioma getBioma() {
         return bioma;
     }
+    
+    public void reconectarEntidadesGuardadas() {
+
+        enemigos.clear();
+
+        for (Sala[] fila : mapa) {
+
+            for (Sala sala : fila) {
+
+                if (sala == null) {
+                    continue;
+                }
+
+                enemigos.addAll(
+                    sala.getEnemigos()
+                );
+
+                for (Enemigo enemigo :
+                        sala.getEnemigos()) {
+
+                    if (enemigo instanceof Jefe) {
+                        jefe = (Jefe) enemigo;
+                    }
+                }
+            }
+        }
+    }
 }

@@ -39,6 +39,8 @@ public class MenuPrincipal implements Disposable {
     
     private final MenuVolumen menuVolumen;
     private boolean viendoVolumen;
+    
+    private boolean solicitarPartidas;
 
     public MenuPrincipal(
             BitmapFont fuente,
@@ -100,7 +102,7 @@ public class MenuPrincipal implements Disposable {
         switch (pantalla) {
             case PRINCIPAL:
                 return new String[] {
-                    "JUGAR",
+                    "CONTINUAR",
                     "PARTIDAS",
                     "CONFIGURACION",
                     "SALIR"
@@ -186,7 +188,7 @@ public class MenuPrincipal implements Disposable {
                         return true;
 
                     case 1:
-                        // PARTIDAS (puedes enlazarlo o dejarlo temporal)
+                        solicitarPartidas = true;
                         break;
 
                     case 2:
@@ -290,6 +292,32 @@ public class MenuPrincipal implements Disposable {
                 batch.draw(fondoActual, 0f, 0f, 1280f, 720f);
             }
         }
+        
+        if (pantalla == Pantalla.PRINCIPAL) {
+
+            batch.end();
+
+            formas.begin(
+                ShapeRenderer.ShapeType.Filled
+            );
+
+            formas.setColor(
+                0.04f, 0.04f, 0.08f, 1f
+            );
+
+            Rectangle boton = botones[0];
+
+            formas.rect(
+                boton.x,
+                boton.y,
+                boton.width,
+                boton.height
+            );
+
+            formas.end();
+
+            batch.begin();
+        }
 
         // 2. TÍTULO / LOGO (Solo se dibuja en submenús, ya que en el menú principal ya viene en el fondo)
         if (pantalla != Pantalla.PRINCIPAL) {
@@ -319,7 +347,7 @@ public class MenuPrincipal implements Disposable {
 
             // SOLO dibujamos las letras por código si ESTAMOS EN SUBMENÚS.
             // En el menú principal el fondo ya trae las letras dibujadas.
-            if (pantalla != Pantalla.PRINCIPAL) {
+            if (pantalla != Pantalla.PRINCIPAL || i == 0) {
                 fuente.setColor(
                     i == seleccion
                         ? Color.ORANGE
@@ -410,5 +438,14 @@ public class MenuPrincipal implements Disposable {
     	viendoVolumen = false;
     	
         cambiarPantalla(Pantalla.PRINCIPAL);
+    }
+    
+    public boolean consumirSolicitudPartidas() {
+
+        boolean solicitud = solicitarPartidas;
+
+        solicitarPartidas = false;
+
+        return solicitud;
     }
 }

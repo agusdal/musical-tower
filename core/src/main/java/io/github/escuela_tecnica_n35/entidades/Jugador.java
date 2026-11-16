@@ -321,7 +321,32 @@ public class Jugador extends Entidad {
 	    // Volvemos a la posición inicial.
 	    getPosicion().setX(xInicial);
 	    getPosicion().setY(yInicial);
+	    
+	    
+	    setVelocidad(250f);
 
+	    ataqueNormal = new Ataque(
+	        "Ataque normal",
+	        7,
+	        ANCHO_ATAQUE_INICIAL,
+	        ALTO_ATAQUE_INICIAL,
+	        COOLDOWN_ATAQUE_INICIAL
+	    );
+
+	    ataquePogo = new Ataque(
+	        "Pogo",
+	        7,
+	        100f,
+	        100f,
+	        0.25f
+	    );
+
+	    ataques.clear();
+
+	    agregarAtaque(ataqueNormal);
+	    agregarAtaque(ataquePogo);
+	    
+	    
 	    // Reiniciamos las monedas.
 	    monedas = 0;
 

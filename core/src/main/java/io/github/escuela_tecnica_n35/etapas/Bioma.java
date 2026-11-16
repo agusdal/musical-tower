@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class Bioma {
     private String nombre;
+    private String rutaImagen;
     private Texture texturaCompleta;
     private TextureRegion texturaDosPuertas;
     private TextureRegion texturaPuertaIzquierda;
@@ -12,6 +13,7 @@ public class Bioma {
 
     public Bioma(String nombre, String rutaImagen) {
         this.nombre = nombre;
+        this.rutaImagen = rutaImagen;
         this.texturaCompleta = new Texture(rutaImagen);
 
         int ancho = texturaCompleta.getWidth();
@@ -29,6 +31,10 @@ public class Bioma {
 
     public String getNombre() {
         return nombre;
+    }
+    
+    public String getRutaImagen() {
+        return rutaImagen;
     }
 
     public TextureRegion getTexturaDosPuertas() {

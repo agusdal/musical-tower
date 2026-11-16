@@ -468,4 +468,30 @@ public class Juego {
             && etapaActual.getJefe() != null
             && !etapaActual.getJefe().estaVivo();
     }
+    
+    public ArrayList<Item> getPoolItemsGuardado() {
+        return poolItems;
+    }
+
+    public GeneracionEtapa getGeneradorGuardado() {
+        return generador;
+    }
+
+    public void restaurarPartida(
+            io.github.escuela_tecnica_n35.DatosPartida datos) {
+
+        etapaActual = datos.etapa;
+
+        salaActual =
+            etapaActual.getMapa()
+                [datos.fila]
+                [datos.columna];
+
+        poolItems = datos.poolItems;
+
+        generador.restaurarPoolsGuardados(
+            datos.poolGenerador,
+            datos.biomasDisponibles
+        );
+    }
 }

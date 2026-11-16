@@ -1586,4 +1586,24 @@ public class GeneracionEtapa {
 
 	    sala.agregarEnemigo(enemigo);
 	}
+	
+	public ArrayList<Item> getPoolItemsGuardado() {
+	    return poolItems;
+	}
+
+	public ArrayList<Bioma> getBiomasGuardado() {
+	    return poolBiomasDisponibles;
+	}
+
+	public void restaurarPoolsGuardados(
+	        ArrayList<Item> items,
+	        ArrayList<Bioma> biomas) {
+
+	    for (Bioma bioma : poolBiomasDisponibles) {
+	        bioma.dispose();
+	    }
+
+	    poolItems = items;
+	    poolBiomasDisponibles = biomas;
+	}
 }

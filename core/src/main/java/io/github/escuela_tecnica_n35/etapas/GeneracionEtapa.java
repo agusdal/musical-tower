@@ -1359,9 +1359,9 @@ public class GeneracionEtapa {
 
 
 	            int molde =
-	                random.nextInt(3);
-
-
+	                random.nextInt(4);
+	            
+	            
 	            switch (molde) {
 
 	                case 0:
@@ -1374,6 +1374,10 @@ public class GeneracionEtapa {
 
 	                case 2:
 	                    aplicarMoldeEnemigos3(sala);
+	                    break;
+	                    
+	                case 3:
+	                    aplicarMoldeEnemigos4(sala);
 	                    break;
 	            }
 	        }
@@ -1399,15 +1403,15 @@ public class GeneracionEtapa {
 	private void aplicarMoldeEnemigos2(Sala sala) {
 
 	    Plataforma izquierda = new Plataforma(
-	        110f,   // X
-	        280f,   // Y
-	        360f,   // ancho
-	        30f     // alto
+	        110f,
+	        250f,
+	        360f,
+	        30f
 	    );
 
 	    Plataforma derecha = new Plataforma(
-	        740f,
-	        280f,
+	        810f,
+	        250f,
 	        360f,
 	        30f
 	    );
@@ -1415,8 +1419,15 @@ public class GeneracionEtapa {
 	    sala.agregarPlataforma(izquierda);
 	    sala.agregarPlataforma(derecha);
 
-	    agregarNormalSobrePlataforma(sala, izquierda);
-	    agregarNormalSobrePlataforma(sala, derecha);
+	    agregarNormalSobrePlataforma(
+	        sala,
+	        izquierda
+	    );
+
+	    agregarNormalSobrePlataforma(
+	        sala,
+	        derecha
+	    );
 	}
 
 
@@ -1429,20 +1440,20 @@ public class GeneracionEtapa {
 
 	    Plataforma inferiorIzquierda = new Plataforma(
 	        200f,
-	        210f,
+	        225f,
 	        170f,
 	        30f
 	    );
 
 	    Plataforma inferiorDerecha = new Plataforma(
-	        850f,
+	        910f,
 	        225f,
 	        170f,
 	        30f
 	    );
 
 	    Plataforma central = new Plataforma(
-	        510f,
+	        545f,
 	        330f,
 	        190f,
 	        30f
@@ -1456,9 +1467,9 @@ public class GeneracionEtapa {
 	    );
 
 	    Plataforma superiorDerecha = new Plataforma(
-	        960f,
+	        980f,
 	        450f,
-	        210f,
+	        200f,
 	        30f
 	    );
 
@@ -1480,7 +1491,41 @@ public class GeneracionEtapa {
 
 	    agregarVolador(sala, 570f, 590f);
 	}
+	
+	private void aplicarMoldeEnemigos4(Sala sala) {
+		
+		// ENEMIGO IZQUIERDA
+		agregarNormal(sala, 220f, 50f);
+		
+		// ENEMIGO DERECHA
+		agregarNormal(sala, 880f, 50f);
+	}
+	
+	
+	private void agregarNormal(Sala sala, float x, float y) {
 
+	    Hitbox hitbox = new Hitbox(
+	        80f, 	// Ancho
+	        170f,	// Alto
+	        0f,
+	        0f
+	    );
+
+	    Enemigo enemigo = new Enemigo(
+	        "Enemigo normal",
+	        new Posicion(x, y),
+	        30,       // vida
+	        100f,     // velocidad
+	        10,       // daño
+	        1,        // monedas mínimas
+	        3,        // monedas máximas
+	        hitbox
+	    );
+
+	    sala.agregarEnemigo(enemigo);
+	}
+	
+	
 
 	// --------------------------------------------------
 	// CREAR UN ENEMIGO NORMAL SOBRE UNA PLATAFORMA
@@ -1492,7 +1537,7 @@ public class GeneracionEtapa {
 
 	    Hitbox hitbox = new Hitbox(
 	        80f, 	// Ancho
-	        140f,	// Alto
+	        170f,	// Alto
 	        0f,
 	        0f
 	    );

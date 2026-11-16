@@ -51,7 +51,7 @@ public class Jugador extends Entidad {
 
     private static final float FUERZA_POGO_INICIAL = 500f;
     private static final float VELOCIDAD_DASH_INICIAL = 900f;
-    private static final float ANCHO_ATAQUE_INICIAL = 130f;
+    private static final float ANCHO_ATAQUE_INICIAL = 140f;
     private static final float ALTO_ATAQUE_INICIAL = 140f;
     private static final float COOLDOWN_ATAQUE_INICIAL = 0.40f;
     private static final float COOLDOWN_ATAQUE_MINIMO = 0.10f;
@@ -89,7 +89,7 @@ public class Jugador extends Entidad {
 	        "Pogo",
 	        daño,
 	        100f,
-	        80f,
+	        100f,
 	        0.25f
 	    );
 

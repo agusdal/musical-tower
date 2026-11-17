@@ -12,7 +12,7 @@ public class Ataque {
     // Tiempo TOTAL de la
     // recuperación del ataque.
     private float cooldown;
-    
+
 	// Tiempo que falta para poder volver
 	// a utilizar este ataque.
 	private float cooldownRestante;
@@ -29,7 +29,7 @@ public class Ataque {
         this.daño = daño;
         this.hitbox = new Hitbox(ancho, alto, 0f, 0f);
         this.cooldown = cooldown;
-        
+
         // Al crearse, el ataque está disponible.
         this.cooldownRestante = 0;
     }
@@ -54,7 +54,7 @@ public class Ataque {
     public Hitbox getHitbox() {
         return hitbox;
     }
-    
+
     public void setHitbox(Hitbox hitbox) {
         this.hitbox = hitbox;
     }
@@ -62,45 +62,45 @@ public class Ataque {
     public float getCooldown() {
         return cooldown;
     }
-    
+
 	// --------------------------------------------------
 	// COOLDOWN
 	// --------------------------------------------------
-	
+
 	public boolean estaDisponible() {
-	
+
 	    return cooldownRestante <= 0;
 	}
-	
+
 	public void iniciarCooldown() {
-	
+
 	    cooldownRestante = cooldown;
 	}
-	
+
 	public void actualizarCooldown(float delta) {
-	
+
 	    if (cooldownRestante > 0) {
-	
+
 	        cooldownRestante -= delta;
-	
+
 	        // Evitamos valores negativos.
 	        if (cooldownRestante < 0) {
-	
+
 	            cooldownRestante = 0;
 	        }
 	    }
 	}
-	
+
 	void setCooldown(float cooldown) {
 	    this.cooldown = cooldown;
 	}
-	
-	
+
+
 	public float getCooldownRestante() {
-	
+
 	    return cooldownRestante;
 	}
-	
+
 	public void aumentarDaño(int cantidad) {
 
 	    if (cantidad > 0) {

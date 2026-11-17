@@ -47,15 +47,19 @@ public class Main_game extends ApplicationAdapter {
 
     private MenuPrincipal menuPrincipal;
     private boolean enMenuPrincipal = true;
-    
+
     private GestorMusica musica;
     private MenuVolumen menuVolumen;
     private boolean viendoVolumen;
-    
+    private Texture texturaJefe;
+    private Texture[] texturasJefes;
+    private TextureRegion[][][] regionesJefes;
+    private TextureRegion[][] regionesJefe;
+
     private MenuDerrota menuDerrota;
-    
+
     private MenuVictoria menuVictoria;
-    
+
     private GestorPartidas gestorPartidas;
     private MenuPartidas menuPartidas;
 
@@ -206,6 +210,40 @@ public class Main_game extends ApplicationAdapter {
         texturaBicho = new Texture("bicho.jpg");
         texturaMosca = new Texture("mosca.png");
         texturaPlataforma = new Texture("plataforma.jpg");
+        texturasJefes = new Texture[4];
+        regionesJefes = new TextureRegion[4][][];
+
+// Piso 1: Falso Caballero (grilla 5x4)
+        texturasJefes[0] = new Texture("bosses/falso.png");
+        regionesJefes[0] = TextureRegion.split(
+            texturasJefes[0],
+            texturasJefes[0].getWidth() / 5,
+            texturasJefes[0].getHeight() / 4
+        );
+
+// Piso 2: Hornet (grilla 4x4)
+        texturasJefes[1] = new Texture("bosses/hornet.png");
+        regionesJefes[1] = TextureRegion.split(
+            texturasJefes[1],
+            texturasJefes[1].getWidth() / 4,
+            texturasJefes[1].getHeight() / 4
+        );
+
+// Piso 3: Mantis (grilla 4x4)
+        texturasJefes[2] = new Texture("bosses/mantis.png");
+        regionesJefes[2] = TextureRegion.split(
+            texturasJefes[2],
+            texturasJefes[2].getWidth() / 4,
+            texturasJefes[2].getHeight() / 4
+        );
+
+// Piso 4 (Final): Watcher (grilla 4x4)
+        texturasJefes[3] = new Texture("bosses/watcher.png");
+        regionesJefes[3] = TextureRegion.split(
+            texturasJefes[3],
+            texturasJefes[3].getWidth() / 4,
+            texturasJefes[3].getHeight() / 4
+        );
         texturasItems = new HashMap<>();
 
         // --- CARGA DE LA TEXTURA DE ASCENSOR Y CORTE EN DOS REGIONES ---
@@ -220,24 +258,24 @@ public class Main_game extends ApplicationAdapter {
         font.getData().setScale(1.2f);
 
         layout = new GlyphLayout();
-        
+
 
         musica = new GestorMusica();
 
         menuVolumen = new MenuVolumen(font, musica);
-        
+
 
         menuPrincipal = new MenuPrincipal(font, menuVolumen);
-        
+
         gestorPartidas = new GestorPartidas();
 
         menuPartidas = new MenuPartidas(
             font,
             gestorPartidas
         );
-        
+
         menuDerrota = new MenuDerrota(font);
-        
+
         menuVictoria = new MenuVictoria(font);
 
         shapeRenderer = new ShapeRenderer();
@@ -282,11 +320,11 @@ public class Main_game extends ApplicationAdapter {
     @Override
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
-        
+
         musica.actualizar(
         	    enMenuPrincipal ? null : juego.getEtapaActual()
         	);
-        
+
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
 
         viewport.apply();
@@ -294,7 +332,7 @@ public class Main_game extends ApplicationAdapter {
 
         batch.setProjectionMatrix(camara.combined);
         shapeRenderer.setProjectionMatrix(camara.combined);
-        
+
         if (enMenuPrincipal) {
 
             if (viendoPartidas) {
@@ -379,7 +417,7 @@ public class Main_game extends ApplicationAdapter {
                     return;
             }
         }
-        
+
         if (juego.partidaGanada()) {
 
             switch (menuVictoria.actualizar(viewport)) {
@@ -401,7 +439,7 @@ public class Main_game extends ApplicationAdapter {
                     return;
             }
         }
-        
+
         if (pausado || Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             actualizarMenuPausa();
 
@@ -541,12 +579,12 @@ public class Main_game extends ApplicationAdapter {
         jugador.setEstado(seMueve, mirandoIzquierda, enElPiso, velocidadActualY);
 
         comprobarAtaqueJugador();
-        
+
         if (juego.partidaGanada()) {
             menuVictoria.dibujar(batch, shapeRenderer);
             return;
         }
-        
+
         comprobarRecogerItem();
         comprobarCompraTienda();
         actualizarPuertas();
@@ -576,7 +614,7 @@ public class Main_game extends ApplicationAdapter {
 
         dibujarHUD();
         dibujarAvisoAvanzarEtapa();
-        
+
         dibujarMensajeGuardado();
     }
 
@@ -585,7 +623,7 @@ public class Main_game extends ApplicationAdapter {
         batch.dispose();
 
         musica.dispose();
-        
+
         menuPrincipal.dispose();
         menuDerrota.dispose();
         menuVictoria.dispose();
@@ -598,6 +636,13 @@ public class Main_game extends ApplicationAdapter {
         texturaMosca.dispose();
         texturaPlataforma.dispose();
         texturaAscensor.dispose(); // <--- LIBERAMOS LA TEXTURA DEL ASCENSOR
+        if (texturasJefes != null) {
+            for (Texture t : texturasJefes) {
+                if (t != null) {
+                    t.dispose();
+                }
+            }
+        }
 
         // Liberar todas las texturas de ítems cargadas
         for (Texture t : texturasItems.values()) {
@@ -807,7 +852,7 @@ public class Main_game extends ApplicationAdapter {
     }
 
     private void actualizarMenuPausa() {
-    	
+
     	if (viendoVolumen) {
     	    if (menuVolumen.actualizar(viewport)) {
     	        viendoVolumen = false;
@@ -815,8 +860,8 @@ public class Main_game extends ApplicationAdapter {
 
     	    return;
     	}
-    	
-    	
+
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (viendoControles) {
                 viendoControles = false;
@@ -875,20 +920,20 @@ public class Main_game extends ApplicationAdapter {
 	            case 0:
 	                pausado = false;
 	                break;
-	
+
 	            case 1:
 	                viendoControles = true;
 	                break;
-	
+
 	            case 2:
 	                menuVolumen.restablecer();
 	                viendoVolumen = true;
 	                break;
-	
+
 	            case 3:
 	                reiniciarPartida();
 	                break;
-	
+
 	            case 4:
 	                volverAlMenuPrincipal();
 	                break;
@@ -911,12 +956,12 @@ public class Main_game extends ApplicationAdapter {
     }
 
     private void dibujarMenuPausa() {
-    	
+
     	if (viendoVolumen) {
     	    menuVolumen.dibujar(batch, shapeRenderer);
     	    return;
     	}
-    	
+
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1177,7 +1222,7 @@ public class Main_game extends ApplicationAdapter {
         		        < hitboxPlataforma.x + hitboxPlataforma.width
         		    && cuerpoActual.x + cuerpoActual.width
         		        > hitboxPlataforma.x;
-        		        
+
             boolean cruzaSuperficie = cuerpoAnterior.y >= superficiePlataforma && cuerpoActual.y <= superficiePlataforma;
 
             if (coincideEnX && cruzaSuperficie) {
@@ -1530,6 +1575,9 @@ public class Main_game extends ApplicationAdapter {
 
     private void dibujarEnemigos() {
         Sala salaActual = juego.getSalaActual();
+        if (salaActual == null) {
+            return;
+        }
 
         batch.begin();
 
@@ -1557,32 +1605,175 @@ public class Main_game extends ApplicationAdapter {
                     false,
                     false
                 );
+            } else if (enemigo instanceof Jefe && regionesJefes != null) {
+                Jefe jefe = (Jefe) enemigo;
+                Rectangle hitboxJugador = obtenerHitboxJugador();
+                boolean jugadorALaDerecha =
+                    (hitboxJugador.x + hitboxJugador.width / 2f)
+                        >= (hitbox.x + hitbox.width / 2f);
+
+                int numeroPiso = juego.getEtapaActual().getNumeroPiso();
+                int indiceJefe = Math.max(0, Math.min(regionesJefes.length - 1, numeroPiso - 1));
+                if (regionesJefes[indiceJefe] == null) {
+                    indiceJefe = 0;
+                }
+
+                TextureRegion[][] regiones = regionesJefes[indiceJefe];
+                TextureRegion frameActual;
+                float anchoVisual;
+                float altoVisual;
+                float offsetY;
+
+                float proporcionUnTercioMayor = 4f / 3f;
+
+                if (indiceJefe == 3) {
+                    // --- PISO 4: WATCHER (grilla 4x4) ---
+                    int frameNum;
+
+                    if (jefe.getEstado() == EstadoEnemigo.ATACAR) {
+                        int paso = (int) (System.currentTimeMillis() / 130) % 3;
+                        frameNum = jugadorALaDerecha ? (6 + paso) : (14 + paso);
+                    } else if (jefe.getEstado() == EstadoEnemigo.PERSEGUIR) {
+                        int paso = (int) (System.currentTimeMillis() / 130) % 4;
+                        frameNum = jugadorALaDerecha ? (2 + paso) : (10 + paso);
+                    } else {
+                        frameNum = jugadorALaDerecha ? 1 : 9;
+                    }
+
+                    int index0 = Math.max(0, Math.min(15, frameNum - 1));
+                    int fila = index0 / 4;
+                    int col = index0 % 4;
+
+                    frameActual = regiones[fila][col];
+
+                    // Tamaño y posición independientes para el Watcher
+                    float compensacionCeldaWatcher = 1.7f;
+                    anchoVisual = ANCHO_HITBOX_JUGADOR * proporcionUnTercioMayor * compensacionCeldaWatcher;
+                    altoVisual = ALTO_HITBOX_JUGADOR * proporcionUnTercioMayor * compensacionCeldaWatcher;
+                    offsetY = -altoVisual * 0.13f;
+
+                } else if (indiceJefe == 2) {
+                    // --- PISO 3: MANTIS (grilla 4x4) ---
+                    int frameNum;
+
+                    if (jefe.getEstado() == EstadoEnemigo.ATACAR) {
+                        int paso = (int) (System.currentTimeMillis() / 130) % 3;
+                        frameNum = jugadorALaDerecha ? (6 + paso) : (14 + paso);
+                    } else if (jefe.getEstado() == EstadoEnemigo.PERSEGUIR) {
+                        int paso = (int) (System.currentTimeMillis() / 130) % 4;
+                        frameNum = jugadorALaDerecha ? (2 + paso) : (10 + paso);
+                    } else {
+                        frameNum = jugadorALaDerecha ? 1 : 9;
+                    }
+
+                    int index0 = Math.max(0, Math.min(15, frameNum - 1));
+                    int fila = index0 / 4;
+                    int col = index0 % 4;
+
+                    frameActual = regiones[fila][col];
+
+                    // Tamaño y posición independientes para la Mantis
+                    float compensacionCeldaMantis = 2.1f;
+                    anchoVisual = ANCHO_HITBOX_JUGADOR * proporcionUnTercioMayor * compensacionCeldaMantis;
+                    altoVisual = ALTO_HITBOX_JUGADOR * proporcionUnTercioMayor * compensacionCeldaMantis;
+                    offsetY = -altoVisual * 0.18f;
+
+                } else if (indiceJefe == 1) {
+                    // --- PISO 2: HORNET (grilla 4x4) ---
+                    int fila;
+                    int col;
+
+                    if (jefe.getEstado() == EstadoEnemigo.ATACAR) {
+                        int paso = (int) (System.currentTimeMillis() / 140) % 2;
+                        if (jugadorALaDerecha) {
+                            fila = 3;
+                            col = (paso == 0) ? 0 : 1;
+                        } else {
+                            fila = 1;
+                            col = (paso == 0) ? 1 : 2;
+                        }
+                    } else if (jefe.getEstado() == EstadoEnemigo.PERSEGUIR) {
+                        fila = jugadorALaDerecha ? 2 : 0;
+                        col = (int) (System.currentTimeMillis() / 130) % 4;
+                    } else {
+                        fila = jugadorALaDerecha ? 2 : 0;
+                        col = 0;
+                    }
+
+                    fila = Math.max(0, Math.min(regiones.length - 1, fila));
+                    int maxCol = (regiones[fila] != null) ? regiones[fila].length - 1 : 0;
+                    col = Math.max(0, Math.min(maxCol, col));
+
+                    frameActual = regiones[fila][col];
+
+                    float compensacionCelda = 3.0f;
+                    anchoVisual = ANCHO_HITBOX_JUGADOR * proporcionUnTercioMayor * compensacionCelda;
+                    altoVisual = ALTO_HITBOX_JUGADOR * proporcionUnTercioMayor * compensacionCelda;
+                    offsetY = -altoVisual * 0.3f;
+                } else {
+                    // --- PISO 1: FALSO CABALLERO (grilla 5x4) ---
+                    int filaBase = jugadorALaDerecha ? 0 : 2;
+                    int fila;
+                    int col;
+
+                    if (jefe.getEstado() == EstadoEnemigo.ATACAR) {
+                        fila = filaBase + 1;
+                        col = (int) (System.currentTimeMillis() / 130) % 4;
+                    } else if (jefe.getEstado() == EstadoEnemigo.PERSEGUIR) {
+                        fila = filaBase;
+                        col = ((int) (System.currentTimeMillis() / 140) % 4) + 1;
+                    } else {
+                        fila = filaBase;
+                        col = 0;
+                    }
+
+                    fila = Math.max(0, Math.min(regiones.length - 1, fila));
+                    int maxCol = (regiones[fila] != null) ? regiones[fila].length - 1 : 0;
+                    col = Math.max(0, Math.min(maxCol, col));
+
+                    frameActual = regiones[fila][col];
+
+                    float compensacionCelda = 3.5f;
+                    anchoVisual = ANCHO_HITBOX_JUGADOR * proporcionUnTercioMayor * compensacionCelda;
+                    altoVisual = ALTO_HITBOX_JUGADOR * proporcionUnTercioMayor * compensacionCelda;
+                    offsetY = -altoVisual * 0.25f;
+                }
+
+                float drawX = hitbox.x + (hitbox.width - anchoVisual) / 2f;
+                float drawY = hitbox.y + offsetY;
+
+                batch.draw(
+                    frameActual,
+                    drawX,
+                    drawY,
+                    anchoVisual,
+                    altoVisual
+                );
             } else {
                 Rectangle hitboxJugador = obtenerHitboxJugador();
-                boolean jugadorALaDerecha = (hitboxJugador.x + hitboxJugador.width / 2f) >= (hitbox.x + hitbox.width / 2f);
+                boolean jugadorALaDerecha =
+                    (hitboxJugador.x + hitboxJugador.width / 2f)
+                        >= (hitbox.x + hitbox.width / 2f);
 
                 enemigo.actualizarAnimacionYFrame(Gdx.graphics.getDeltaTime(), jugadorALaDerecha);
 
-                // Obtenemos las medidas reales del frame del bicho
                 float anchoFrame = enemigo.getAnchoFrame(texturaBicho.getWidth());
                 float altoFrame = enemigo.getAltoFrame(texturaBicho.getHeight());
 
-                // Factor de escala (puedes ajustarlo si lo quieres un poco más chico o más grande)
                 float escala = 0.85f;
                 float anchoVisual = anchoFrame * escala;
                 float altoVisual = altoFrame * escala;
 
-                // Dibujamos el enemigo terrestre (bicho.jpg) escalado y centrado respecto a su hitbox
                 batch.draw(
                     texturaBicho,
-                    hitbox.x + (hitbox.width - anchoVisual) / 2f, // Centrado horizontalmente con la hitbox
-                    hitbox.y,                                  // Alineado a la base de la hitbox
+                    hitbox.x + (hitbox.width - anchoVisual) / 2f,
+                    hitbox.y,
                     anchoVisual,
                     altoVisual,
                     enemigo.getSourceX(texturaBicho.getWidth()),
                     enemigo.getSourceY(texturaBicho.getHeight()),
-                    (int) anchoFrame, // Casteado a int
-                    (int) altoFrame,  // Casteado a int
+                    (int) anchoFrame,
+                    (int) altoFrame,
                     false,
                     false
                 );
@@ -1935,7 +2126,7 @@ public class Main_game extends ApplicationAdapter {
 
     private void volverAlMenuPrincipal() {
         enMenuPrincipal = true;
-        
+
         if (!guardarPartidaActual()) {
 
             pausado = true;
@@ -1944,13 +2135,13 @@ public class Main_game extends ApplicationAdapter {
         }
 
         viendoPartidas = false;
-        
+
         gameOver = false;
 
         pausado = false;
         viendoControles = false;
         opcionPausa = 0;
-        
+
         viendoVolumen = false;
 
         menuPrincipal.restablecer();
@@ -1984,10 +2175,10 @@ public class Main_game extends ApplicationAdapter {
         pausado = false;
         viendoControles = false;
         opcionPausa = 0;
-        
+
         viendoVolumen = false;
     }
-    
+
     private void actualizarPartidas() {
 
         switch (menuPartidas.actualizar(viewport)) {
